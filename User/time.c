@@ -16,6 +16,7 @@
 /* 暂时未被使用*/
 volatile uint32_t system_time_ms=0;
 uint8_t wdt_counter = 0;
+uint8_t  reset_flag=0;	/*报警的复归标志,暂时未用*/
 
 /******************************************************************************
  * 函数名:	Delay_Ms 
@@ -127,6 +128,30 @@ void DelayAndFeedDog(uint32_t myMs)
 	#endif
 	// 没有外部看门狗，不用考虑看门狗溢出
 	Delay_Ms(myMs);
+}
+
+
+/******************************************************************************
+ * 函数名:	delay 
+ * 描述:  	delay多少个时钟周期
+ * 
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:2018.10.18
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+void Delay_clk( uint16_t time)
+{
+  	while(time--)
+  	{
+     		 NOP();
+  	}
 }
 
 //*****************************************************************************
@@ -355,7 +380,7 @@ void TIM2_IRQHandler (void)
 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
 
 	/*1s,喂狗, 200ms标志位暂时未使用*/
-	if( ++t_100ms>= MS_200)
+	if( ++t_100ms>= ONE_SECOND)
 	{
      		t_100ms=0;
 		system_flag |= SYSTEM_200MS;
@@ -367,16 +392,6 @@ void TIM2_IRQHandler (void)
 	    	}
 	}
 
-	/* 防砸监视时间到.*/
-	if(WatchingDelayCount > 0)
-	{
-		WatchingDelayCount--;
-		if(WatchingDelayCount==0) 
-		{
-			// 不再监视后线圈,接触防砸逻辑
-			system_flag &= ~CAR_WATCHING;
-		}
-	}
 
 	/* 系统检测状态和控制位是否一致,每3s检测一次*/
 	if(detect_time_counter > 0)
@@ -396,9 +411,11 @@ void TIM2_IRQHandler (void)
 		if(alarm_time_counter == 0)
 		{
 			DeviceX_Deactivate(VOX_ALM);
-			DeviceX_Deactivate(LIGHT_ALM);
 		}
 	}
+
+	/*要放在20ms定时器里面*/
+	//DOProcessTickEvents();		/*展宽处理*/
 } 
 
 

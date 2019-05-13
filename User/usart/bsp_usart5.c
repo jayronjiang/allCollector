@@ -1,17 +1,19 @@
 /**
   ******************************************************************************
-  * @file    bsp_usart2.c
+  * @file    bsp_usart5.c
   * @author  Jerry
   * @date    17-Oct-2018
   *
-  * @brief   USART1板级应用.
+  * @brief   USART3板级应用.
   *
   ******************************************************************************
   */
 #include "include.h"
   
-#if (BD_USART_NUM >= 2)
+#if (BD_USART_NUM >= 4)
 
+#define USARTn 		UART5
+#define UART_COM 	UART5_COM
  /******************************************************************************
  * 函数名:	USART2_Config 
  * 描述: USART2 GPIO 配置,工作模式配置。115200 8-N-1
@@ -27,43 +29,44 @@
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void USART2_Config(uint32_t baudrate)
+void USART5_Config(uint32_t baudrate)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	
-	/* config USART1 clock */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2,ENABLE);
+	/* config USART5 clock */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE);
 	
-	/* USART1 GPIO config */
-	/* Configure USART2 Tx (PA.09) as alternate function push-pull */
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	/* USART3 GPIO config */
+	/* Configure UART5 Tx (PC.12) as alternate function push-pull */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);    
-	/* Configure USART2 Rx (PA.10) as input floating */
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);    
+	/* Configure UART5 Rx (PD.2) as input floating */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
 	
-	/* USART2 mode config */
+	/* UART5 mode config */
 	USART_InitStructure.USART_BaudRate = baudrate;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No ;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_Init(USART2, &USART_InitStructure);
+	USART_Init(USARTn, &USART_InitStructure);
 	
-	/* 使能串口2接收中断 */
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+	/* 使能串口5接收中断 */
+	USART_ITConfig(USARTn, USART_IT_RXNE, ENABLE);
 	/* 使能串口2空闲中断 */
-	USART_ITConfig(USART2, USART_IT_IDLE, ENABLE);
+	USART_ITConfig(USARTn, USART_IT_IDLE, ENABLE);
 	
-	USART_Cmd(USART2, ENABLE);
+	USART_Cmd(USARTn, ENABLE);
 	
-	NVIC_USART2_Configuration();
+	NVIC_USART5_Configuration();
 	
 	//printf("USART2初始化完成\n");
 }
@@ -83,14 +86,14 @@ void USART2_Config(uint32_t baudrate)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void NVIC_USART2_Configuration(void)
+void NVIC_USART5_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure; 
 	
 	/* Enable the USARTy Interrupt */
-	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;	 
+	NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQn;	 
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 5;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
@@ -110,14 +113,14 @@ void NVIC_USART2_Configuration(void)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-static void Param_USART2_Init(void)
+static void Param_USART5_Init(void)
 {
 	/*初始化物理层缓冲区数据*/
-	UARTBuf[UART2_COM].RxLen = 0;
-	UARTBuf[UART2_COM].TxLen = 0;
-	UARTBuf[UART2_COM].TxPoint= 0;
-	UARTBuf[UART2_COM].RecFlag= 0;
-	UARTBuf[UART2_COM].Timer =0;
+	UARTBuf[UART_COM].RxLen = 0;
+	UARTBuf[UART_COM].TxLen = 0;
+	UARTBuf[UART_COM].TxPoint= 0;
+	UARTBuf[UART_COM].RecFlag= 0;
+	UARTBuf[UART_COM].Timer =0;
 }
 
  /******************************************************************************
@@ -135,10 +138,10 @@ static void Param_USART2_Init(void)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void USART2_Init(uint32_t baudrate)
+void USART5_Init(uint32_t baudrate)
 {
-	USART2_Config(baudrate);
-	Param_USART2_Init();
+	USART5_Config(baudrate);
+	Param_USART5_Init();
 }
 
 
@@ -161,31 +164,31 @@ void USART2_Init(uint32_t baudrate)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void USART2_IRQHandler(void)
+void UART5_IRQHandler(void)
 {
 	uint8_t ch;
 	
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+	if(USART_GetITStatus(USARTn, USART_IT_RXNE) != RESET)
 	{	
 		LED_Set(LED_COM, ON); 	// 开始通信指示
-		ch = USART_ReceiveData(USART2);
+		ch = USART_ReceiveData(USARTn);
 
-		UARTBuf[UART2_COM].RxBuf[UARTBuf[UART2_COM].RxLen] = ch ;
-		if(UARTBuf[UART2_COM].RxLen < UART_RXBUF_SIZE)
+		UARTBuf[UART_COM].RxBuf[UARTBuf[UART_COM].RxLen] = ch ;
+		if(UARTBuf[UART_COM].RxLen < UART_RXBUF_SIZE)
 		{
-			UARTBuf[UART2_COM].RxLen++;
+			UARTBuf[UART_COM].RxLen++;
 			/*需要根据波特率添加延时，判断串口通信一帧数据是否结束*/
 			//UART0Buf.Timer = 50;		// 如果50ms还没有数据,本次数据帧结束
 		}
 	} 
-	else if (USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
+	else if (USART_GetITStatus(USARTn, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
 	{
-		UARTBuf[UART2_COM].RecFlag = TRUE;
+		UARTBuf[UART_COM].RecFlag = TRUE;
 		/* 需要读这2个寄存器清除中断标志*/
 		/*USART_GetITStatus 函数已经读了SR寄存器*/
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
-		ch = USART_ReceiveData(USART2);
+		ch = USART_ReceiveData(USARTn);
 		LED_Set(LED_COM, OFF); 	// 通信完毕
 	}
 }

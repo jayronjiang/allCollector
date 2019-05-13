@@ -98,28 +98,11 @@ static void Key_First_Read(void)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void Param_Init(void)
+void DIDO_Init(void)
 {
-	USART_LIST i = PC1_UART;
-
-	Device_Ctrl_Queue_Init();
-	Device_Stat_Queue_Init();
-
-	Delay_Ms(10);
-	for (i = pc_com[0]; i <= pc_com[PC_USART_NUM-1]; i++) //通知所有的PC端
-	{
-		message_send_printf(i, TRUE, VER_PRINT_MSG);	//poweron info, used for debugging
-	}
-
-	device_status_used.status_word[USED] = 0;
-	device_status_used.status_word[BACKUP] = 0xBB;	// bit2和bit6被使用,初始化为0
-
-	device_control_used.control_word[USED] = 0;
-	device_control_used.control_word[BACKUP] = 0;
-	device_control_used.control_bits.ALG_down_bit = 1;		// 栏杆要落
-
-	Key_First_Read();	// 目的是看后线圈有没有车, 防止上电第一次砸车
-	control_device();	//根据初始化的状态降栏杆
+	DI_Init();
+	DO_Init();
+	//control_device();	//根据初始化的状态降栏杆
 }
 
 
@@ -153,29 +136,26 @@ void Init_System(void)
 	/* 也就是硬件初始化完毕后定时器开始运行*/
 	SysTick_Init();	// 本程序不带操作系统,只是一个普通的ms定时器
 
-#ifdef SPEAKER_ENABLE
-	/* 先配置成115200传输声音文件*/
-	Comm1_Init(115200);	// USART1 配置模式为 115200 8-N-1，中断接收
-#if (BD_USART_NUM == 2)
-	Comm2_Init(115200);	// USART2 配置模式为 115200 8-N-1，中断接收
-#endif
-
 	W25QXX_Init();		//W25QXX初始化
-	LED_Set(LED_COM, ON);		//编程指示灯亮
-	ATE_main();
-	LED_Set(LED_COM, OFF);
-#endif
-
+	/*放在串口初始化前面,因为串口也有参数*/
+	Init_Params();		//上电读取参数并自检
+	//IIC_Init();
 /*工作时要设置成9600*/
-	Comm1_Init(9600);	// USART1 配置模式为 115200 8-N-1，中断接收
-#if (BD_USART_NUM == 2)
-	Comm2_Init(9600);	// USART2 配置模式为 115200 8-N-1，中断接收
+	Comm1_Init(Baud[DevParams.BaudRate_1]);	// USART1 配置模式为 115200 8-N-1，中断接收
+#if (BD_USART_NUM >= 2)
+	Comm2_Init(Baud[DevParams.BaudRate_2]);	// USART2 配置模式为 115200 8-N-1，中断接收
+#endif
+#if (BD_USART_NUM >= 3)
+	Comm4_Init(Baud[DevParams.BaudRate_3]);	// USART2 配置模式为 115200 8-N-1，中断接收
+#endif
+#if (BD_USART_NUM >= 4)
+	Comm5_Init(Baud[DevParams.BaudRate_4]);	// USART2 配置模式为 115200 8-N-1，中断接收
 #endif
 
 	/*上电闪烁3次,每次60ms*/
 	LED_Flashing(LED_RUN, 60, 3);
 	/*对外部设备进行初始化*/
-	Param_Init();
+	DIDO_Init();
 
 	IWDG_Init(IWDG_Prescaler_64,625);    //预分频值为64，重装载值为625, 看门狗为1s.
 	

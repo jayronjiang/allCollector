@@ -10,14 +10,13 @@
   */
 #include "include.h"
 
-#ifdef SPEAKER_ENABLE
 void SPI2_Init(void)
 {
  	GPIO_InitTypeDef GPIO_InitStructure;
   	SPI_InitTypeDef  SPI_InitStructure;
 
-	RCC_APB2PeriphClockCmd(	RCC_APB2Periph_GPIOB, ENABLE );//PORTB时钟使能 
-	RCC_APB1PeriphClockCmd(	RCC_APB1Periph_SPI2,  ENABLE );//SPI2时钟使能 	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE );//PORTB时钟使能 
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2,  ENABLE );//SPI2时钟使能 	
  
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;  //PB13/14/15复用推挽输出 
@@ -52,7 +51,7 @@ void SPI2_Init(void)
   
 void SPI2_SetSpeed(uint8_t SPI_BaudRatePrescaler)
 {
-  assert_param(IS_SPI_BAUDRATE_PRESCALER(SPI_BaudRatePrescaler));
+	assert_param(IS_SPI_BAUDRATE_PRESCALER(SPI_BaudRatePrescaler));
 	SPI2->CR1&=0XFFC7;
 	SPI2->CR1|=SPI_BaudRatePrescaler;	//设置SPI2速度 
 	SPI_Cmd(SPI2,ENABLE); 
@@ -94,6 +93,4 @@ uint8_t   SPI_Get_Byte()
 	}	  						    
 	return SPI_I2S_ReceiveData(SPI2); //返回通过SPIx最近接收的数据	
 }
-
-#endif
 

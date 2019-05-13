@@ -15,8 +15,9 @@ const char VerInfo[]="LC-301-V4.1-190316";
 
 /*定义通信缓冲区*/
 PROTOCOL_BUF ProtocolBuf[UART_NUM];
-static uint8_t SpkBuf[COM_CTRL_LENTH];	// 用来存储上面发来的信息，主要是用于语音报价
 
+#if 0
+static uint8_t SpkBuf[COM_CTRL_LENTH];	// 用来存储上面发来的信息，主要是用于语音报价
 /******************************************************************************
  * 函数名:	message_unpack 
  * 描述: 对收到的信息按照规定的协议进行解包,提取。
@@ -40,32 +41,6 @@ static uint8_t message_unpack(USART_LIST uart_no,PROTOCOL_BUF *buf)
 
 	rx_buf = buf->pRxBuf;
 
-	/* CR 即复位命令*/
-	if ((rx_buf[COM_T]=='C')&&(rx_buf[CTRL_T]=='R'))
-	{
-		err = DUMMY_ERROR;
-		// Reset the system
-		INT_DISABLE();		// 防止复位命令被打断
-		NVIC_SystemReset();	// 这个地方需要测试一下
-		return err;
-	}
-
-	/* CV 打印版本信息*/
-	if ((rx_buf[COM_T]=='C')&&(rx_buf[CTRL_T]=='V'))
-	{
-		err = DUMMY_ERROR;
-		message_pack(uart_no, VER_PRINT_MSG,buf);
-		return err;
-	}
-
-	/* CD 读取内存信息*/
-	if ((rx_buf[COM_T]=='C')&&(rx_buf[CTRL_T]=='D'))
-	{
-		err = DUMMY_ERROR;
-		message_pack(uart_no, MEM_DUMP_MSG,buf);
-		return err;
-	}
-
 
 	/* A类信息: 起始码+通信类+设备地址+控制字节1+金额(4字节)*/
 	/* +余额(4字节)+入口站(6字节) +车型+车种+控制字节2+通讯序号*/
@@ -80,7 +55,7 @@ static uint8_t message_unpack(USART_LIST uart_no,PROTOCOL_BUF *buf)
 	/*回复之前先更新外设状态*/
 	detect_ALG_TTL_working();
 	/* 信息正常,先对上位机PC进行回复*/
-	message_pack(uart_no, B_RES_MSG,buf);
+	//message_pack(uart_no, B_RES_MSG,buf);
 
 	/* 读取有用的控制信息*/
 	/* 控制字节1:	*/
@@ -105,6 +80,7 @@ static uint8_t message_unpack(USART_LIST uart_no,PROTOCOL_BUF *buf)
 
 	return err;
 }
+
 
 /******************************************************************************
  * 函数名:	message_check 
@@ -147,7 +123,8 @@ static uint8_t message_check(PROTOCOL_BUF *buf)
 			}
 			if(j == rx_buf[rx_len-1])
 			{
-				err = ERR_OK;
+				//err = ERR_OK;
+				err = TRANS_REQ;
 				if (rx_buf[ADDR] != LOCAL_ADD)
 				{
 					err = SITEID_ERROR;
@@ -158,6 +135,7 @@ static uint8_t message_check(PROTOCOL_BUF *buf)
 				err = CRC_ERROR;
 			}
 		}
+		#if 0
 		/*如果是费显信息*/
 		else if ((rx_buf[BSOF] == FX_SOF) && (rx_buf[rx_len-2] ==FX_EOF))
 		{
@@ -199,6 +177,7 @@ static uint8_t message_check(PROTOCOL_BUF *buf)
 			 	err = TRANS_REQ;	// 直接转发
 			 }
 		}
+		#endif
 		else
 		{
 			err = SOF_ERROR;
@@ -247,7 +226,7 @@ static uint8_t message_process(USART_LIST uart_no)
 	return err;
 }
 
-
+#endif
 /******************************************************************************
  * 函数名:	Comm1_Init 
  * 描述: 串口1的初始化
@@ -273,7 +252,7 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART1_COM].RxLen = 0;
 	ProtocolBuf[UART1_COM].TxLen = 0;
 }
-#if (BD_USART_NUM == 2)
+#if (BD_USART_NUM >= 2)
 /******************************************************************************
  * 函数名:	Comm2_Init 
  * 描述: 串口2的初始化
@@ -300,6 +279,63 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART2_COM].TxLen = 0;
 }
 #endif
+
+#if (BD_USART_NUM >= 3)
+/******************************************************************************
+ * 函数名:	Comm2_Init 
+ * 描述: 串口2的初始化
+ *         		
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:2018.10.18
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+ void Comm4_Init(uint32_t baudrate)
+{
+	// 物理层初始化
+	USART4_Init(baudrate);
+	/*初始化协议层缓冲区数据*/
+	ProtocolBuf[UART4_COM].pTxBuf = UARTBuf[UART4_COM].TxBuf;
+	ProtocolBuf[UART4_COM].pRxBuf = UARTBuf[UART4_COM].RxBuf;
+	ProtocolBuf[UART4_COM].RxLen = 0;
+	ProtocolBuf[UART4_COM].TxLen = 0;
+}
+#endif
+
+#if (BD_USART_NUM >= 4)
+/******************************************************************************
+ * 函数名:	Comm2_Init 
+ * 描述: 串口2的初始化
+ *         		
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:2018.10.18
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+ void Comm5_Init(uint32_t baudrate)
+{
+	// 物理层初始化
+	USART5_Init(baudrate);
+	/*初始化协议层缓冲区数据*/
+	ProtocolBuf[UART5_COM].pTxBuf = UARTBuf[UART5_COM].TxBuf;
+	ProtocolBuf[UART5_COM].pRxBuf = UARTBuf[UART5_COM].RxBuf;
+	ProtocolBuf[UART5_COM].RxLen = 0;
+	ProtocolBuf[UART5_COM].TxLen = 0;
+}
+#endif
+
 
 /******************************************************************************
  * 函数名:	Bits_Swap 
@@ -359,234 +395,18 @@ void Comm1_Init(uint32_t baudrate)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf)
+void message_pack(USART_LIST destUtNo, uint8_t msg_type,PROTOCOL_BUF *buf)
 {
 	/*取得目标串口对应的发送缓存*/
-	uint8_t *pbuf = ProtocolBuf[uart_no].pTxBuf;	//buf->pTxBuf;
+	uint8_t *pbuf = ProtocolBuf[destUtNo].pTxBuf;	//buf->pTxBuf;
 	//uint8_t *prx_buf = buf->pRxBuf;
 	uint8_t len = 0;
-	uint8_t xor_t = 0;
+	//uint8_t xor_t = 0;
 	uint8_t i = 0;
-	uint8_t temp_v = 0;
+	//uint8_t temp_v = 0;
 
 	switch (msg_type)
 	{
-	case INTT_MSG:
-		pbuf[len++] = MSG_SOF;
-		pbuf[len++] = '3';		// 车型pbuf[1] 
-		pbuf[len++] = '3';		// 车重pbuf[2] 
-		
-		pbuf[len++] = '5';
-		pbuf[len++] = '5';
-		pbuf[len++] = '0';
-		pbuf[len++] = '0';		//pbuf[3~6] , 费额
-		
-		pbuf[len++] = '0';
-		pbuf[len++] = '0';
-		pbuf[len++] = '3';
-		pbuf[len++] = '3';		// pbuf[7~10] , 余额
-		
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';		//pbuf[11~16] , entrance
-
-		pbuf[len++] = MSG_EOF;
-		pbuf[len++] = 0;		// BCC, 发给外设的以0结尾
-		break;
-
-	case FEE_G_MSG:
-		pbuf[len++] = FX_SOF;
-		pbuf[len++] = FX_LED;			// 操作码为0x10
-		pbuf[len++] = 0x07;				// 亮度,00-09.
-		pbuf[len++] = 0x02;				// 绿灯,0x00灭,0x01红灯,0x02绿灯
-		pbuf[len++] = FX_EOF;
-		xor_t = pbuf[1];			// FX_LED
-		for (i = 2; i< len-1; i++)		// FX_SOF和FX_EOF不参与异或
-		{
-			xor_t = xor_t^pbuf[i];	//异或校验
-		}
-		pbuf[len++] = xor_t;
-		bLastLaneRedGreenOperateState = GREEN;
-		break;
-
-	case FEE_R_MSG:
-		pbuf[len++] = FX_SOF;
-		pbuf[len++] = FX_LED;			// 操作码为0x10
-		pbuf[len++] = 0x07;				// 亮度,00-09.
-		pbuf[len++] = 0x01;				// 红灯,0x00灭,0x01红灯,0x02绿灯
-		pbuf[len++] = FX_EOF;
-		xor_t = pbuf[1];			// FX_LED
-		for (i = 2; i< len-1; i++)		// FX_SOF和FX_EOF不参与异或
-		{
-			xor_t = xor_t^pbuf[i];	//异或校验
-		}
-		pbuf[len++] = xor_t;
-		bLastLaneRedGreenOperateState = RED;
-		break;
-
-	case VER_PRINT_MSG:
-		pbuf[len++] = 'X';		// 软件版本, XY-XXXX
-		pbuf[len++] = 'Y';
-		pbuf[len++] = '-';
-
-		memcpy(&pbuf[len],VerInfo,strlen(VerInfo));
-		len = len + strlen(VerInfo);
-		
-		pbuf[len++] = 0x0D;	// 0D0A, 回车换行
-		pbuf[len++] = 0x0A;
-		break;
-
-	/*上传一些重要变量的值,便于现场调试*/
-	case MEM_DUMP_MSG:
-		pbuf[len++] = 'X';
-		pbuf[len++] = 'Y';
-		pbuf[len++] = '_';
-		pbuf[len++] = device_control_used.control_word[USED];
-		pbuf[len++] = device_control_used.control_word[BACKUP];
-		pbuf[len++] = device_status_used.status_word[USED];
-		pbuf[len++] = device_status_used.status_word[BACKUP];
-		
-		pbuf[len++] = system_flag;
-		pbuf[len++] = ALG_up_flag_bit;
-		pbuf[len++] = ALG_down_flag_bit;
-		
-		pbuf[len++] = autoBarEnable;
-		pbuf[len++] = dete_bit_recd;
-		pbuf[len++] = LastLaneLampState;
-		pbuf[len++] = bLastLaneRedGreenOperateState;
-		
-		pbuf[len++] = bFeeCleared;
-		pbuf[len++] = WatchingDelayCount;
-		pbuf[len++] = detect_time_counter;
-		pbuf[len++] = alarm_time_counter;
-
-		pbuf[len++] = 0x0D;	// 0D0A, 回车换行
-		pbuf[len++] = 0x0A;
-		break;
-
-	case B_RES_MSG:
-		temp_v = device_status_used.status_word[USED];
-		#if (BD_USART_NUM == 2)
-		if(uart_no == UART2_COM)
-		{
-			temp_v = Bits_Swap(device_status_used.status_word[USED],FRONT_COIL,BAK1);
-		}
-		#endif
-
-		pbuf[len++] = MSG_SOF;
-		pbuf[len++] = 'B';						// 信息B
-		pbuf[len++] = LOCAL_ADD;				// 地址0x31
-		pbuf[len++] = temp_v;
-		pbuf[len++] = device_status_used.status_word[BACKUP];
-		pbuf[len++] = MSG_EOF;
-		
-		xor_t = pbuf[1];			// 'B'
-		for (i = 2; i< len-1; i++)		// MSG_SOF和EOF不参与异或
-		{
-			xor_t = xor_t^pbuf[i];	//异或校验
-		}
-		pbuf[len++] = xor_t;
-		break;
-
-	case ERR_RES_MSG:
-		pbuf[len++] = 0x15;
-		pbuf[len++] = 'E';
-		pbuf[len++] = 'E';
-		pbuf[len++] = 'E';
-		pbuf[len++] = 'E';
-		pbuf[len++] = MSG_EOF;
-		pbuf[len++] = 0;
-		break;
-
-	case SPK_MSG:
-	case COST_ON_MSG:
-		pbuf[len++] = FX_SOF;
-		pbuf[len++] = FX_DISPLAY;
-
-		//memcpy(&pbuf[len],0x20,7);
-		//len = len + 7;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = '0';			//超重
-
-		//memcpy(&pbuf[len],0x20,7);
-		//len = len + 7;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = SpkBuf[WEIGHT];;		//车重
-
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = SpkBuf[ENTRY_0];
-		pbuf[len++] = SpkBuf[ENTRY_1];
-		pbuf[len++] = SpkBuf[ENTRY_2];
-		pbuf[len++] = SpkBuf[ENTRY_3];
-		pbuf[len++] = SpkBuf[ENTRY_4];
-		pbuf[len++] = SpkBuf[ENTRY_5];		// 入口
-
-		//memcpy(&pbuf[len],0x20,7);
-		//len = len + 7;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = SpkBuf[VECLE];;		//车型
-
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = SpkBuf[COST_0];			// 金额
-		pbuf[len++] = SpkBuf[COST_1];
-		pbuf[len++] = SpkBuf[COST_2];
-		pbuf[len++] = SpkBuf[COST_3];
-
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = 0x20;
-		pbuf[len++] = SpkBuf[LEFT_0];			//余额
-		pbuf[len++] = SpkBuf[LEFT_1];
-		pbuf[len++] = SpkBuf[LEFT_2];
-		pbuf[len++] = SpkBuf[LEFT_3];
-		
-		pbuf[len++] = FX_EOF;
-
-		xor_t = pbuf[1];
-		for (i = 2; i< (len-1); i++)		// MSG_SOF和EOF不参与异或
-		{
-			xor_t = xor_t^pbuf[i];			//异或校验
-		}
-		pbuf[len++] = xor_t;
-		if (msg_type == COST_ON_MSG)
-		{
-			bFeeCleared = FALSE;
-		}
-		break;
-
-	case COST_OFF_MSG:
-		pbuf[len++] = FX_SOF;
-		pbuf[len++] = FX_DISCLR;
-		pbuf[len++] = FX_EOF;
-		pbuf[len++] = 0x02;		// 直接算出BCC并赋值
-		break;
-
 	/* 透传,直接拷贝*/
 	case TRANS_MSG:
 		for (len = 0; len < buf->RxLen; i++)
@@ -594,60 +414,6 @@ void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf)
 			pbuf[len] = buf->pRxBuf[len];
 			len++;
 		}
-		break;
-
-	case ALL8_MSG:
-		pbuf[len++] = MSG_SOF;
-
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		pbuf[len++] = '8';
-		
-		pbuf[len++] = MSG_EOF;
-		pbuf[len++] = 0;
-		break;
-
-	case VOXPLAY_MSG:
-		pbuf[len++] = MSG_SOF;
-
-		pbuf[len++] = '5';
-		pbuf[len++] = '1';
-		pbuf[len++] = '1';
-		pbuf[len++] = '2';
-
-		pbuf[len++] = '3';
-		pbuf[len++] = '4';
-		pbuf[len++] = '4';
-		pbuf[len++] = '3';
-
-		pbuf[len++] = '2';
-		pbuf[len++] = '1';
-		pbuf[len++] = 0xBB;
-		pbuf[len++] = 0xBC;
-
-		pbuf[len++] = 0xCC;
-		pbuf[len++] = 0xCD;
-		pbuf[len++] = 0xDD;
-		pbuf[len++] = 0xDE;
-
-		pbuf[len++] = MSG_EOF;
-		pbuf[len++] = 1;
 		break;
 		
 #ifdef TEST
@@ -666,12 +432,14 @@ void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf)
 		break;
 #endif
 
+	case NOT_USED_MSG:
+		break;
 	default:
 		break;
 	}
 	/*更新发送长度*/
 	//pbuf[len++] = '\0';
-	ProtocolBuf[uart_no].TxLen = len;
+	ProtocolBuf[destUtNo].TxLen = len;
 }
  
 /******************************************************************************
@@ -679,7 +447,8 @@ void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf)
  * 描述: 信息的发送,把缓存区的数据发送至串口
  * 		这是阻塞型的发送,发送时不能干其它任务.
  *
- * 输入参数:  把uartNo对应的发送缓存数据发送到uartNo口中
+ * 输入参数:  把scUtNo对应的发送缓存数据发送到destUtNo口中
+ *				只有透传才用到scUtNo, pScbuf.其它的无意义
  *	pack_en: 是否还需要打包? 
  *		TRUE: 是, 
  *		FALSE: 不需要打包，直接发送,此时msg_type没有意义
@@ -693,52 +462,99 @@ void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void message_send_printf(USART_LIST uartNo,bool pack_en, uint8_t msg_type)
+void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uint8_t msg_type)
 {
 	uint16_t i = 0;
 	uint8_t ch = 0;
-	PROTOCOL_BUF *pProbuf;
+	PROTOCOL_BUF *pScbuf,*pDestbuf;
 	USART_TypeDef *PUSART = USART1;
 
-	pProbuf  = &ProtocolBuf[uartNo];
+	pScbuf  = &ProtocolBuf[scUtNo];
+	pDestbuf  = &ProtocolBuf[destUtNo];
 
-	if (uartNo == UART1_COM)
+	if (destUtNo == UART1_COM)
 	{
 		PUSART = USART1;
 	}
-#if (BD_USART_NUM == 2)
-	else if (uartNo == UART2_COM)
+#if (BD_USART_NUM >= 2)
+	else if (destUtNo == UART2_COM)
 	{
 		PUSART = USART2;
 	}
 #endif
+#if (BD_USART_NUM >= 3)
+	else if (destUtNo == UART4_COM)
+	{
+		PUSART = UART4;
+	}
+#endif
+#if (BD_USART_NUM >= 4)
+	else if (destUtNo == UART5_COM)
+	{
+		PUSART = UART5;
+	}
+#endif
 	else
 	{
-		/* 没有使用USART3就不赋值了，直接返回*/
+		/* 其它是异常情况,直接返回*/
 		return;
 	}
 
+	// 是否在这里打包数据?
 	if (pack_en)
 	{
-		message_pack(uartNo, msg_type, pProbuf);
+		message_pack(destUtNo, msg_type, pScbuf);
 	}
 
 	LED_Set(LED_COM, ON); 	// 开始通信指示
 	/*和printf一样,是阻塞型的发送*/
-	for (i = 0; i < pProbuf->TxLen; i++)
+	for (i = 0; i < pDestbuf->TxLen; i++)
 	{
-		ch = pProbuf->pTxBuf[i];
+		ch = pDestbuf->pTxBuf[i];
 		USART_SendData(PUSART, ch);
 		/* 等待发送完毕 */
 		while (USART_GetFlagStatus(PUSART, USART_FLAG_TXE) == RESET);	
 		
 	}
-	pProbuf->TxLen = 0;
+	pDestbuf->TxLen = 0;
 	LED_Set(LED_COM, OFF); 	// 通信完毕
 }
 
+void params_modify_deal(void)
+{
+	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM1_MODIFIED) )	/*修改了通信参数*/
+	{
+		Comm1_Init(Baud[DevParams.BaudRate_1]);
+		system_flag&=~COMM1_MODIFIED;
+	}
+	
+	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM2_MODIFIED) )	/*修改了通信参数*/
+	{
+		Comm2_Init(Baud[DevParams.BaudRate_2]);
+		system_flag&=~COMM2_MODIFIED;
+	}
 
- /******************************************************************************
+	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM3_MODIFIED) )	/*修改了通信参数*/
+	{
+		Comm4_Init(Baud[DevParams.BaudRate_3]);
+		system_flag&=~COMM3_MODIFIED;
+	}
+
+	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM4_MODIFIED) )	/*修改了通信参数*/
+	{
+		Comm5_Init(Baud[DevParams.BaudRate_4]);
+		system_flag&=~COMM4_MODIFIED;
+	}
+	
+	if( System_Reset &&(UARTBuf[PC_UART].TxLen == 0))/*装置复位放在最后,等待所有操作完成后进行重启*/
+	{
+		System_Reset = 0;
+		INT_DISABLE();		// 防止复位命令被打断
+		NVIC_SystemReset();	// 这个地方需要测试一下
+	}
+}
+
+/******************************************************************************
  * 函数名:	Comm_Proc 
  * 描述: -通讯处理函数,主程序中调用,主要处理RS 485口数据,
  *				   若是本装置的数据则进入解包处理
@@ -756,32 +572,49 @@ void message_send_printf(USART_LIST uartNo,bool pack_en, uint8_t msg_type)
  ******************************************************************************/
 void Comm_Proc(void)
 {
-	uint8_t err = ERR_OK;
-	USART_LIST i = PC1_UART;
+	//uint8_t err = ERR_OK;
+	USART_LIST i = BD1_UART;
 
 	/*注意不能改成i < pc_com[PC_USART_NUM], 数组溢出*/
-	for (i = pc_com[0]; i <= pc_com[PC_USART_NUM-1]; i++)
+	for (i = bd_com[0]; i <= bd_com[BD_USART_NUM-1]; i++)
 	{
 		if (UARTBuf[i].RecFlag)		                      //RS485口有数据
 		{
-			UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
-			ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
-			ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
-			ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
-			ProtocolBuf[i].TxLen = 0;
-			UARTBuf[i].RxLen = 0;		//已经被读取到ProtocolBuf0.RxLen, 尽快清0
+			// 上位机过来的是主站轮询信息
+			if (i == PC_UART)
+			{
+				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				ProtocolBuf[i].TxLen = 0;
+				//UARTBuf[i].RxLen = 0;		//已经被读取到ProtocolBuf0.RxLen, 尽快清0
 
+				modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
+
+				UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
+				if(UARTBuf[i].TxLen >0)
+				{
+					message_send_printf(i, i, FALSE, NOT_USED_MSG);
+					UARTBuf[i].TxLen = 0;
+					//Rs485StartSend();
+				}
+				Delay_clk(50);
+				UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+			}
+
+	#if 0
 			err = message_process(i);		//通信协议处理
 			if (err == TRANS_REQ)							// 需要透传的
 			{
-				message_send_printf(TRANS_UART, TRUE, TRANS_MSG);
+				message_send_printf(TRANS_UART, i, TRUE, TRANS_MSG);
 			}
 
 			UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  //置换回来，处理物理层数据
 			if(UARTBuf[i].TxLen >0)
 			{
 				/*回复B/C信息给上位机*/
-				message_send_printf(i, FALSE, 0xFF);
+				message_send_printf(i, i,FALSE, 0xFF);
 			}
 			Delay_Ms(5);				// 稍微有点延时,可以不要
 
@@ -790,7 +623,13 @@ void Comm_Proc(void)
 			{
 				params_modify_deal();		//后续的数据改变处理
 			}
+		#endif
+			else
+			{
+				// 轮询从站的回复
+			}
 		}
+		params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
 	}
 }
 /*********************************************END OF FILE**********************/

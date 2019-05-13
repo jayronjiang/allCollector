@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_CL, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\device_control;..\..\User\message_handle;..\..\User\debug;..\..\User\sys</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\message_handle;..\..\User\debug;..\..\User\sys;..\..\User\spi;..\..\User\iic;..\..\User\modbus_client;..\..\User\params;..\..\User\dido</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -583,11 +583,6 @@
               <FilePath>..\..\User\SysTick\bsp_SysTick.c</FilePath>
             </File>
             <File>
-              <FileName>dev_ctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\device_control\dev_ctrl.c</FilePath>
-            </File>
-            <File>
               <FileName>message_handle.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\message_handle\message_handle.c</FilePath>
@@ -616,6 +611,66 @@
               <FileName>bsp_usart2.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\usart\bsp_usart2.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_usart4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\usart\bsp_usart4.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_usart5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\usart\bsp_usart5.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\spi\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>w25qxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\spi\w25qxx.c</FilePath>
+            </File>
+            <File>
+              <FileName>myiic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\iic\myiic.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\modbus_client\modbus.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus_rtu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\modbus_client\modbus_rtu.c</FilePath>
+            </File>
+            <File>
+              <FileName>registers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\modbus_client\registers.c</FilePath>
+            </File>
+            <File>
+              <FileName>exmath.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\params\exmath.c</FilePath>
+            </File>
+            <File>
+              <FileName>params.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\params\params.c</FilePath>
+            </File>
+            <File>
+              <FileName>di.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\dido\di.c</FilePath>
+            </File>
+            <File>
+              <FileName>do.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\dido\do.c</FilePath>
             </File>
           </Files>
         </Group>

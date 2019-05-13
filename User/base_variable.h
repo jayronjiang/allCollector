@@ -19,7 +19,17 @@
 
 #define DEBUG_EN
 
-typedef unsigned char bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
+//16位和32位平台定义是不一样的，要注意
+typedef unsigned char        	BOOLEAN;
+typedef unsigned char 	     	UINT8;
+typedef signed char   	    	INT8;
+typedef unsigned short int  	UINT16;
+typedef signed short int    	INT16;
+typedef unsigned int 	     	UINT32;
+typedef signed int   	     		INT32;
+typedef unsigned       __int64 	UINT64;
+typedef signed __int64     	INT64;
+typedef unsigned char 		bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
 
 #define BIT0 0X01
 #define BIT1 0X02

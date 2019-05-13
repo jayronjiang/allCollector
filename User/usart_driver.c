@@ -8,18 +8,26 @@
   
 #include "include.h"
 
+const UINT32  Baud[BAUD_NUM] = { 1200,2400,4800,9600,19200,115200};
+
 /*UART数据缓冲区*/
 UART_BUF	 UARTBuf[UART_NUM];
 
 /* 由于printf有缺陷, 这个变量没有实质使用*/
-USART_LIST uart_sel = PC1_UART; // 为了重定向到3个串口,定义一个选择变量.
+USART_LIST uart_sel = PC_UART; // 为了重定向到3个串口,定义一个选择变量.
 
-const USART_LIST pc_com[PC_USART_NUM] = \
+const USART_LIST bd_com[BD_USART_NUM] = \
 {
-	PC1_UART
-	#if (PC_USART_NUM == 2)
-	,PC2_UART
-	#endif
+	BD1_UART,
+#if (BD_USART_NUM >= 2)
+	BD2_UART,
+#endif
+#if (BD_USART_NUM >= 3)
+	BD3_UART,
+#endif
+#if (BD_USART_NUM >= 4)
+	BD4_UART
+#endif
 };
 
 /******************************************************************************
@@ -73,17 +81,22 @@ int fputc(int ch, FILE *f)
 	{
 		pusart = USART1;
 	}
-#if (BD_USART_NUM == 2)
+#if (BD_USART_NUM >= 2)
 	else if (uart_sel == UART2_COM)
 	{
 		pusart = USART2;
 	}
 #endif
+#if (BD_USART_NUM >= 3)
+	else if (uart_sel == UART4_COM)
+	{
+		pusart = UART4;
+	}
+#endif
 	else
 	{
-		pusart = USART1;
+		pusart = UART5;
 	}
-
 
 	/* 发送一个字节数据到USARTx */
 	USART_SendData(pusart, (uint8_t) ch);
@@ -115,15 +128,21 @@ int fgetc(FILE *f)
 	{
 		pusart = USART1;
 	}
-#if (BD_USART_NUM == 2)
+#if (BD_USART_NUM >= 2)
 	else if (uart_sel == UART2_COM)
 	{
 		pusart = USART2;
 	}
 #endif
+#if (BD_USART_NUM >= 3)
+	else if (uart_sel == UART4_COM)
+	{
+		pusart = UART4;
+	}
+#endif
 	else
 	{
-		pusart = USART1;
+		pusart = UART5;
 	}
 	
 	/* 等待串口1输入数据 */

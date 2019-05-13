@@ -26,5 +26,6 @@
 void EXTI_PE4_Config(void);
 uint16_t GPIO_ReadInputAll(uint8_t polar);
 void ReadKey(void);
+void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState);
 
 #endif /* __BSP_KEY_H */

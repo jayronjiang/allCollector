@@ -56,7 +56,7 @@ void LED_GPIO_Config(void)
 /******************************************************************************
  * 函数名:	LED_Flashing 
  * 描述:  	LED_No闪烁flashtime次,每次亮mtime,灭mtime.
- *
+ *			注意mtime不要超过500ms,否则看门狗会溢出
  * 输入参数: 
  * 输出参数: 
  * 返回值: 
@@ -76,16 +76,16 @@ void LED_Flashing(uint16_t LED_No,uint16_t mtime, uint16_t flashtime)
 		{
 		case (LED_1): 
 	     		LED1(ON);
-			DelayAndFeedDog(mtime);
+			Delay_Ms(mtime);
 			LED1(OFF);
-			DelayAndFeedDog(mtime);
+			Delay_Ms(mtime);
 	      		break;
 
 		case (LED_2): 
 	     		LED2(ON);
-			DelayAndFeedDog(mtime);
+			Delay_Ms(mtime);
 			LED2(OFF);
-			DelayAndFeedDog(mtime);
+			Delay_Ms(mtime);
 	      		break;
 
 		default: 

@@ -14,6 +14,6 @@
 void debug_puts(const uint8_t *str)
 {
 	printf("%s", str);
-	uart_sel = PC1_UART;
+	uart_sel = PC_UART;
 }
 

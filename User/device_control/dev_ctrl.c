@@ -12,7 +12,7 @@
 #include "include.h"
 
 /* 每一位的详细意义见结构体定义*/
-DEVICE_CONTROL_BITS device_control_used;  // 设备控制字,根据此字具体的值控制设备
+DEVICE_CONTROL_WORD do_control;  // 设备控制字,根据此字具体的值控制设备
 
 // 0位: 雨棚灯状态      --0为红灯，1为绿灯
 // 1位: 封道栏杆状态--0为打开，1为关闭
@@ -22,7 +22,6 @@ DEVICE_CONTROL_BITS device_control_used;  // 设备控制字,根据此字具体的值控制设备
 // 5位: 后线圈                 --0为有车，1为无车
 // 6位: 车道通行灯      --0为红灯，1为绿灯
 // 7位: 备用                       --0为启动，1为无
-DEVICE_STATUS_BITS device_status_used;	// 外部状态字,检测外部设备的状态
 
 DEVICE_CTRL	device_ctrl_queue[DEV_CTRL_NUM];	// 设备控制配置组,配置控制口的具体物理地址
 DEVICE_STATUS device_status_queue[DEV_STATUS_NUM]; //设备状态配置组
@@ -36,204 +35,6 @@ bool dete_bit_recd = FALSE;				// 这个是保存BACK_COIL的上次状态
 bool bFeeCleared = FALSE;				// 费县是否被清除?
 
 uint16_t WatchingDelayCount = 0;					// 防砸监视时间
-uint16_t detect_time_counter = AUTO_DETCET_TIME;	//系统参数检查间隔时间
-uint16_t alarm_time_counter = 0;					// 警报持续时间
-
-/***********************************************************************************
- * 函数名:	Device_Ctrl_Queue_Init 
- * 描述: 
- *           	-控制外设的GPIO初始化,初始化和IO口有关的第一个字节.
- *		这个函数移植时需要改变
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void Device_Ctrl_Queue_Init(void)
-{
-	DEVICE_CTRL_LIST dev_type = BAR_UP;
-
-	for( dev_type=BAR_UP; dev_type<DEV_CTRL_NUM; dev_type++)
-	{
-		switch(dev_type)
-		{
-		case BAR_UP:
-			device_ctrl_queue[dev_type].gpio_grp = BAR_UP_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = BAR_UP_POUT;
-			break;
-
-		case BAR_DOWN:
-			device_ctrl_queue[dev_type].gpio_grp = BAR_DOWN_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = BAR_DOWN_POUT;
-			break;
-
-		case TTL_GREEN:
-			device_ctrl_queue[dev_type].gpio_grp = TTL_GREEN_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = TTL_GREEN_POUT;
-			break;
-
-		case VOX_ALM:
-			device_ctrl_queue[dev_type].gpio_grp = VOX_ALM_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = VOX_ALM_POUT;
-			break;
-
-		case LIGHT_ALM:
-			device_ctrl_queue[dev_type].gpio_grp = LIGHT_ALM_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = LIGHT_ALM_POUT;
-			break;
-
-		case LAN_LAMP:
-			device_ctrl_queue[dev_type].gpio_grp = LAN_LAMP_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = LAN_LAMP_POUT;
-			break;
-
-		case BAK1_USED:
-			device_ctrl_queue[dev_type].gpio_grp = BAK1_USED_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = BAK1_USED_POUT;
-			break;
-
-		case BAK2_USED:
-			device_ctrl_queue[dev_type].gpio_grp = BAK2_USED_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = BAK2_USED_POUT;
-			break;
-
-		default:
-			break;
-		}
-		DEVICE_GPIO_OUT_Config(dev_type);
-	}
-}
-
-/***********************************************************************************
- * 函数名:	Device_Stat_Queue_Init 
- * 描述: 
- *           	-外设传感器的GPIO初始化,初始化和IO口有关的第一个字节.
- *		这个函数移植时需要改变
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void Device_Stat_Queue_Init(void)
-{
-	DEVICE_STATUS_LIST dev_type = TTL;
-
-	for( dev_type=TTL; dev_type<DEV_STATUS_NUM; dev_type++)
-	{
-		switch(dev_type)
-		{
-		case TTL:
-			device_status_queue[dev_type].gpio_grp = TTL_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = TTL_PIN;
-			break;
-
-		case LG:
-			device_status_queue[dev_type].gpio_grp = LG_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = LG_PIN;
-			break;
-
-		case ALARM:
-			device_status_queue[dev_type].gpio_grp = ALARM_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = ALARM_PIN;
-			break;
-
-		case ALG:
-			device_status_queue[dev_type].gpio_grp = ALG_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = ALG_PIN;
-			break;
-
-		case FRONT_COIL:
-			device_status_queue[dev_type].gpio_grp = FRONT_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = FRONT_PIN;
-			break;
-
-		case BACK_COIL:
-			device_status_queue[dev_type].gpio_grp = BACK_COIN_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = BACK_COIN_PIN;
-			break;
-
-		case BAK1:
-			device_status_queue[dev_type].gpio_grp = BAK1_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = BAK1_PIN;
-			break;
-
-		case BAK2:
-			device_status_queue[dev_type].gpio_grp = BAK2_IN_GRP;
-			device_status_queue[dev_type].gpio_pin = BAK2_PIN;
-			break;
-
-		default:
-			break;
-		}
-		DEVICE_GPIO_IN_Config(dev_type);
-	}
-}
-
-/***********************************************************************************
- * 函数名:	DeviceX_Activate 
- * 描述: 
- *           	-激活指定外设,低电平有效,使用复位语句
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void DeviceX_Activate(DEVICE_CTRL_LIST dev)
-{
-	assert_param(dev<DEV_CTRL_NUM);
-	GPIO_ResetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
-}
-
-/***********************************************************************************
- * 函数名:	DeviceX_Deactivate 
- * 描述: 
- *           	-无效指定外设,低电平有效,使用置位语句
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void DeviceX_Deactivate(DEVICE_CTRL_LIST dev)
-{
-	assert_param(dev<DEV_CTRL_NUM);
-	GPIO_SetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
-}
 
 /***********************************************************************************
  * 函数名:	Drop_LG_Start 
@@ -319,119 +120,6 @@ void LG_Act_End(void)
 {
 	DeviceX_Deactivate(BAR_UP);
 	DeviceX_Deactivate(BAR_DOWN);
-}
-
-/***********************************************************************************
- * 函数名:	RCC_Clock_Set 
- * 描述: 
- *           	-配置外设的时钟
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState)
-{
-	assert_param(IS_GPIO_ALL_PERIPH(GPIOx));
-	
-	if (GPIOx == GPIOA)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, iState); 
-	}
-	else if (GPIOx == GPIOB)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, iState); 
-	}
-	else if (GPIOx == GPIOC)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, iState); 
-	}
-	else if (GPIOx == GPIOD)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, iState); 
-	}
-	else if (GPIOx == GPIOE)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOE, iState); 
-	}
-	else if (GPIOx == GPIOF)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOF, iState); 
-	}
-	else
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG, iState); 
-	}
-}
-
-/***********************************************************************************
- * 函数名:	DEVICE_GPIO_OUT_Config 
- * 描述: 
- *           	-配置指定输出外设.
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void DEVICE_GPIO_OUT_Config(DEVICE_CTRL_LIST dev)	
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	/*开启输出按键端口PX的时钟*/
-	RCC_Clock_Set(device_ctrl_queue[dev].gpio_grp, ENABLE);
-	//RCC_APB2PeriphClockCmd( DEVICE_RCC_GRP, ENABLE); // 使能PC端口时钟  
-	GPIO_InitStructure.GPIO_Pin = device_ctrl_queue[dev].gpio_pin;	//选择对应的引脚
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(device_ctrl_queue[dev].gpio_grp, &GPIO_InitStructure);  //初始化端口
-	DeviceX_Deactivate(dev);	 // 初始化为无效
-}
-
-/***********************************************************************************
- * 函数名:	DEVICE_GPIO_IN_Config 
- * 描述: 
- *           	-配置指定输入外设.
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void DEVICE_GPIO_IN_Config(DEVICE_STATUS_LIST dev)	
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	  /*开启输入按键端口（PX）的时钟*/
-	RCC_Clock_Set(device_status_queue[dev].gpio_grp, ENABLE);
- 	GPIO_InitStructure.GPIO_Pin = device_status_queue[dev].gpio_pin;; 
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  // 上拉输入
-	GPIO_Init(device_status_queue[dev].gpio_grp, &GPIO_InitStructure);
 }
 
 /***********************************************************************************
@@ -772,7 +460,7 @@ void control_device(void)
 		// 后线圈没车,高电平
 		if (Status_Get(BACK_COIL))
 		{
-			message_send_printf(FEE_UART, TRUE, FEE_R_MSG); // 降杠, 费显要为红色
+			message_send_printf(FEE_UART, FEE_UART,TRUE, NOT_USED_MSG); // 降杠, 费显要为红色
 			Drop_LG_Start(); 							//降杠
 			system_flag |= CAR_WATCHING;
 			WatchingDelayCount = 4*ONE_SECOND;		//防砸监视4S
@@ -788,7 +476,7 @@ void control_device(void)
 	// ALG_up_bit 初始化的时候为0
 	if(Command_Get(BAR_UP))
 	{
-		message_send_printf(FEE_UART, TRUE, FEE_G_MSG); // 抬杆，绿色
+		message_send_printf(FEE_UART, FEE_UART,TRUE, NOT_USED_MSG); // 抬杆，绿色
 		Rise_LG_Start(); 				//抬杠
 	}
 
@@ -889,18 +577,18 @@ void ClearFEEdisplay(void)
 		else
 		{
 			//对于广东版本的费显，只要开绿灯或红灯都清除费额
-			message_send_printf(FEE_UART, TRUE, COST_OFF_MSG);
+			message_send_printf(FEE_UART, FEE_UART,TRUE, NOT_USED_MSG);
 			
 		}
 	}
 	else
 	{
 		//不管是哪个版本的费显，只要开红灯都清除费额
-		message_send_printf(FEE_UART, TRUE, COST_OFF_MSG);
+		message_send_printf(FEE_UART, FEE_UART, TRUE, NOT_USED_MSG);
 	}
 }
 
-
+#if 0
 /***********************************************************************************
  * 函数名:	params_modify_deal 
  * 描述: 
@@ -951,7 +639,7 @@ void params_modify_deal(void)
 		/* 但是要注意串口的选择*/
 		if(Command_Get(BAR_UP))
 		{
-			message_send_printf(FEE_UART, TRUE, FEE_G_MSG);
+			message_send_printf(FEE_UART, FEE_UART,TRUE, FEE_G_MSG);
 		}
 	}
 	//该处延时约等于if内的时间，保证连续对费显的操作的间隔时间
@@ -966,7 +654,7 @@ void params_modify_deal(void)
 		// 费额需要显示
 		if(device_control_used.control_bits.FEE_display_bit == 1)
 		{
-			message_send_printf(FEE_UART, TRUE, COST_ON_MSG);
+			message_send_printf(FEE_UART, FEE_UART,TRUE, COST_ON_MSG);
 		}
 		else
 		{
@@ -975,3 +663,4 @@ void params_modify_deal(void)
 		}
 	}
 }
+#endif

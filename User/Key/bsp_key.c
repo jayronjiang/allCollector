@@ -29,25 +29,13 @@ uint16_t GPIO_ReadInputAll(uint8_t polar)
 {
 	uint16_t key_val = 0;
 	uint16_t tmp = 0;
-	DEVICE_STATUS_LIST dev_status = TTL;
+	DEVICE_STATUS_LIST dev_status = DI_1;
 
-	for( dev_status=TTL; dev_status < DEV_STATUS_NUM; dev_status++)
+	for( dev_status=DI_1; dev_status < DI_NUM; dev_status++)
 	{
-		/*雨棚灯的继电器检测触点已经取消,直接读输出状态*/
-		if (dev_status == TTL)
-		{
-			/*这里要取反,因为电路输出的逻辑和反馈是反的*/
-			/*命令为1，则输出低是绿灯，反馈要是1*/
-			/*命令为0，则输出高是红灯，反馈要是0*/
-			/*这是因为DeviceX_Activate逻辑是反的*/
-			tmp = !(GPIO_ReadOutputDataBit(device_ctrl_queue[TTL_GREEN].gpio_grp,
-										device_ctrl_queue[TTL_GREEN].gpio_pin));
-		}
-		else
-		{
-			tmp = GPIO_ReadInputDataBit(device_status_queue[dev_status].gpio_grp,
+
+		tmp = GPIO_ReadInputDataBit(device_status_queue[dev_status].gpio_grp,
 										device_status_queue[dev_status].gpio_pin);
-		}
 
 		key_val |= tmp << dev_status;	// 第几个键值向左移几位.
 	}
@@ -107,14 +95,67 @@ void ReadKey(void)
 	key_effective_port |= (constant_high&0xFF);
 	key_effective_port &= ((~constant_low)&0xFF);
 
-	device_status_used.status_word[USED] = (uint8_t)key_effective_port;
+	di_status.status_word = key_effective_port;
 	
 	if (key_effective_port !=key_effective_port_last)
 	{
-		system_flag |= SYS_CHANGED;	// 按键真正地变位
+		system_flag |= KEY_CHANGED;	// 按键真正地变位
 		key_effective_port_last = key_effective_port;
 	}
 }
+
+/***********************************************************************************
+ * 函数名:	RCC_Clock_Set 
+ * 描述: 
+ *           	-配置外设的时钟
+ *		
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:20181109
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ *
+ *
+ ***********************************************************************************/
+void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState)
+{
+	assert_param(IS_GPIO_ALL_PERIPH(GPIOx));
+	
+	if (GPIOx == GPIOA)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, iState); 
+	}
+	else if (GPIOx == GPIOB)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, iState); 
+	}
+	else if (GPIOx == GPIOC)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, iState); 
+	}
+	else if (GPIOx == GPIOD)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, iState); 
+	}
+	else if (GPIOx == GPIOE)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOE, iState); 
+	}
+	else if (GPIOx == GPIOF)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOF, iState); 
+	}
+	else
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG, iState); 
+	}
+}
+
 
 #if 0
 /******************************************************************************

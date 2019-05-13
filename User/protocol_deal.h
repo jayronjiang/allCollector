@@ -1,8 +1,8 @@
 #ifndef __PROTOCOL_H
 #define __PROTOCOL_H
 
- #define UART_RXBUF_SIZE	256		//接收缓冲的大小
-#define UART_TXBUF_SIZE	256		//发送缓冲的大小
+#define UART_RXBUF_SIZE	128		//接收缓冲的大小
+#define UART_TXBUF_SIZE	128		//发送缓冲的大小
 
 typedef struct 
 {
