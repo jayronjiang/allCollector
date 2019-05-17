@@ -52,6 +52,7 @@ static void Task_Schedule(void)
 	if (system_flag&SYS_ERR_CHK)				//设备错误状态自动检测部分	
 	{
 		system_flag &= ~SYS_ERR_CHK;
+		//这里要加参数保存的任务
 	}
 
 #if 0
@@ -93,8 +94,9 @@ int main(void)
 	while(1)
 	{
 		/*主函数初始化,定时中断喂狗,能同时防止主函数和中断程序跑飞*/
-		wdt_counter = 0; 
-		Comm_Proc();
+		wdt_counter = 0;
+		Comm_Proc();	// CLIENT
+		comm_polling_process();	//SERVER
 		Task_Schedule();			// 系统任务列表
 	}
 }

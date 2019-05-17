@@ -38,7 +38,7 @@
 
 /*环境数据寄存器*/
 #define ENVI_START_ADDR			300		/*数据寄存器起始地址*/
-#define ENVI_REG_MAX			11		/*暂定为11*/
+#define ENVI_REG_MAX			15		/*暂定为15*/
 
 /*装置信息寄存器*/
 #define DEVICEINFO_START_ADDR			900
@@ -50,8 +50,10 @@
 
 /*遥控寄存器*/
 #define DO_START_ADDR					1500
-#define DO_REG_MAX						49
+#define DO_REG_MAX						51
 #define REMOTE_RESET_REG					1548		/*遥控复位*/
+#define DOOR_OPEN_REG					1549		/*电子门锁开*/
+#define DOOR_CLOSE_REG					1550		/*电子门锁关*/
 
 
 /*寄存器对象定义*/

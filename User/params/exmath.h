@@ -59,6 +59,14 @@ UINT32  bcd_2_long(UINT8 * buf);
 
  UINT32 min_three(UINT32 a,UINT32 b,UINT32 c);
 
- UINT16  get_crc16(UINT16 len,const UINT8 * pBuffer);
+UINT16  get_crc16(INT8U * pBuffer,INT16U len);
+
+ void char_to_long(INT8U* buffer,INT32U* value);
+
+ void long_to_char(INT8U* buffer,INT32S value);
+
+ void char_to_int(INT8U* buffer,INT16U* value);
+
+ void int_to_char(INT8U *buffer, INT16U value);
  
 #endif

@@ -189,6 +189,8 @@ void USART3_IRQHandler(void)
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USARTn);
 		LED_Set(LED_COM, OFF); 	// 通信完毕
+
+		data_received_handle(UART3_COM);
 	}
 }
 #endif

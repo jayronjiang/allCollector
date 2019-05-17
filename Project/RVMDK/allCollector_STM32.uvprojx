@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_CL, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\message_handle;..\..\User\debug;..\..\User\sys;..\..\User\spi;..\..\User\iic;..\..\User\modbus_client;..\..\User\params;..\..\User\dido</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\message_handle;..\..\User\debug;..\..\User\sys;..\..\User\spi;..\..\User\iic;..\..\User\modbus_client;..\..\User\params;..\..\User\dido;..\..\User\modbus_server</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -671,6 +671,11 @@
               <FileName>do.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\dido\do.c</FilePath>
+            </File>
+            <File>
+              <FileName>ModbusServer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\modbus_server\ModbusServer.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -516,6 +516,7 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 		while (USART_GetFlagStatus(PUSART, USART_FLAG_TXE) == RESET);	
 		
 	}
+	
 	pDestbuf->TxLen = 0;
 	LED_Set(LED_COM, OFF); 	// 通信完毕
 }
@@ -576,13 +577,10 @@ void Comm_Proc(void)
 	USART_LIST i = BD1_UART;
 
 	/*注意不能改成i < pc_com[PC_USART_NUM], 数组溢出*/
-	for (i = bd_com[0]; i <= bd_com[BD_USART_NUM-1]; i++)
-	{
-		if (UARTBuf[i].RecFlag)		                      //RS485口有数据
+	//for (i = bd_com[0]; i <= bd_com[BD_USART_NUM-1]; i++)
+	//{
+		if (UARTBuf[PC_UART].RecFlag)		                      //client的RS485口有数据
 		{
-			// 上位机过来的是主站轮询信息
-			if (i == PC_UART)
-			{
 				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
 				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
@@ -601,9 +599,9 @@ void Comm_Proc(void)
 				}
 				Delay_clk(50);
 				UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
-			}
+		}
 
-	#if 0
+		#if 0
 			err = message_process(i);		//通信协议处理
 			if (err == TRANS_REQ)							// 需要透传的
 			{
@@ -624,12 +622,7 @@ void Comm_Proc(void)
 				params_modify_deal();		//后续的数据改变处理
 			}
 		#endif
-			else
-			{
-				// 轮询从站的回复
-			}
-		}
 		params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
-	}
+	//}
 }
 /*********************************************END OF FILE**********************/

@@ -45,7 +45,7 @@ void write_fm_memory(UINT16 addr, UINT8 *src_ptr, UINT16 length)
 
 void Write_DevParams(void)
 {
-	DevParams.Crc = get_crc16( DEVICE_PARAM_COUNTER-4,(UINT8 *)&DevParams+4);
+	DevParams.Crc = get_crc16((UINT8 *)&DevParams+4, DEVICE_PARAM_COUNTER-4);
 
 	write_fm_memory( FM_DEVICE, (UINT8 *)&DevParams, DEVICE_PARAM_COUNTER);
 }
@@ -53,7 +53,7 @@ void Write_DevParams(void)
 /*铁电初始化统一函数*/
 void Save_Param_To_Fm(UINT16 device_param_size1,UINT16 *device_p1,UINT16 start_addr1 )
 {
-	*device_p1 = get_crc16( device_param_size1-4,(UINT8 *)device_p1+4);
+	*device_p1 = get_crc16((UINT8 *)device_p1+4,device_param_size1-4);
 	/*写入BLOCK1*/
 	write_fm_memory( start_addr1,(UINT8*)device_p1,device_param_size1 );
 }
@@ -94,13 +94,13 @@ UINT8  Read_Fm_Param(UINT16 *device_p,const UINT16  *device_init_p, UINT16 devic
 	{
 		//读一次
 		read_fm_memory( start_addr, (UINT8*)device_p,device_param_size );
-		crc_code = get_crc16( device_param_size-4, (UINT8 *)device_p+4);
+		crc_code = get_crc16( (UINT8 *)device_p+4,device_param_size-4);
 
 		if(*device_p != crc_code) /*CRC 不正确*/
 		{
 			//再读一次
 			read_fm_memory(start_addr, (UINT8*)device_p,device_param_size);
-			crc_code = get_crc16(device_param_size-4,(UINT8 *)device_p+4);
+			crc_code = get_crc16((UINT8 *)device_p+4, device_param_size-4);
 			if(*device_p != crc_code)
 			{
 				/*参数恢复默认*/
@@ -216,6 +216,7 @@ void ComDeviceInfoInit(void)
 	DevicComInfor.softMonth = (UINT32)VERSION_DATE/100-(UINT16)DevicComInfor.softYear*100;
 	DevicComInfor.softDate = (UINT32)VERSION_DATE-(UINT32)DevicComInfor.softYear*10000 
                                   - (UINT16)DevicComInfor.softMonth*100;
+	DevicComInfor.protocolVersion = PROTOCAL_REVISION;
 }
 
 

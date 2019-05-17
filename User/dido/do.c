@@ -249,7 +249,7 @@ UINT8 Relay_Return(UINT8 num)
 		return 0;
 	}
 	DO_Status &= ~ BIT(num);
-	DeviceX_Deactivate(num);
+	DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
 
 	return 1;
 }

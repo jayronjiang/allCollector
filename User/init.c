@@ -152,6 +152,7 @@ void Init_System(void)
 	Comm5_Init(Baud[DevParams.BaudRate_4]);	// USART2 配置模式为 115200 8-N-1，中断接收
 #endif
 
+	ModbusServer_init();
 	/*上电闪烁3次,每次60ms*/
 	LED_Flashing(LED_RUN, 60, 3);
 	/*对外部设备进行初始化*/

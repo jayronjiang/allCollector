@@ -221,6 +221,16 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		{
 			System_Reset = 1;
 		}
+		else if( nStartRegNo == DOOR_OPEN_REG )
+		{
+			//System_Reset = 1;
+			comm_flag |= DOOR_OPEN_SET_FLAG;
+		}
+		else if( nStartRegNo == DOOR_CLOSE_REG )
+		{
+			//System_Reset = 1;
+			comm_flag |= DOOR_CLOSE_SET_FLAG;
+		}
 		else
 		{
 			coil_num = (nStartRegNo - DO_START_ADDR) / 4;		/*µÚ¼¸¸öDO*/

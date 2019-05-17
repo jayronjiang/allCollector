@@ -19,6 +19,9 @@ extern uint8_t  reset_flag;
 /* 用在20ms中断中,因此1s就是50个计数周期*/
 #define MS_200 				(10)		// 100ms就是5个周期
 #define ONE_SECOND 			(50)
+#define SECOND_5 				(250)
+#define SECOND_10 			(500)
+
 
 #define AUTO_DETCET_TIME	(3  *ONE_SECOND)
 #define ALARM_TIME			(10  *ONE_SECOND)

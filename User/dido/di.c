@@ -5,7 +5,6 @@ DEVICE_STATUS device_status_queue[DI_NUM]; //设备状态配置组
 DEVICE_STATUS_BITS di_status;	// 外部状态字,检测外部设备的状态
 
 uint16_t detect_time_counter = AUTO_DETCET_TIME;	//系统参数检查间隔时间
-uint16_t alarm_time_counter = 0;					// 警报持续时间
 /***********************************************************************************
  * 函数名:	DEVICE_GPIO_IN_Config 
  * 描述: 

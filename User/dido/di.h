@@ -78,7 +78,6 @@ typedef union{
 }DEVICE_STATUS_BITS;
 
 extern uint16_t detect_time_counter;		//系统参数检查间隔时间
-extern uint16_t alarm_time_counter;
 extern DEVICE_STATUS device_status_queue[DI_NUM]; //设备状态配置组
 extern DEVICE_STATUS_BITS di_status;	// 外部状态字,检测外部设备的状态
 

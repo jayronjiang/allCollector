@@ -126,11 +126,15 @@ const static Map_Reg_Table Reg_Table[] =
 	{ENVI_START_ADDR+3, (UINT16*)&ENVIParms.door_flag, READONLY, 1},
 	{ENVI_START_ADDR+4, (UINT16*)&ENVIParms.door_overtime, READONLY, 1},
 	{ENVI_START_ADDR+5, (UINT16*)&ENVIParms.fire_move_flag, READONLY, 1},
-	{ENVI_START_ADDR+6, (UINT16*)&ENVIParms.air_cond_status, READONLY, 1},
-	{ENVI_START_ADDR+7, (UINT16*)&ENVIParms.air_cond_temp_in, READONLY, 1},
-	{ENVI_START_ADDR+8, (UINT16*)&ENVIParms.air_cond_temp_out, READONLY, 1},
-	{ENVI_START_ADDR+9, (UINT16*)&ENVIParms.air_cond_hightemp_alarm, READONLY, 1},
-	{ENVI_START_ADDR+10, (UINT16*)&ENVIParms.air_cond_lowtemp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+6, (UINT16*)&ENVIParms.smoke_event_flag, READONLY, 1},
+	{ENVI_START_ADDR+7, (UINT16*)&RegValue16, READONLY, 1},
+	{ENVI_START_ADDR+8, (UINT16*)&RegValue16, READONLY, 1},
+	{ENVI_START_ADDR+9, (UINT16*)&RegValue16, READONLY, 1},
+	{ENVI_START_ADDR+10, (UINT16*)&ENVIParms.air_cond_status, READONLY, 1},
+	{ENVI_START_ADDR+11, (UINT16*)&ENVIParms.air_cond_temp_in, READONLY, 1},
+	{ENVI_START_ADDR+12, (UINT16*)&ENVIParms.air_cond_temp_out, READONLY, 1},
+	{ENVI_START_ADDR+13, (UINT16*)&ENVIParms.air_cond_hightemp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+14, (UINT16*)&ENVIParms.air_cond_lowtemp_alarm, READONLY, 1},
 	
 
 
@@ -195,7 +199,7 @@ const INT32 Reg_max[] = {
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,   0,0,0,0,0,0,0,0,
 							0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,
 							/*环境数据寄存器*/
-							0,0,0,0,0,0,0,0,0,0,0,
+							0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,
 
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
@@ -212,7 +216,7 @@ const INT32 Reg_min[] = {
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,   0,0,0,0,0,0,0,0,
 							0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,
 							/*环境数据寄存器*/
-							0,0,0,0,0,0,0,0,0,0,0,
+							0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,
 
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
@@ -249,8 +253,8 @@ const INT32 Reg_min[] = {
 UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 {
 	UINT16 reg_addr = pReg->nRegNo;
-	UINT8 i = 0;
-	UINT16 temp_value = 0;/*专门用来判断输入配置的临时变量*/
+	//UINT8 i = 0;
+	//UINT16 temp_value = 0;/*专门用来判断输入配置的临时变量*/
 
 
 	if(( reg_addr >= PARAMS_START_ADDR ) && ( reg_addr < (PARAMS_START_ADDR + PARAMS_REG_MAX)))
@@ -295,6 +299,24 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 				return 0;
                         }
 		}
+		else if ( reg_addr == ( PARAMS_START_ADDR + 20 ))	// 空调开关
+		{
+			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
+			{
+				system_flag |=DEV_MODIFIED;	/*一起改变*/
+				comm_flag |= DEV_PARAM_SET_FLAG_1;
+			}
+		}
+		else if (( reg_addr == ( PARAMS_START_ADDR + 21 )) ||	( reg_addr == ( PARAMS_START_ADDR + 22 ))\
+				|| ( reg_addr == ( PARAMS_START_ADDR + 24)))
+		{
+			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
+			{
+				system_flag |=DEV_MODIFIED;	/*一起改变*/
+				comm_flag |= DEV_PARAM_SET_FLAG_2;
+			}
+		}
+		
 		else if ( reg_addr == ( PARAMS_START_ADDR + 23 ))
 		{
 			/*有负数，要单独处理*/

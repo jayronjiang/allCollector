@@ -23,7 +23,7 @@
 
 void modbus_rtu_process(PROTOCOL_BUF *buf,UINT8 siteid);
 
-UINT8 CheckRTUBuf(const UINT8 *pbuf, UINT16 buf_len);
+UINT8 CheckRTUBuf(UINT8 *pbuf, UINT16 buf_len);
 
 #endif
 

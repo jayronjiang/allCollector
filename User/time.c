@@ -376,11 +376,13 @@ void TIM4_IRQHandler (void)
 void TIM2_IRQHandler (void)
 {   
 	static uint16_t t_100ms = 0;
+	static uint16_t t_cnt = 0;
+	
 
 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
 
 	/*1s,喂狗, 200ms标志位暂时未使用*/
-	if( ++t_100ms>= ONE_SECOND)
+	if( ++t_100ms>= MS_200)
 	{
      		t_100ms=0;
 		system_flag |= SYSTEM_200MS;
@@ -390,6 +392,13 @@ void TIM2_IRQHandler (void)
 	    	{
 	    		IWDG_Feed();  /*中断里面喂狗,内部看门狗*/
 	    	}
+	}
+
+	// 5s时间到，参数轮询
+	if( ++t_cnt>= ONE_SECOND)
+	{
+		t_cnt = 0;
+		start_comm();
 	}
 
 
@@ -403,19 +412,6 @@ void TIM2_IRQHandler (void)
 		system_flag |= SYS_ERR_CHK;
 		detect_time_counter = AUTO_DETCET_TIME;
 	}
-
-	/* 报警长度,10S*/
-	if(alarm_time_counter > 0)
-	{
-		alarm_time_counter--;
-		if(alarm_time_counter == 0)
-		{
-			DeviceX_Deactivate(VOX_ALM);
-		}
-	}
-
-	/*要放在20ms定时器里面*/
-	//DOProcessTickEvents();		/*展宽处理*/
 } 
 
 

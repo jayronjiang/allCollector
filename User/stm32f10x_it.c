@@ -151,7 +151,10 @@ void SysTick_Handler(void)
 	{
 		scan_counter=0;
 		ReadKey();
-	}	
+	}
+
+	// MODBUS通信帧计时
+	CommTimer();/*通信帧的结束判断函数*/
 }
 
 

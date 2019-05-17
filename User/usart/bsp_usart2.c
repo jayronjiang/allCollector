@@ -170,6 +170,7 @@ void USART2_IRQHandler(void)
 		LED_Set(LED_COM, ON); 	// 开始通信指示
 		ch = USART_ReceiveData(USART2);
 
+	#if 0
 		UARTBuf[UART2_COM].RxBuf[UARTBuf[UART2_COM].RxLen] = ch ;
 		if(UARTBuf[UART2_COM].RxLen < UART_RXBUF_SIZE)
 		{
@@ -177,6 +178,8 @@ void USART2_IRQHandler(void)
 			/*需要根据波特率添加延时，判断串口通信一帧数据是否结束*/
 			//UART0Buf.Timer = 50;		// 如果50ms还没有数据,本次数据帧结束
 		}
+	#endif
+		ReceOneChar(UART2_COM,ch);
 	} 
 	else if (USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
 	{
@@ -187,6 +190,8 @@ void USART2_IRQHandler(void)
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USART2);
 		LED_Set(LED_COM, OFF); 	// 通信完毕
+
+		data_received_handle(UART2_COM);
 	}
 }
 #endif

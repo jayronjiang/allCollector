@@ -5,9 +5,10 @@
 
 #define DEVICE_TYPE 		"SPARK01"		/*装置设备类型的定义*/
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190506 			/*版本日期*/
+#define VERSION_DATE		 190510 			/*版本日期*/
+#define PROTOCAL_REVISION 10
 
-#define SYSTEM_SYNC		12341233		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341235		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
@@ -83,9 +84,10 @@ typedef struct envi_struct
 	UINT16 door_flag;
 	UINT16 door_overtime;
 	UINT16 fire_move_flag;
+	UINT16 smoke_event_flag;
 	UINT16 air_cond_status;
-	UINT16 air_cond_temp_in;
 	UINT16 air_cond_temp_out;
+	UINT16 air_cond_temp_in;
 	UINT16 air_cond_hightemp_alarm;
 	UINT16 air_cond_lowtemp_alarm;
 }ENVI_PARAMS;

@@ -476,6 +476,7 @@ UINT32 min_three(UINT32 a,UINT32 b,UINT32 c)
 	return(min);
 }
 
+#if 0
 /* CRC 高位字节值表 */
 const  UINT8 auchCRCHi[] = {
 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
@@ -548,3 +549,129 @@ UINT16  get_crc16(UINT16 len,const UINT8 * pBuffer)
 	}
 	return (uchCRCLo << 8 | uchCRCHi) ; 
 }
+
+
+#else
+UINT16  get_crc16(UINT8 * pBuffer,UINT16 len)
+{
+	INT16U i;
+	INT8U j;
+  	INT16U wCRC = 0xFFFF;
+
+	for (i = 0;i < len;i++)
+	{
+		wCRC ^= pBuffer[i];
+		for (j = 0;j < 8;j++)
+		{
+			if (wCRC & 0x0001)
+			{wCRC = (wCRC >> 1) ^ 0xA001;}
+			else
+			{wCRC = wCRC >> 1;}
+		}
+	}
+
+	return wCRC;
+}   
+#endif
+
+/******************************************************************************
+*  函数名: void char_to_long(INT8U* buffer,LONG32U* value)
+*
+*  描述: 字符转化为长整型
+*			
+*			
+*
+*  输入: 
+*
+*  输出: 
+*
+*  返回值: 
+*
+*  其它: 
+*******************************************************************************/
+void char_to_long(INT8U* buffer,INT32U* value)
+{
+	LONG_UNION long_value;
+	INT8U i;
+	
+	for(i=0;i<4;i++)
+	{
+		long_value.b[3 - i] = *(buffer + i);
+	}
+	*value = long_value.i;
+}
+
+/******************************************************************************
+*  函数名: void long_to_char(INT8U* buffer,LONG32S value)
+*
+*  描述: 这个函数是按照MODBUS的数据格式将一个LONG型
+*		   转换到CHAR型缓冲区中
+*					
+*  输入: buffer: 	输出的缓冲区
+*		   value: 	要转换的数
+*
+*  输出: 
+*
+*  返回值: 
+*
+*  其它: 
+*******************************************************************************/
+void long_to_char(INT8U* buffer,INT32S value)
+{
+	LONG_UNION long_value;
+	INT8U i;
+	
+	long_value.i = value;
+	
+	for(i = 0; i < 4; i++)
+	{
+		*(buffer + i) = long_value.b[3 - i];	  
+	}    
+}
+
+/******************************************************************************
+*  函数名: void char_to_long(INT8U* buffer,LONG32U* value)
+*
+*  描述: 字符转化为整型
+*			
+*			
+*
+*  输入: 
+*
+*  输出: 
+*
+*  返回值: 
+*
+*  其它: 
+*******************************************************************************/
+void char_to_int(INT8U* buffer,INT16U* value)
+{
+	INTEGER_UNION int_value;
+
+	int_value.b[1] = *(buffer);
+	int_value.b[0] = *(buffer + 1);
+	*value = int_value.i;
+}
+
+/******************************************************************************
+*  函数名: void int_to_char(INT8U *buffer, INT16U value)
+*
+*  描述: 这个函数是按照MODBUS的数据格式将一个INT型
+*		   转换到CHAR型缓冲区中
+*					
+*  输入: buffer: 	输出的缓冲区
+*		   value: 	要转换的数
+*
+*  输出: 
+*
+*  返回值: 
+*
+*  其它: 
+*******************************************************************************/
+void int_to_char(INT8U *buffer, INT16U value)
+{
+	*(buffer) = ((INT16U)value&0XFF00)>>8;
+	*(buffer+1) = (value)&0x00FF;
+}
+
+

@@ -22,11 +22,17 @@
 //16位和32位平台定义是不一样的，要注意
 typedef unsigned char        	BOOLEAN;
 typedef unsigned char 	     	UINT8;
+typedef unsigned char 	     	INT8U;
 typedef signed char   	    	INT8;
+typedef signed char   	    	INT8S;
 typedef unsigned short int  	UINT16;
+typedef unsigned short int  	INT16U;
 typedef signed short int    	INT16;
+typedef signed short int    	INT16S;
 typedef unsigned int 	     	UINT32;
+typedef unsigned int 	     	INT32U;
 typedef signed int   	     		INT32;
+typedef signed int   	     		INT32S;
 typedef unsigned       __int64 	UINT64;
 typedef signed __int64     	INT64;
 typedef unsigned char 		bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
@@ -73,6 +79,20 @@ typedef unsigned char 		bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
 
 #define PBout(n)   BIT_ADDR(GPIOB_ODR_Addr,n)  //输出 
 #define PBin(n)    BIT_ADDR(GPIOB_IDR_Addr,n)  //输入
+
+/*结构联合声明整型*/
+typedef union int_union
+{
+	INT16U i;
+	INT8U b[2];
+}INTEGER_UNION;
+
+/*结构联合声明长整型*/
+typedef union long_union
+{
+	INT32U i;
+	INT8U b[4];
+}LONG_UNION;
 
 #endif
 

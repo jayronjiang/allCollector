@@ -36,7 +36,7 @@
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-UINT8 CheckRTUBuf( const UINT8 *pbuf, UINT16 buf_len )
+UINT8 CheckRTUBuf( UINT8 *pbuf, UINT16 buf_len )
 {
 	UINT16 crc_code;
 	if(( buf_len < 8 ) || ( buf_len > 256 ))
@@ -44,7 +44,7 @@ UINT8 CheckRTUBuf( const UINT8 *pbuf, UINT16 buf_len )
 		return LENGTH_ERROR;/*返回长度错误码*/
 	}
 
-	crc_code = get_crc16( buf_len-2, pbuf );
+	crc_code = get_crc16( pbuf, buf_len-2);
 	if( crc_code !=  (UINT16)((pbuf[buf_len-1]<<8)|pbuf[buf_len-2] ))
 	{
 		return CRC_ERROR;/*返回CRC错误码*/
@@ -110,7 +110,7 @@ void modbus_rtu_process( PROTOCOL_BUF *buf,UINT8 siteid )
 		send_buf[0] = siteid;   /*组装id号*/
 		/*计算CRC16，包括首部一个字节；返回长度也要包含两字节CRC值,先低后高*/
 		buf->TxLen = send_len + 3;  	/*加上id、CRC校验码*/
-		cacl_checksum = get_crc16( buf->TxLen - 2 ,send_buf );
+		cacl_checksum = get_crc16(send_buf, buf->TxLen - 2 );
 		send_buf[buf->TxLen - 2] = cacl_checksum & 0xFF;
 		send_buf[buf->TxLen - 1] = (cacl_checksum >> 8) & 0xFF;
 	}
