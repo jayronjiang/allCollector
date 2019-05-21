@@ -35,6 +35,7 @@ const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
  ******************************************************************************/
 static void Task_Schedule(void)
 {
+	static uint32_t door_timeout_t=0;
 	/* 记住上次栏杆状态检测的错误状态,以便返回的时候上报*/
 	//static bool TTL_ALG_Wrong = FALSE;
 	//USART_LIST i = PC_UART;
@@ -45,6 +46,27 @@ static void Task_Schedule(void)
 	if (system_flag&KEY_CHANGED)
 	{
 		system_flag &= ~KEY_CHANGED;
+		ENVIParms.water_flag = di_status.status_bits.di_1;
+		ENVIParms.door_flag = di_status.status_bits.di_2;
+		ENVIParms.fire_move_flag = di_status.status_bits.di_3;
+		ENVIParms.smoke_event_flag = di_status.status_bits.di_4;
+	}
+
+	// 低电平有效
+	if (ENVIParms.door_flag == 0)
+	{
+		//超时计数器开始
+		// 超过1个小时,超时,测试的时候为10s
+		if(time_interval(door_timeout_t) >= DOOR_TIME_OUT)
+		{
+			door_timeout_t = system_time_s;
+			ENVIParms.door_overtime = TRUE;
+		}
+	}
+	else
+	{
+		ENVIParms.door_overtime = FALSE;
+		door_timeout_t = system_time_s;
 	}
 
 

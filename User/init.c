@@ -80,7 +80,7 @@ static void Key_First_Read(void)
 	Delay_Ms(25);					// 防抖
 	ReadKey();
 	/*第一次也必须读取变位,否则dete_bit_recd刚上电读不到状态*/
-	//system_flag &= ~SYS_CHANGED;	// 第一次读取不变位
+	//system_flag &= ~KEY_CHANGED;	// 第一次读取不变位
 }
 
 /******************************************************************************
@@ -102,7 +102,7 @@ void DIDO_Init(void)
 {
 	DI_Init();
 	DO_Init();
-	//control_device();	//根据初始化的状态降栏杆
+	Key_First_Read();
 }
 
 

@@ -208,7 +208,7 @@ const INT32 Reg_max[] = {
 							240,5,5,5,5,1,1,
 							0XFFFF,0XFFFF,0XFFFF,0XFFFF,0XFFFF,0XFFFF,0XFFFF,
 							0XFFFF,0XFFFF,0XFFFF,0XFFFF,0XFFFF,0XFFFF,
-							1,500,100,150,100
+							1,50,10,15,10
 						};
 
 const INT32 Reg_min[] = {	
@@ -225,7 +225,7 @@ const INT32 Reg_min[] = {
 							1,0,0,0,0,0,0,
 							0,0,0,0,0,0,0,
 							0,0,0,0,0,0,
-							0,150,10,-150,10
+							0,15,1,-15,1
 						};
 
 
@@ -305,6 +305,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
 				comm_flag |= DEV_PARAM_SET_FLAG_1;
+				return 0;
 			}
 		}
 		else if (( reg_addr == ( PARAMS_START_ADDR + 21 )) ||	( reg_addr == ( PARAMS_START_ADDR + 22 ))\
@@ -314,6 +315,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
 				comm_flag |= DEV_PARAM_SET_FLAG_2;
+				return 0;
 			}
 		}
 		

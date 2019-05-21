@@ -179,7 +179,7 @@ void USART2_IRQHandler(void)
 			//UART0Buf.Timer = 50;		// 如果50ms还没有数据,本次数据帧结束
 		}
 	#endif
-		ReceOneChar(UART2_COM,ch);
+		ReceOneChar(ch);
 	} 
 	else if (USART_GetITStatus(USART2, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
 	{

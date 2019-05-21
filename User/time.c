@@ -14,9 +14,11 @@
 
 /*系统的毫秒级累加时间,由于其为无符号型,*/
 /* 暂时未被使用*/
-volatile uint32_t system_time_ms=0;
 uint8_t wdt_counter = 0;
 uint8_t  reset_flag=0;	/*报警的复归标志,暂时未用*/
+
+volatile uint32_t system_time_ms = 0;
+volatile uint32_t system_time_s = 0;
 
 /******************************************************************************
  * 函数名:	Delay_Ms 
@@ -152,6 +154,29 @@ void Delay_clk( uint16_t time)
   	{
      		 NOP();
   	}
+}
+
+ /******************************************************************************
+*  函数名: time_interval()
+*
+*  描述: 计算一个输入的时间量，与当前时刻的时间间隔
+*
+*  输入: 被比较的时间毫秒数
+*
+*  输出: 
+*
+*  返回值: 时间差值
+*
+*  其它: 
+*******************************************************************************/
+uint32_t time_interval(uint32_t time0)
+{
+	uint32_t now_ms;
+
+	now_ms = system_time_s;
+	now_ms = now_ms - time0;
+
+	return now_ms;
 }
 
 //*****************************************************************************
@@ -377,6 +402,7 @@ void TIM2_IRQHandler (void)
 {   
 	static uint16_t t_100ms = 0;
 	static uint16_t t_cnt = 0;
+	static uint16_t t_1s = 0;
 	
 
 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
@@ -395,6 +421,14 @@ void TIM2_IRQHandler (void)
 	}
 
 	// 5s时间到，参数轮询
+	if( ++t_1s>= ONE_SECOND)
+	{
+		t_1s = 0;
+		// 系统时间,1s单位
+		system_time_s++;
+	}
+
+	// 5s时间到，参数轮询,调试的时候先1s
 	if( ++t_cnt>= ONE_SECOND)
 	{
 		t_cnt = 0;

@@ -11,7 +11,7 @@ UPS_PARAMS UPSParams;
 
 SPD_PARAMS SPDParams;
 
-ENVI_PARAMS ENVIParms;
+ENVI_PARAMS ENVIParms = {267, 582, };
 			
 /*默认装置参数*/
 const DEVICE_PARAMS Init_DevParams=
@@ -27,10 +27,10 @@ const DEVICE_PARAMS Init_DevParams=
 					0,
 					0,
 					0,
-					350,
-					50,
-					50,
-					50
+					30,
+					10,
+					15,
+					10
                                  };
 
 void read_fm_memory(UINT16 addr,UINT8 *dest_ptr, UINT16 length)

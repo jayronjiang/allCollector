@@ -100,7 +100,7 @@
 #define SPD_STATUS_REG   	0x01
 #define SPD_TIMES_REG   	0x0F
 #define AIR_ONOFF_REG             		0x0801	// 空调开关机
-#define AIR_TEMP_REG             		0x0706	// 空调开关机
+#define AIR_TEMP_REG             		0x0700	// 空调高温低温点
 
 #define ENVI_TEMP_REG             					0x02		// 温湿度
 #define ENVI_AIRCOND_ONOFF_REG             		0x0100	// 空调状态
@@ -170,8 +170,8 @@ typedef struct __SEND_Struct
 /*********************************************************************************
 *                                     ModbusClient模块全局变量
 **********************************************************************************/
-extern INT8U g_CommRxFlag[COMM_NUM]; 		/*注意需要初使化为TRUE，方便上电时接收使能*/
-extern INT16U g_TxDataCtr[COMM_NUM];     		/*发送数据发送个数计数*/
+extern INT8U g_CommRxFlag; 		/*注意需要初使化为TRUE，方便上电时接收使能*/
+extern INT16U g_TxDataCtr;     		/*发送数据发送个数计数*/
 
 extern INT8U Recive_Flag;				/* 接收标志*/
 extern INT8U WAIT_response_flag;		/* 0:表示无等待，1:等待设置回复帧，2:等待界面更新查询帧，3:等待定时查询回复 */
@@ -180,7 +180,7 @@ extern INT8U Com_err_flag;			/* 通信错误标志*/
 //extern INT8U g_Comm_init;			/* 通信初始化标志*/
 
 extern INT32U CommAppFlag;
-extern PDU_Struct  g_PDUData[COMM_NUM];  
+extern PDU_Struct  g_PDUData;  
 
 extern INT32U  comm_flag;
 
@@ -191,10 +191,10 @@ void UARTInit(void);
 void comm_process(void);
 void CommTimer(void);
 void ModbusServer_init(void);
-void ReceOneChar(USART_LIST destUtNo, INT8U ReceCharacter);
+void ReceOneChar(INT8U ReceCharacter);
 void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,INT8U reg_type);
 void start_comm(void);	
-INT8U CRC_check(USART_LIST destUtNo);
+INT8U CRC_check(void);
 void data_received_handle(USART_LIST uartNo);
 void data_send_directly(USART_LIST destUtNo);
 void comm_polling_process(void);

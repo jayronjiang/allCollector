@@ -47,8 +47,8 @@
 *********************************************************************************************************/
 //#define StartCounterT35		(g_T35_num = 0)
 //#define StartCounterT15		(g_T15_num = 0)
-#define StartCounterT100(x) 		(g_T100_num[x] = 0)
-#define StoptCounterT100(x)			(g_T100_num[x] = -1)
+#define StartCounterT100 		(g_T100_num = 0)
+#define StoptCounterT100			(g_T100_num = -1)
 
 /********************************************************************************************************
                                   通信定时器所使用的变量
@@ -57,7 +57,7 @@
 //static INT8U g_ENDT35Flag;	/*注意需要赋初值为FALSE*/
 //static INT8S g_T35_num;		/*注意需要赋初值为-1*/
 //static INT8S g_T15_num;		/*注意需要赋初值为-1*/
-static INT16S g_T100_num[COMM_NUM];	/*发送完成后等待接收计数器，初值为-1*/
+static INT16S g_T100_num;	/*发送完成后等待接收计数器，初值为-1*/
 //static INT8U g_ComBuf[COMMBUFLEN];  
 //static INT8U T15DelayTime[BAUDNUM] = {24,12,8,5,3};
 //static INT8U T35DelayTime[BAUDNUM] = {46,23,12,6,4};
@@ -76,11 +76,11 @@ INT8U Com_err_counter = 0;		/* 通信错误计数器*/
 INT8U Com_err_flag = 0;			/* 通信错误标志*/
 //INT8U g_Comm_init = FALSE;		/* 通信初始化标志*/
 
-INT8U g_CommRxFlag[COMM_NUM];          	/*注意需要初使化为TRUE，方便上电时接收使能*/
-INT16U g_TxDataCtr[COMM_NUM];              	/*发送数据发送个数计数*/
+INT8U g_CommRxFlag;          	/*注意需要初使化为TRUE，方便上电时接收使能*/
+INT16U g_TxDataCtr;              	/*发送数据发送个数计数*/
 //LONG32U CommAppFlag = 0;
-SEND_Struct g_SENData[COMM_NUM];		/* 发送数据的结构体 */
-PDU_Struct  g_PDUData[COMM_NUM];  		/* 接收数据的结构体 */
+SEND_Struct g_SENData;		/* 发送数据的结构体 */
+PDU_Struct  g_PDUData;  		/* 接收数据的结构体 */
 
 /**************************************************************************************************/
 /************************以下是与应用相关的全局静态函数********************************************/
@@ -98,16 +98,16 @@ PDU_Struct  g_PDUData[COMM_NUM];  		/* 接收数据的结构体 */
 函数说明:	由接收中断调用，每接收一次就调用一次
 
 **************************************************************************************/
-void ReceOneChar(USART_LIST destUtNo, INT8U ReceCharacter) 
+void ReceOneChar(INT8U ReceCharacter) 
 {
-	if (g_CommRxFlag[destUtNo] == TRUE)//如果接收允许
+	if (g_CommRxFlag == TRUE)//如果接收允许
 	{	  
-		StoptCounterT100(destUtNo);		/*开始接收数据，禁止接收超时计数*/
+		StoptCounterT100;		/*开始接收数据，禁止接收超时计数*/
 
-		if (g_PDUData[destUtNo].PDULength < UART_RXBUF_SIZE)/*防止指针操作边界溢出*/
+		if (g_PDUData.PDULength < UART_RXBUF_SIZE)/*防止指针操作边界溢出*/
 		{
-			*(g_PDUData[destUtNo].PDUBuffPtr+g_PDUData[destUtNo].PDULength) = ReceCharacter;
-			g_PDUData[destUtNo].PDULength++;
+			*(g_PDUData.PDUBuffPtr+g_PDUData.PDULength) = ReceCharacter;
+			g_PDUData.PDULength++;
 		}
 	}
 }
@@ -157,23 +157,25 @@ void data_send_directly(USART_LIST destUtNo)
 		return;
 	}
 
-	g_TxDataCtr[destUtNo] = 0;
+	g_TxDataCtr = 0;
 	LED_Set(LED_COM, ON); 	// 开始通信指示
-	while (g_TxDataCtr[destUtNo]  <  g_SENData[destUtNo].SENDLength)
+	while (g_TxDataCtr  <  g_SENData.SENDLength)
 	{
-		ch= *(g_SENData[destUtNo].SENDBuffPtr+g_TxDataCtr[destUtNo]);
+		ch= *(g_SENData.SENDBuffPtr+g_TxDataCtr);
 		USART_SendData(PUSART, ch);
 		/* 等待发送完毕 */
 		while (USART_GetFlagStatus(PUSART, USART_FLAG_TXE) == RESET);
-		g_TxDataCtr[destUtNo]++;
+		g_TxDataCtr++;
 	}
 	LED_Set(LED_COM, OFF); 	// 通信完毕
 
-	StartCounterT100(destUtNo);					/*开始等待计数*/
-	g_CommRxFlag[destUtNo] = TRUE;            	/* 设置为接受状态*/	          
-	g_PDUData[destUtNo].PDULength = 0;
-	g_SENData[destUtNo].SENDLength = 0;
-	g_TxDataCtr[destUtNo]  = 0;
+	StartCounterT100;					/*开始等待计数*/
+	g_SENData.SENDLength = 0;
+	g_TxDataCtr  = 0;
+
+	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/	          
+	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
+	g_PDUData.PDULength = 0;	// 准备接收
 }
 
 
@@ -192,20 +194,20 @@ void data_send_directly(USART_LIST destUtNo)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-INT8U CRC_check(USART_LIST destUtNo)
+INT8U CRC_check(void)
 {
 	INTEGER_UNION CRC_data;
 
 	/*此处理解决在长度小于2时，指针越限引起装置重起问题*/	
-	if(g_PDUData[destUtNo].PDULength<7)
+	if(g_PDUData.PDULength<7)
 	{
 		return 0;
 	}
 	
-	CRC_data.b[0] = *(g_PDUData[destUtNo].PDUBuffPtr + g_PDUData[destUtNo].PDULength - 2);
-	CRC_data.b[1] = *(g_PDUData[destUtNo].PDUBuffPtr +  g_PDUData[destUtNo].PDULength - 1);
+	CRC_data.b[0] = *(g_PDUData.PDUBuffPtr + g_PDUData.PDULength - 2);
+	CRC_data.b[1] = *(g_PDUData.PDUBuffPtr +  g_PDUData.PDULength - 1);
 	
-	if(get_crc16( g_PDUData[destUtNo].PDUBuffPtr,g_PDUData[destUtNo].PDULength - 2) == CRC_data.i)
+	if(get_crc16( g_PDUData.PDUBuffPtr,g_PDUData.PDULength - 2) == CRC_data.i)
 	{
 		return 1;
 	}
@@ -227,33 +229,33 @@ INT8U CRC_check(USART_LIST destUtNo)
  * 修改人:	CZH
  * 修改日期:2012-10-10
  ******************************************************************************/
-void comm_DeviceParam_set_1(USART_LIST destUtNo)
+void comm_DeviceParam_set_1(void)
 {
 	INT8U i=0;
 	INT16U* pointer = &DevParams.AirCondSet;
 	INTEGER_UNION int_value;
 	INT8U reg_num = AIR_ONOFF_SET_NUM;	/*装置参数寄存器的个数*/
 	int_value.i=AIR_ONOFF_REG;					/*装置参数寄存器的首地址*/
-	g_SENData[destUtNo].SENDBuffPtr = UARTBuf[destUtNo].RxBuf;;
-	*g_SENData[destUtNo].SENDBuffPtr = AIR_STATION_ADDRESS;
-	*(g_SENData[destUtNo].SENDBuffPtr+1) = WRITEREG_COMMAND;
-	*(g_SENData[destUtNo].SENDBuffPtr+2)=int_value.b[1];
-	*(g_SENData[destUtNo].SENDBuffPtr+3)=int_value.b[0];/*寄存器地址*/		
-	*(g_SENData[destUtNo].SENDBuffPtr+4) = 0X00;
-	*(g_SENData[destUtNo].SENDBuffPtr+5) = reg_num;
-	*(g_SENData[destUtNo].SENDBuffPtr+6) = reg_num*2; 
+	g_SENData.SENDBuffPtr = UARTBuf[AIR_COND_UART].RxBuf;;
+	*g_SENData.SENDBuffPtr = AIR_STATION_ADDRESS;
+	*(g_SENData.SENDBuffPtr+1) = WRITEREG_COMMAND;
+	*(g_SENData.SENDBuffPtr+2)=int_value.b[1];
+	*(g_SENData.SENDBuffPtr+3)=int_value.b[0];/*寄存器地址*/		
+	*(g_SENData.SENDBuffPtr+4) = 0X00;
+	*(g_SENData.SENDBuffPtr+5) = reg_num;
+	*(g_SENData.SENDBuffPtr+6) = reg_num*2; 
 	
 	for(i=0;i<1;i++)
 	{
-		int_to_char(g_SENData[destUtNo].SENDBuffPtr + SET_FRAME_HEAD_NUM +i*2 ,	*(pointer+i));
+		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM +i*2 ,	*(pointer+i));
 	}
 	
 	/*CRC校验*/
-	int_value.i=get_crc16(g_SENData[destUtNo].SENDBuffPtr,SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2);
-	*(g_SENData[destUtNo].SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2)= int_value.b[0];
-	*(g_SENData[destUtNo].SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+1)= int_value.b[1];
-	g_SENData[destUtNo].SENDLength=SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+2;
-	data_send_directly(destUtNo);
+	int_value.i=get_crc16(g_SENData.SENDBuffPtr,SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2);
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2)= int_value.b[0];
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+1)= int_value.b[1];
+	g_SENData.SENDLength=SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+2;
+	data_send_directly(AIR_COND_UART);
 }
 
 
@@ -272,33 +274,33 @@ void comm_DeviceParam_set_1(USART_LIST destUtNo)
  * 修改人:	CZH
  * 修改日期:2012-10-10
  ******************************************************************************/
-void comm_DeviceParam_set_2(USART_LIST destUtNo)
+void comm_DeviceParam_set_2(void)
 {
 	INT8U i=0;
 	INT16U* pointer = &DevParams.AirColdStartPoint;
 	INTEGER_UNION int_value;
 	INT8U reg_num = AIR_TEMP_SET_NUM;	/*装置参数寄存器的个数*/
 	int_value.i=AIR_TEMP_REG;					/*装置参数寄存器的首地址*/
-	g_SENData[destUtNo].SENDBuffPtr = UARTBuf[destUtNo].RxBuf;;
-	*g_SENData[destUtNo].SENDBuffPtr = AIR_STATION_ADDRESS;
-	*(g_SENData[destUtNo].SENDBuffPtr+1) = WRITEREG_COMMAND;
-	*(g_SENData[destUtNo].SENDBuffPtr+2)=int_value.b[1];
-	*(g_SENData[destUtNo].SENDBuffPtr+3)=int_value.b[0];/*寄存器地址*/		
-	*(g_SENData[destUtNo].SENDBuffPtr+4) = 0X00;
-	*(g_SENData[destUtNo].SENDBuffPtr+5) = reg_num;
-	*(g_SENData[destUtNo].SENDBuffPtr+6) = reg_num*2; 
+	g_SENData.SENDBuffPtr = UARTBuf[AIR_COND_UART].RxBuf;;
+	*g_SENData.SENDBuffPtr = AIR_STATION_ADDRESS;
+	*(g_SENData.SENDBuffPtr+1) = WRITEREG_COMMAND;
+	*(g_SENData.SENDBuffPtr+2)=int_value.b[1];
+	*(g_SENData.SENDBuffPtr+3)=int_value.b[0];/*寄存器地址*/		
+	*(g_SENData.SENDBuffPtr+4) = 0X00;
+	*(g_SENData.SENDBuffPtr+5) = reg_num;
+	*(g_SENData.SENDBuffPtr+6) = reg_num*2; 
 	
 	for(i=0;i<4;i++)
 	{
-		int_to_char(g_SENData[destUtNo].SENDBuffPtr + SET_FRAME_HEAD_NUM +i*2 ,	*(pointer+i));
+		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM +i*2 ,	*(pointer+i));
 	}
 	
 	/*CRC校验*/
-	int_value.i=get_crc16(g_SENData[destUtNo].SENDBuffPtr,SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2);
-	*(g_SENData[destUtNo].SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2)= int_value.b[0];
-	*(g_SENData[destUtNo].SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2+1)= int_value.b[1];
-	g_SENData[destUtNo].SENDLength=SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2+2;
-	data_send_directly(destUtNo);
+	int_value.i=get_crc16(g_SENData.SENDBuffPtr,SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2);
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2)= int_value.b[0];
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2+1)= int_value.b[1];
+	g_SENData.SENDLength=SET_FRAME_HEAD_NUM+AIR_TEMP_SET_NUM*2+2;
+	data_send_directly(AIR_COND_UART);
 }
 
 
@@ -321,51 +323,51 @@ void comm_DeviceParam_set_2(USART_LIST destUtNo)
  * 修改内容: 对新规约进行解析
  * 修改日期:2012-10-09
  ******************************************************************************/
-void comm_RealData_analyse(USART_LIST destUtNo)			 
+void comm_RealData_analyse(void)			 
 {
 	INT8U i;
 	INT16U * pointer = &RSUParams.phase[0].vln;/*第0相*/
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (REAL_DATA_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (REAL_DATA_NUM*2+5)))
 	{		
 		for (i=0;i<2;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 
 		/*第1相*/
 		pointer = &RSUParams.phase[1].vln;
 		for(i = 7;i <= 8;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-7));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-7));
 		}
 
 		/*第2相*/
 		pointer = &RSUParams.phase[2].vln;
 		for(i = 14;i <= 15;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-14));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-14));
 		}
 
 		/*第3相*/
 		pointer = &RSUParams.phase[3].vln;
 		for(i = 21;i <= 22;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-21));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-21));
 		}
 
 		/*第4相*/
 		pointer = &RSUParams.phase[4].vln;
 		for(i = 27;i <= 28;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-27));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-27));
 		}
 
 		/*第5相*/
 		pointer = &RSUParams.phase[5].vln;
 		for(i = 35;i <= 36;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-35));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-35));
 		}
 	}
 }
@@ -383,16 +385,16 @@ void comm_RealData_analyse(USART_LIST destUtNo)
  * 
  *------------------------
  ******************************************************************************/
-void comm_DeviceParam_1_analyse(USART_LIST destUtNo)			
+void comm_DeviceParam_1_analyse(void)			
 {
 	INT8U i=0;
 	INT16U* pointer = &DevParams.AirCondSet;
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (AIR_ONOFF_SET_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (AIR_ONOFF_SET_NUM*2+5)))
 	{
 		for (i=0;i<AIR_ONOFF_SET_NUM;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 	}
 }
@@ -410,16 +412,16 @@ void comm_DeviceParam_1_analyse(USART_LIST destUtNo)
  * 
  *------------------------
  ******************************************************************************/
-void comm_DeviceParam_2_analyse(USART_LIST destUtNo)			
+void comm_DeviceParam_2_analyse(void)			
 {
 	INT8U i=0;
 	INT16U* pointer = &DevParams.AirColdStartPoint;
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (AIR_TEMP_SET_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (AIR_TEMP_SET_NUM*2+5)))
 	{
 		for (i=0;i<AIR_TEMP_SET_NUM;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 	}
 }
@@ -572,16 +574,16 @@ void comm_SPDData_analyse(void)
  * 创建日期:2009.1.6
  * 
  ******************************************************************************/
-void comm_EnviTemp_analyse(USART_LIST destUtNo)				 
+void comm_EnviTemp_analyse(void)				 
 {
 	INT8U i=0;
 	INT16U* pointer = &ENVIParms.temp;
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (ENVI_TEMP_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (ENVI_TEMP_NUM*2+5)))
 	{
 		for (i=0;i<ENVI_TEMP_NUM;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 	}
 }
@@ -599,16 +601,16 @@ void comm_EnviTemp_analyse(USART_LIST destUtNo)
  * 创建日期:2009.1.6
  * 
  ******************************************************************************/
-void comm_EnviAirOnOff_analyse(USART_LIST destUtNo)				 
+void comm_EnviAirOnOff_analyse(void)				 
 {
 	INT8U i=0;
 	INT16U* pointer = &ENVIParms.air_cond_status;
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (ENVI_AIRCOND_ONOFF_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (ENVI_AIRCOND_ONOFF_NUM*2+5)))
 	{
 		for (i=0;i<ENVI_AIRCOND_ONOFF_NUM;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 	}
 }
@@ -626,18 +628,28 @@ void comm_EnviAirOnOff_analyse(USART_LIST destUtNo)
  * 创建日期:2009.1.6
  * 
  ******************************************************************************/
-void comm_EnviAirTemp_analyse(USART_LIST destUtNo)				 
+void comm_EnviAirTemp_analyse(void)				 
 {
 	INT8U i=0;
-	INT16U* pointer = &ENVIParms.air_cond_temp_out;
+	INT16U* pointer = &ENVIParms.air_cond_temp_out;// 读外温
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (ENVI_AIRCOND_TEMP_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (ENVI_AIRCOND_TEMP_NUM*2+5)))
 	{
-		char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
+		/*调试发现外温总是测不出来,总是为2000,此时判断为无效*/
+		if (ENVIParms.air_cond_temp_out > 1000)
+		{
+			ENVIParms.air_cond_temp_out = 0xFFFF;
+		}
 
-		pointer = &ENVIParms.air_cond_temp_out;
+		/*读内温*/
+		pointer = &ENVIParms.air_cond_temp_in;
 		i = 2;	// 室内温度跳了1个寄存器
-		char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
+		if (ENVIParms.air_cond_temp_in > 1000)
+		{
+			ENVIParms.air_cond_temp_in = 0xFFFF;
+		}
 	}
 }
 
@@ -653,16 +665,16 @@ void comm_EnviAirTemp_analyse(USART_LIST destUtNo)
  * 创建日期:2009.1.6
  * 
  ******************************************************************************/
-void comm_EnviAirAlarm_analyse(USART_LIST destUtNo)				 
+void comm_EnviAirAlarm_analyse(void)				 
 {
 	INT8U i=0;
 	INT16U* pointer = &ENVIParms.air_cond_hightemp_alarm;
 
-	if(CRC_check(destUtNo) && (g_PDUData[destUtNo].PDULength == (ENVI_AIRCOND_ALARM_NUM*2+5)))
+	if(CRC_check() && (g_PDUData.PDULength == (ENVI_AIRCOND_ALARM_NUM*2+5)))
 	{
 		for (i=0;i<ENVI_AIRCOND_ALARM_NUM;i++)
 		{
-			char_to_int(g_PDUData[destUtNo].PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
 	}
 }
@@ -684,8 +696,8 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	INTEGER_UNION reg;
 	
 	reg.i = start_reg;	
-	g_SENData[buf_no].SENDBuffPtr = UARTBuf[buf_no].RxBuf;
-	*g_SENData[buf_no].SENDBuffPtr = station;
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
+	*g_SENData.SENDBuffPtr = station;
 
 	if(reg_type!=READREG_COMMAND )
 	{
@@ -693,21 +705,21 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	}
 	else 
 	{		
-		*(g_SENData[buf_no].SENDBuffPtr + 1) = reg_type;
+		*(g_SENData.SENDBuffPtr + 1) = reg_type;
 	}	
 	
-	*(g_SENData[buf_no].SENDBuffPtr + 2) = reg.b[1];				/*寄存器地址*/
-	*(g_SENData[buf_no].SENDBuffPtr + 3) = reg.b[0];
+	*(g_SENData.SENDBuffPtr + 2) = reg.b[1];				/*寄存器地址*/
+	*(g_SENData.SENDBuffPtr + 3) = reg.b[0];
 	
-	*(g_SENData[buf_no].SENDBuffPtr + 4) = 0x00;					/*寄存器数量*/
-	*(g_SENData[buf_no].SENDBuffPtr + 5) = reg_num;
+	*(g_SENData.SENDBuffPtr + 4) = 0x00;					/*寄存器数量*/
+	*(g_SENData.SENDBuffPtr + 5) = reg_num;
 			
-	 reg.i = get_crc16(g_SENData[buf_no].SENDBuffPtr,6);			/*加入CRC校验*/
-	*(g_SENData[buf_no].SENDBuffPtr + 6) = reg.b[0];
-	*(g_SENData[buf_no].SENDBuffPtr + 7) = reg.b[1];
+	 reg.i = get_crc16(g_SENData.SENDBuffPtr,6);			/*加入CRC校验*/
+	*(g_SENData.SENDBuffPtr + 6) = reg.b[0];
+	*(g_SENData.SENDBuffPtr + 7) = reg.b[1];
 	
-	g_SENData[buf_no].SENDLength= 8;
-	g_TxDataCtr[buf_no] = 0;
+	g_SENData.SENDLength= 8;
+	g_TxDataCtr = 0;
 	data_send_directly(buf_no);
 } 
 
@@ -816,7 +828,6 @@ void comm_polling_process(void)
 {
 	static INT8U Init_sign = FALSE;
 	static INT8U Init_send = FALSE;
-	INT8U i =0;
 	
 	if( Init_sign == FALSE)	/*初始化装置参数*/
 	{
@@ -845,10 +856,7 @@ void comm_polling_process(void)
 		{
 			WAIT_response_flag = 0;
 			Recive_Flag = 0;  
-			for (i = 0; i < UART_NUM; i++)
-			{
-				g_PDUData[i].PDULength = 0;				/*将接收帧长度置零会比较好*/
-			}
+			g_PDUData.PDULength = 0;				/*将接收帧长度置零会比较好*/
 		}
 		Com_err_counter = 0;
 	}
@@ -859,46 +867,39 @@ void comm_polling_process(void)
 		switch(Recive_Flag)
 		{
 			case REAL_DATA_ANALYSE:					/*接收到实时数据*/
-				comm_RealData_analyse(MEAS_UART);
-				g_PDUData[MEAS_UART].PDULength = 0;
+				comm_RealData_analyse();
 			break;
 			
 			case DEVICE_DATA_1_ANALYSE:				/*接收到装置参数*/
 				if(!(comm_flag & DEV_PARAM_SET_FLAG_1))
 				{
 					// 装置参数
-					comm_DeviceParam_1_analyse(AIR_COND_UART);
+					comm_DeviceParam_1_analyse();
 				}
-				g_PDUData[AIR_COND_UART].PDULength = 0;
 			break;
 
 			case DEVICE_DATA_2_ANALYSE:				/*接收到装置参数*/
 				if(!(comm_flag & DEV_PARAM_SET_FLAG_2))
 				{
 					// 装置参数
-					comm_DeviceParam_2_analyse(AIR_COND_UART);
+					comm_DeviceParam_2_analyse();
 				}
-				g_PDUData[AIR_COND_UART].PDULength = 0;
 			break;
 			
 			case ENVI_TEMP_ANALYSE:
-				comm_EnviTemp_analyse(TEMP_UART);
-				g_PDUData[TEMP_UART].PDULength = 0;
+				comm_EnviTemp_analyse();
 			break;
 
 			case ENVI_AIR_ONOFF_ANALYSE:
-				comm_EnviAirOnOff_analyse(AIR_COND_UART);
-				g_PDUData[AIR_COND_UART].PDULength = 0;
+				comm_EnviAirOnOff_analyse();
 			break;
 
 			case ENVI_AIR_TEMP_ANALYSE:
-				comm_EnviAirTemp_analyse(AIR_COND_UART);
-				g_PDUData[AIR_COND_UART].PDULength = 0;
+				comm_EnviAirTemp_analyse();
 			break;
 
 			case ENVI_AIR_ALARM_ANALYSE:
-				comm_EnviAirAlarm_analyse(AIR_COND_UART);
-				g_PDUData[AIR_COND_UART].PDULength = 0;
+				comm_EnviAirAlarm_analyse();
 			break;
 
 	#if 0
@@ -917,24 +918,25 @@ void comm_polling_process(void)
 		
 		Recive_Flag = 0;
 		WAIT_response_flag = 0;						/*将等待标志以及接收标志都清零*/
+		g_PDUData.PDULength = 0;
 	}
 	/**************************************发送过程处理*********************************************/
 	// 2个同时处理有bug
-	if((!WAIT_response_flag) && (g_CommRxFlag[TEMP_UART] == FALSE))	
+	if((!WAIT_response_flag) && (g_CommRxFlag == FALSE))	
 	{
 		/********************************发送参数设置帧处理*************************************/
 		/*空调参数设置为MODBUS通信*/
 		if(comm_flag & DEV_PARAM_SET_FLAG_1)			
 		{
 			comm_flag &= ~DEV_PARAM_SET_FLAG_1;
-			comm_DeviceParam_set_1(AIR_COND_UART);
+			comm_DeviceParam_set_1();
 			WAIT_response_flag = WAIT_PARAM_SET_1; 
 		}
 
 		else if(comm_flag & DEV_PARAM_SET_FLAG_2)			
 		{
 			comm_flag &= ~DEV_PARAM_SET_FLAG_2;
-			comm_DeviceParam_set_2(AIR_COND_UART);
+			comm_DeviceParam_set_2();
 			WAIT_response_flag = WAIT_PARAM_SET_2; 
 		}
 		
@@ -1031,15 +1033,12 @@ void ModbusServer_init(void)
 	//g_ENDT35Flag=FALSE;
 	//g_T35_num  = -1;
 	//g_T15_num= -1;
-	INT8U i = 0;
-	for (i = 0; i< COMM_NUM; i++)
-	{
-		StoptCounterT100(i);
-		g_CommRxFlag[i] = FALSE; 	/*主站使能发送*/
-		g_TxDataCtr[i] = 0;
-		g_PDUData[i].PDUBuffPtr = UARTBuf[i].RxBuf;
-		g_PDUData[i].PDULength =0;
-	}
+	StoptCounterT100;
+	g_CommRxFlag = FALSE; 	/*主站使能发送*/
+	g_TxDataCtr = 0;
+		
+	g_PDUData.PDUBuffPtr = UARTBuf[MEAS_UART].RxBuf;
+	g_PDUData.PDULength =0;
 }
 
 /******************************************************************************
@@ -1090,11 +1089,11 @@ void ModbusServer_init(void)
 ***************************************************************************/
 void data_received_handle(USART_LIST uartNo)
 {
-	if ((MEAS_UART == uartNo) ||(AIR_COND_UART == uartNo)||(UPS_UART == uartNo))
+	if ((MEAS_UART == uartNo) ||(AIR_COND_UART == uartNo)||(UPS_UART == uartNo) ||(TEMP_UART== uartNo))
 	{
 		/*一次有效的接收后，置该位为FALSE，防止在数据处理之前
 		又来数据冲掉已保存在数据接收缓冲区中的数据*/
-		g_CommRxFlag[uartNo] = FALSE; 
+		g_CommRxFlag = FALSE; 
 		Com_err_counter = 0;
 			
 		if(Com_err_flag == TRUE)
@@ -1121,30 +1120,24 @@ void data_received_handle(USART_LIST uartNo)
 ***************************************************************************/
 void CommTimer(void)
 {
-	INT16U i = 0;
-	/*接收等待超时判断处理函数*/
-
-	for (i = 0; i < COMM_NUM; i++)
+	if (g_T100_num >= 0)
 	{
-		if (g_T100_num[i] >= 0)
+		if(g_T100_num > Wait_max_time)				//接收响应超时
 		{
-			if(g_T100_num[i] > Wait_max_time)				//接收响应超时
-			{
-				StoptCounterT100(i);
-				Com_err_counter++;						//通讯错误次数
+			StoptCounterT100;
+			Com_err_counter++;						//通讯错误次数
 
-				comm_overtime_deal();
-				g_CommRxFlag[i] = FALSE;					/*设置为发送状态*/  
+			comm_overtime_deal();
+			g_CommRxFlag = FALSE;					/*设置为发送状态*/  
 																							
-				if(Com_err_counter > 4)		
-				{
-					Com_err_flag = TRUE;
-				} 
-			}
-			else
+			if(Com_err_counter > 4)		
 			{
-				g_T100_num[i]++;
-			}
+				Com_err_flag = TRUE;
+			} 
+		}
+		else
+		{
+			g_T100_num++;
 		}
 	}
 }

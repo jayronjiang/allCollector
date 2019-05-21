@@ -41,6 +41,7 @@ extern uint8_t  reset_flag;
 #define TIME_SPLIT_1MS 	((SystemCoreClock)/1000)	   		// 1∫¡√Î÷‹∆⁄ ˝£¨1843.2@22.118,400MHz
 
 extern uint8_t wdt_counter;
+extern volatile uint32_t system_time_s;
 
 void Delay_Xus(uint16_t us);
 void Delay_Xms(uint16_t ms);
@@ -52,8 +53,9 @@ void Stop_Timer_x(TIM_TypeDef* TIMx);
 void Timer_Start(void);
 
 void Time_Configuration(void);
-uint64_t readnowtime(void);
+//uint64_t readnowtime(void);
 void DelayAndFeedDog(uint32_t myMs);
+uint32_t time_interval(uint32_t time0);
 
 #endif /* __TMIE_H */
 

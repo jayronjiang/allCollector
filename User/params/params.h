@@ -8,7 +8,7 @@
 #define VERSION_DATE		 190510 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
-#define SYSTEM_SYNC		12341235		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341236		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
@@ -19,6 +19,8 @@
 #define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+410,留576*/
 
 #define RSU_NUM		6	// RSU天线数目
+
+#define DOOR_TIME_OUT	10	// 10s
 
 /*******************************************************************************************/
 typedef struct phase_struct
