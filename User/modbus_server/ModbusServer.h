@@ -63,9 +63,15 @@
 #define 	REF_TYPE_CODE   	0x06
 
 
+#define	SPD_DIREAD_COMMAND			0x02		//防雷自己的读功能码为02
+#define	SPD_TIMESREAD_COMMAND		0x04		//防雷自己的雷击读功能码为04
+
+
 #define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址*/
 #define 	AIR_STATION_ADDRESS  	02		/*默认空调从站从站地址*/
 #define 	TEMP_STATION_ADDRESS  	03		/*默认温湿度从站从站地址*/
+#define 	UPS_STATION_ADDRESS  	01		/*默认UPS从站地址*/
+#define 	SPD_STATION_ADDRESS	05
 
 #define Wait_max_time  		200 		/* 发送后等待接收帧的最长时间为200ms */
 
@@ -73,32 +79,40 @@
 *                                      通信设置参数标志
 **********************************************************************************/
 #define REAL_DATA_SEND_FLAG    	BIT0		/*实时数据查询*/
-#define UPS_PARAM_SEND_FLAG		BIT1
-#define SPD_STATUS_SEND_FLAG	BIT2
-#define SPD_TIMES_SEND_FLAG		BIT3
 
-#define ENVI_TEMP_SEND_FLAG         	BIT4		// 温湿度
-#define ENVI_AIRCOND_ONOFF_FLAG         	BIT5		// 空调参数读取
-#define ENVI_AIRCOND_TEMP_FLAG         		BIT6		// 空调参数读取
-#define ENVI_AIRCOND_ALARM_FLAG         	BIT7		// 空调参数读取
+#define UPS_PARAM_SEND_FLAG		BIT1		/*USP的总体参数*/
+#define UPS_IN_SEND_FLAG			BIT2		/*USP的输入侧参数*/
+#define UPS_OUT_SEND_FLAG		BIT3		/*USP的输出侧参数*/
+#define UPS_BAT_SEND_FLAG		BIT4		/*USP的电池参数*/
+#define UPS_TIME_SEND_FLAG		BIT5		/*USP的运行时间参数*/
+#define UPS_STATUS_SEND_FLAG	BIT6		/*USP的运行状态参数*/
 
-#define DEV_PARAM_SEND_FLAG_1         BIT8		/*参数查询*/
-#define DEV_PARAM_SEND_FLAG_2         BIT9		/*参数查询*/
 
-#define DEV_PARAM_SET_FLAG_1          	BIT10	 // 参数设置	--空调开关机
-#define DEV_PARAM_SET_FLAG_2       	BIT11	 // 参数设置	--空调温度设置
+#define SPD_STATUS_SEND_FLAG		BIT8
+#define SPD_TIMES_SEND_FLAG			BIT9
 
-#define DOOR_OPEN_SET_FLAG          	BIT12	 // 电子锁开
-#define DOOR_CLOSE_SET_FLAG          	BIT13	 // 电子锁关
+#define ENVI_TEMP_SEND_FLAG         		BIT10		// 温湿度
+#define ENVI_AIRCOND_ONOFF_FLAG         BIT11		// 空调参数读取
+#define ENVI_AIRCOND_TEMP_FLAG         	BIT12		// 空调参数读取
+#define ENVI_AIRCOND_ALARM_FLAG         BIT13		// 空调参数读取
+
+#define DEV_PARAM_SEND_FLAG_1         	BIT14		/*参数查询*/
+#define DEV_PARAM_SEND_FLAG_2         	BIT15		/*参数查询*/
+
+#define DEV_PARAM_SET_FLAG_1          	BIT16	 // 参数设置	--空调开关机
+#define DEV_PARAM_SET_FLAG_2       	BIT17	 // 参数设置	--空调温度设置
+
+#define DOOR_OPEN_SET_FLAG          		BIT18	 // 电子锁开
+#define DOOR_CLOSE_SET_FLAG          	BIT19	 // 电子锁关
 
 
 /*********************************************************************************
 *                                     读取相关参数起始地址
 **********************************************************************************/
-#define RSU_REG        		0x40			// 从第一路电压开始读
+#define RSU_REG        		0x40				// 从第一路电压开始读
 #define UPS_REG   			0x01
-#define SPD_STATUS_REG   	0x01
-#define SPD_TIMES_REG   	0x0F
+#define SPD_STATUS_REG   	0x00				// 防雷的输入状态从地址0开始
+#define SPD_TIMES_REG   	0x0E				// 04码从0E开始读
 #define AIR_ONOFF_REG             		0x0801	// 空调开关机
 #define AIR_TEMP_REG             		0x0700	// 空调高温低温点
 
@@ -122,14 +136,19 @@
 #define ENVI_AIR_TEMP_ANALYSE		11	/*空调参数解析*/
 #define ENVI_AIR_ALARM_ANALYSE		12	/*空调参数解析*/
 
-#define UPS_DATA_ANALYSE	13	/*UPS参数解析*/
+//#define UPS_DATA_ANALYSE	13	/*UPS参数解析*/
 #define SPD_STATUS_ANALYSE	14	/*防雷参数解析*/
 #define SPD_TIMES_ANALYSE	15	/*防雷参数解析*/
 
 #define DEVICE_DATA_1_ANALYSE	16	/*装置参数读取解析,空调开关机*/
 #define DEVICE_DATA_2_ANALYSE	17	/*装置参数读取解析,空调温度*/
 
-
+#define UPS_PARAM_ANALYSE		18
+#define UPS_IN_ANALYSE			19
+#define UPS_OUT_ANALYSE			20
+#define UPS_BAT_ANALYSE			21
+#define UPS_TIME_ANALYSE			22
+#define UPS_STATUS_ANALYSE		23
 
 /*********************************************************************************
 *                                     读取相关参数长度
@@ -137,10 +156,10 @@
 #define REAL_DATA_NUM		42  	/*需实时更新数据长度，0x69-0x40*/
 //#define REAL_TIME_SOE_NUM			37  		/*读取SOE、统计信息等数据长度*/
 #define UPS_DATA_NUM 			4
-#define SPD_STATUS_NUM 			1
-#define SPD_TIMES_NUM 			1
-#define AIR_ONOFF_SET_NUM 	01 		// 空调遥控,只有1个地址
-#define AIR_TEMP_SET_NUM 	04 		// 空调遥控,只有4个地址
+#define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
+#define SPD_TIMES_NUM 			3		// 读3个,分别为当前雷击次数,总雷击次数,最高清零的雷击次数
+#define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
+#define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
 
 #define ENVI_TEMP_NUM 			2
 #define ENVI_AIRCOND_ONOFF_NUM 			1
@@ -150,6 +169,37 @@
 
 #define FRAME_HEAD_NUM 			3		/*读数据时返回帧有效数据前数据个数*/
 #define SET_FRAME_HEAD_NUM 		7		/*写数据时返回帧有效数据前数据个数*/
+
+/*********************************************************************************
+*                                    UPS 协议宏定义
+**********************************************************************************/
+/*状态有效为1, 无效为0*/
+typedef union{
+	struct
+	{
+		uint16_t lenid:12;
+		uint16_t lchksum:4;
+	}lenth_bits;
+	/* 必须以数组形式定义,否则连续定义2个变量会放在同一个地址*/
+	uint16_t lenth_word;
+}USP_LENGTH_BITS;
+
+
+#define   UPS_SOI		0x7E
+// ver-0x21
+#define   UPS_VER		0x21
+// ver-0x2A
+#define   UPS_CID1		0x2A
+
+#define   UPS_CID2_ALL	0x42
+#define   UPS_CID2_IN		0xE0
+#define   UPS_CID2_OUT	0xE1
+#define   UPS_CID2_BAT	0xE3
+#define   UPS_CID2_TIME	0xE4
+#define   UPS_CID2_STATUS	0x43
+
+#define   UPS_EOI		0x0D
+
 
 /*******************************/
 /*链路层加应用层数据*/
@@ -193,11 +243,14 @@ void CommTimer(void);
 void ModbusServer_init(void);
 void ReceOneChar(INT8U ReceCharacter);
 void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,INT8U reg_type);
+void comm_ask_ups(INT16U station,USART_LIST buf_no,INT16U cid2,INT8U info_len,INT8U command);
 void start_comm(void);	
 INT8U CRC_check(void);
 void data_received_handle(USART_LIST uartNo);
 void data_send_directly(USART_LIST destUtNo);
 void comm_polling_process(void);
+
+UINT16 checkSumCalc(UINT8 *buffer, UINT8 len);
 #endif
 /*********************************************************************************************************
 **                            文件结束

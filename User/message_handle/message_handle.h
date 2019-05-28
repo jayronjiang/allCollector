@@ -16,11 +16,11 @@
 #define FEE_UART			UART_NUM	//定义与费显和声音的串口
 #define TRANS_UART		UART5_COM	//定义透传的串口
 #define PC_UART			UART1_COM	// 定义上位机是哪个串口
-#define MEAS_UART		UART2_COM	// 读电表数据串口
-#define AIR_COND_UART	UART2_COM	// 读电表数据串口
+#define MEAS_UART		UART4_COM	// 读电表数据串口
+#define AIR_COND_UART	UART4_COM	// 读电表数据串口
 #define UPS_UART			UART2_COM	// 读电表数据串口
-#define SPD_UART			UART2_COM	// 读电表数据串口
-#define TEMP_UART		UART2_COM	// 读电表数据串口
+#define SPD_UART			UART4_COM	// 读UPS,注意UPS是232的需要单独一个口
+#define TEMP_UART		UART4_COM	// 读电表数据串口
 
 // 位定义
 #define MSG_SOF			0x02		// 信息的开始

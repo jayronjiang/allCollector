@@ -426,140 +426,399 @@ void comm_DeviceParam_2_analyse(void)
 	}
 }
 
+
 /******************************************************************************
- * 函数名:	comm_ProtectData_set 
- * 描述: 
+ * 函数名:	comm_UPSParam_ANALYSE 
+ * 描述: 		UPS概况数据解析
  *            -
  * 输入参数: 
  * 输出参数: 
  * 返回值: 
  * 
- * 作者:付志武 
- * 创建日期:2009.1.6
- * 
- *------------------------
- * 修改人:	CZH
- * 修改内容: 使用指针对结构体变量赋值
- * 修改日期:2012-10-10
- ******************************************************************************/
-void comm_ProtectData_set(void)					/* 保护参数设置帧 */
-{
-	#if 0
-	INTEGER_UNION int_value;
-	INT16U *pointer = &protect_param.trip_revert_mode;
-	INT8U i;
-	
-	int_value.i = PROTECT_REG;
-	INT8U reg_num = PROTECT_PARAM_NUM;
-	g_SENData.SENDBuffPtr = g_ComBuf;
-	*g_SENData.SENDBuffPtr = STATION_ADDRESS;
-	*(g_SENData.SENDBuffPtr + 1) = WRITEREG_COMMAND;
-	*(g_SENData.SENDBuffPtr + 2) = int_value.b[1];
-	*(g_SENData.SENDBuffPtr + 3) = int_value.b[0];		/* 寄存器地址 */
-	*(g_SENData.SENDBuffPtr + 4) = 0X00;
-	*(g_SENData.SENDBuffPtr + 5) = reg_num;
-	*(g_SENData.SENDBuffPtr + 6) = reg_num*2;  
-	
-	for(i =0;i<3;i++)	/*保护跳闸告警复归方式,控制功能投退字*/
-	{
-		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM+ i*2,*(pointer+i));
-	}
-	/*保护功能跳闸告警投退字*/
-	long_to_char(g_SENData.SENDBuffPtr+ SET_FRAME_HEAD_NUM + 3*2, protect_param.trip_key_word);
-	long_to_char(g_SENData.SENDBuffPtr+ SET_FRAME_HEAD_NUM + 5*2, protect_param.alarm_key_word);	
-	/*保护控制功能相关参数*/
-	protect_param.black1 = 0;		/*保留位置0*/
-	protect_param.black2 = 0;
-	protect_param.black3 = 0;
-	protect_param.black4 = 0;
-	pointer = &protect_param.short_I_rate;
-	for(i =1;i<=50;i++)
-	{
-		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM+ (6+i)*2,*(pointer+(i-1)));
-	}
-	/*R1出口控制字*/
-	for(i=0;i<3;i++)
-	{
-		long_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM+ 57*2+4*i, protect_param.protect_link_switch[i]);
-	}   
-	/*R1出口展宽及新增保护控制参数等*/
-	pointer = &protect_param.link_action_return_time1;
-	for(i =0;i<30;i++)
-	{
-		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM+ (63+i)*2,*(pointer+ i));
-	}
-	/*CRC校验码*/
-	int_value.i=get_crc16(g_SENData.SENDBuffPtr,SET_FRAME_HEAD_NUM+PROTECT_PARAM_NUM*2);
-	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+PROTECT_PARAM_NUM*2)= int_value.b[0];
-	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+PROTECT_PARAM_NUM*2+1)= int_value.b[1];
-	g_SENData.SENDLength=SET_FRAME_HEAD_NUM+PROTECT_PARAM_NUM*2+2;
-	SendResponse();
-	#endif
-}
-
-
-/******************************************************************************
- * 函数名:	comm_DeviceParam_analyse 
- * 描述: 		可编程逻辑参数解析
- *            -
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:付志武 
- * 创建日期:2009.1.6
+ * 作者:
+ * 创建日期:
  * 
  *------------------------
  * 修改人:CZH
  * 修改内容: 对新规约进行解析
  * 修改日期:2012-10-16
  ******************************************************************************/
-void comm_UPSData_analyse(void)	
-{
-	#if  0
-	INT8U i=0;
-	INT16U* pointer = &logic_param.element[0].on_off;
+ #define UPS_PARAM_RES_LEN		72			 // 0x42返回数据长度72
+ #define VOLT_AIN_POS				15			// 15字节开始是A相输入电压数值
+ #define VOLT_BIN_POS				(VOLT_AIN_POS+4)			// 19字节开始是B相电压数值
+ #define VOLT_CIN_POS				(VOLT_BIN_POS+4)			// 23字节开始是C相电压数值
 
-	if(CRC_check() && (g_PDUData.PDULength == (LONGIC_PARAM_NUM*2+5)))
-	{			
-		for(i=0;i<73;i++)		
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
-		}				
+ #define VOLT_AOUT_POS			(VOLT_CIN_POS+4)			// 27字节开始是A相电压数值
+ #define VOLT_BOUT_POS			(VOLT_AOUT_POS+4)		// 31字节开始是B相电压数值
+ #define VOLT_COUT_POS			(VOLT_BOUT_POS+4)		// 35字节开始是C相电压数值
+
+ #define AMP_AOUT_POS			(VOLT_COUT_POS+4)			// 27字节开始是A相电压数值
+ #define AMP_BOUT_POS			(AMP_AOUT_POS+4)		// 31字节开始是B相电压数值
+ #define AMP_COUT_POS			(AMP_BOUT_POS+4)		// 35字节开始是C相电压数值
+
+ #define FREQ_OUT_POS			(AMP_COUT_POS+8)		// 35字节开始是C相电压数值
+ 
+void comm_UPSParam_ANALYSE(void)	
+{
+	volatile static INT32U addr  = 0;
+	INT16U* pointer = &UPSParams.ups_in.volt_Ain;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_PARAM_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_PARAM_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_PARAM_RES_LEN))
+	{
+		addr = pointer;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_AIN_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_BIN_POS);
+		addr = (pointer+1);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_CIN_POS);
+
+		pointer = &UPSParams.ups_out.volt_Aout;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_AOUT_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_BOUT_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_COUT_POS);
+
+		pointer = &UPSParams.ups_out.amp_Aout;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_AOUT_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_BOUT_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_COUT_POS);
+
+		// 输出频率
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FREQ_OUT_POS);
 	}
-	#endif
 }
 
+
 /******************************************************************************
- * 函数名:	comm_DeviceParam_analyse 
- * 描述: 		可编程逻辑参数解析
+ * 函数名:	comm_UPSIn_ANALYSE 
+ * 描述: 		UPS输入数据解析
  *            -
  * 输入参数: 
  * 输出参数: 
  * 返回值: 
  * 
- * 作者:付志武 
- * 创建日期:2009.1.6
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+ #define UPS_IN_RES_LEN			96			 // 0x42返回数据长度72
+ #define UPS_PHASE_NUM_IN_POS	19			// 输入相数
+ #define AMP_AIN_POS				35			// 35字节开始是A相输入电流数值
+ #define AMP_BIN_POS				(AMP_AIN_POS+4)			// 19字节开始是B相电压数值
+ #define AMP_CIN_POS				(AMP_BIN_POS+4)			// 23字节开始是C相电压数值
+ #define FREQ_IN_POS				(AMP_CIN_POS+4)
+
+ #define FACT_AIN_POS				(FREQ_IN_POS+4)
+ #define FACT_BIN_POS				(FACT_AIN_POS+4)
+ #define FACT_CIN_POS				(FACT_BIN_POS+4)
+
+ #define BYPASS_AIN_POS			(FACT_CIN_POS+4)
+ #define BYPASS_BIN_POS			(BYPASS_AIN_POS+4)
+ #define BYPASS_CIN_POS			(BYPASS_BIN_POS+4)
+ #define BYPASS_FREQ_POS			(BYPASS_CIN_POS+16)	//跳过了线电压部分
+ 
+void comm_UPSIn_ANALYSE(void)	
+{
+	INT16U* pointer = &UPSParams.ups_in.phase_num;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_IN_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_IN_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_IN_RES_LEN))
+	{
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ UPS_PHASE_NUM_IN_POS);
+	
+		pointer = &UPSParams.ups_in.amp_Ain;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_AIN_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_BIN_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ AMP_CIN_POS);
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FREQ_IN_POS);
+
+		pointer = &UPSParams.ups_in.fact_Ain;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_AIN_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_BIN_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_CIN_POS);
+
+		pointer = &UPSParams.ups_in.bypass_voltA;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_AIN_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_BIN_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_CIN_POS);
+
+		// 旁路频率
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_FREQ_POS);
+	}
+}
+
+
+/******************************************************************************
+ * 函数名:	comm_UPSOut_ANALYSE 
+ * 描述: 		UPS输出数据解析0xE1
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
  * 
  *------------------------
  * 修改人:CZH
  * 修改内容: 对新规约进行解析
  * 修改日期:2012-10-16
  ******************************************************************************/
-void comm_SPDData_analyse(void)	
-{
-	#if 0
-	INT8U i=0;
-	INT16U* pointer = &logic_param.element[0].on_off;
+ #define UPS_OUT_RES_LEN			88			 // 0xE1返回数据长度72
+ #define UPS_PHASE_NUM_OUT_POS	19			// 输入相数
+ #define FACT_AOUT_POS			(UPS_PHASE_NUM_OUT_POS+4)			// 35字节开始是A相输入电流数值
+ #define FACT_BOUT_POS			(FACT_AOUT_POS+4)			// 19字节开始是B相电压数值
+ #define FACT_COUT_POS			(FACT_BOUT_POS+4)			// 23字节开始是C相电压数值
 
-	if(CRC_check() && (g_PDUData.PDULength == (LONGIC_PARAM_NUM*2+5)))
-	{			
-		for(i=0;i<73;i++)		
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
-		}				
+ #define KWH_AOUT_POS			(FACT_COUT_POS+16)
+ #define KWH_BOUT_POS			(KWH_AOUT_POS+4)
+ #define KWH_COUT_POS			(KWH_BOUT_POS+4)
+
+ #define VAH_AOUT_POS			(KWH_COUT_POS+4)
+ #define VAH_BOUT_POS			(VAH_AOUT_POS+4)
+ #define VAH_COUT_POS			(VAH_BOUT_POS+4)
+
+ #define LOAD_AOUT_POS			(VAH_COUT_POS+4)
+ #define LOAD_BOUT_POS			(LOAD_AOUT_POS+4)
+ #define LOAD_COUT_POS			(LOAD_BOUT_POS+4)
+ 
+void comm_UPSOut_ANALYSE(void)	
+{
+	INT16U* pointer = &UPSParams.ups_out.phase_num;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_OUT_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_OUT_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_OUT_RES_LEN))
+	{
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ UPS_PHASE_NUM_OUT_POS);
+
+		pointer = &UPSParams.ups_out.fact_Aout;
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_AOUT_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_BOUT_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FACT_COUT_POS);
+
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ KWH_AOUT_POS);
+		*(pointer+4) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ KWH_BOUT_POS);
+		*(pointer+5) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ KWH_COUT_POS);
+
+		*(pointer+6) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VAH_AOUT_POS);
+		*(pointer+7) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VAH_BOUT_POS);
+		*(pointer+8) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VAH_COUT_POS);
+
+		*(pointer+9) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ LOAD_AOUT_POS);
+		*(pointer+10) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ LOAD_BOUT_POS);
+		*(pointer+11) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ LOAD_COUT_POS);
 	}
-	#endif
+}
+
+
+/******************************************************************************
+ * 函数名:	comm_UPSBat_ANALYSE 
+ * 描述: 		UPS电池数据解析0xE3
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+#define UPS_BAT_RES_LEN			72			 // 0x42返回数据长度72
+#define BAT_RUNNING_DAY_POS		19			// 35字节开始是A相输入电流数值
+#define BAT_VOLT_POS				(BAT_RUNNING_DAY_POS+4)			// 19字节开始是电池运行天数
+#define BAT_CHARGE_AMP_POS		(BAT_VOLT_POS+4)
+#define BAT_DISCHG_AMP_POS		(BAT_CHARGE_AMP_POS+4)
+#define BAT_BACKUP_TIME_POS		(BAT_DISCHG_AMP_POS+16)
+#define BAT_TMP_POS				(BAT_BACKUP_TIME_POS+4)	//电池温度,不支持
+#define BAT_ENVI_TMP_POS			(BAT_TMP_POS+4)
+#define BAT_VOLUMN_POS			(BAT_ENVI_TMP_POS+4)
+#define BAT_DISCHG_TIMES_POS	(BAT_VOLUMN_POS+4)		//放电次数
+#define BAT_CHKSUM_POS			(BAT_DISCHG_TIMES_POS+4)
+
+
+void comm_UPSBat_ANALYSE(void)	
+{
+	INT16U* pointer = &UPSParams.battery.running_day;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_BAT_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_BAT_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_BAT_RES_LEN))
+	{
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_RUNNING_DAY_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLT_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_CHARGE_AMP_POS);
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_AMP_POS);
+		*(pointer+4) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_BACKUP_TIME_POS);
+		*(pointer+5) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_ENVI_TMP_POS);	// 环境温度
+		*(pointer+6) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLUMN_POS);		// 电池容量
+		*(pointer+7) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_TIMES_POS);		// 放电次数
+	}
+}
+
+#if 0
+/******************************************************************************
+ * 函数名:	comm_UPSTime_ANALYSE 
+ * 描述: 		UPS电池运行时间解析0xE4
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+#define UPS_BATTIME_RES_LEN			56			 // 0xE4返回数据长度72
+
+
+
+void comm_UPSTime_ANALYSE(void)	
+{
+	INT16U* pointer = &UPSParams.battery.running_day;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_BAT_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_BAT_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_BAT_RES_LEN))
+	{
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_RUNNING_DAY_POS);
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLT_POS);
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_CHARGE_AMP_POS);
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_AMP_POS);
+		*(pointer+4) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_BACKUP_TIME_POS);
+		*(pointer+5) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_ENVI_TMP_POS);	// 环境温度
+		*(pointer+6) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLUMN_POS);		// 电池容量
+		*(pointer+7) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_TIMES_POS);		// 放电次数
+	}
+}
+#endif
+
+
+/******************************************************************************
+ * 函数名:	comm_UPSStatus_ANALYSE 
+ * 描述: 		UPS电池数据解析0x43
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+#define UPS_STATUS_RES_LEN		40			 // 0x42返回数据长度40
+#define BAT_SUPPLY_OUT_POS		15			// 15字节开始是UPS输出供电方式
+#define BAT_SUPPLY_IN_POS		(BAT_SUPPLY_OUT_POS+4)		// 19字节开始是UPS输入供电方式
+#define BAT_STATUS_POS			(BAT_SUPPLY_IN_POS+2)		// 19字节开始是UPS输入供电方式
+
+void comm_UPSStatus_ANALYSE(void)	
+{
+	INT16U* pointer = &UPSParams.status.supply_out_status;
+	INT16U ups_chksum = 0;
+
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_STATUS_RES_LEN-5);
+
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_STATUS_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_STATUS_RES_LEN))
+	{
+		*pointer = ascii_to_hex2(g_PDUData.PDUBuffPtr+ BAT_SUPPLY_OUT_POS);
+		*(pointer+1) = 	ascii_to_hex2(g_PDUData.PDUBuffPtr+ BAT_SUPPLY_IN_POS);
+		*(pointer+2) = 	ascii_to_hex2(g_PDUData.PDUBuffPtr+ BAT_STATUS_POS);
+	}
+}
+
+
+
+/******************************************************************************
+ * 函数名:	comm_SPDStatus_analyse 
+ * 描述: 		防雷的输入状态解析
+ *            -
+ * 输入参数:  05 02 00 00 00 11 B9 82
+ * 输出参数:  05 02 03 8C 00 00 B8 21		// 返回03是长度,8C 00 00都是DI状态
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:CZH
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+void comm_SPDStatus_analyse(void)	
+{
+	INT32U temp = 0;
+	INT16U* pointer = &SPDParams.status;
+
+	if(CRC_check() && (g_PDUData.PDULength == (3+5)))	// 返回只有3个字节
+	{
+		// 电源状态
+		*pointer = (*(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM))&0x01;	//第一个数值的第0位
+
+		/*取出第1位~16位,分别是收到数据的第1个字节的1~7位*/
+		/*第2个字节和第3个字节低1位*/
+		temp = (*(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM+2));
+		temp = (temp << 8) +(*(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM+1));
+		temp = (temp << 8) +(*(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM));
+
+		pointer = &SPDParams.DI_status;	// DI状态1~16
+		*pointer = (temp>>1)&0xFF;
+		
+	}
+}
+
+/******************************************************************************
+ * 函数名:	comm_SPDData_analyse 
+ * 描述: 		防雷的数据状态解析
+ *            -
+ * 输入参数:  05 04 00 0E 00 03 D0 4C			// 发送14开始读3个
+ * 输出参数:  05 04 06 00 00 00 00 00 00 52 53   // 接收6个数据
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:CZH
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+void comm_SPDTimes_analyse(void)	
+{
+	INT16U* pointer = &SPDParams.struck_times;
+
+	if(CRC_check() && (g_PDUData.PDULength == (SPD_TIMES_NUM*2+5)))
+	{
+		// 只需要总雷击次数
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + 1*2, pointer);
+	}
 }
 
 /******************************************************************************
@@ -723,50 +982,36 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	data_send_directly(buf_no);
 } 
 
-#if 0
-/***********************************************************************
-函数名:		comm_ask(INT16U start_reg,INT8U reg_num,INT8U reg_type)
-
-输入参数:		start_reg:	读取的寄存器开始地址
-              reg_num:		读取的寄存器个数
-
-输出参数:		无.
-
-返回值:		无.
-
-功能说明:              读取寄存器处理
-***********************************************************************/
-void comm_ask_ups(INT16U start_reg,INT8U reg_num,INT8U reg_type)
+/*根据lenth计算电总协议的LCHKSUM*/
+ UINT16 lchkSumCalc(UINT16 len_value)
 {
-	INTEGER_UNION reg;
-	
-	reg.i = start_reg;	
-	g_SENData.SENDBuffPtr = UARTBuf[UPS_UART].RxBuf;
-	*g_SENData.SENDBuffPtr = RSU_STATION_ADDRESS;
+	INT16U re_value = 0;
 
-	if(reg_type!=READREG_COMMAND )
+	/*先对D0D1D2D3+D4D5D6D7+D8D9D10D11求和*/
+	re_value = ((len_value&0x0F) + ((len_value>>4)&0x0F) + ((len_value>>8)&0x0F));
+	re_value = (~(re_value&0x0F))+1;	// 再模16余数取反加1
+	re_value = re_value&0x0F;
+
+	return re_value;
+}
+
+
+/*根据lenth计算电总协议的CHECKSUM*/
+ UINT16 checkSumCalc(UINT8 *buffer, UINT8 len)
+{
+	INT16U re_value = 0;
+	INT8U i = 0;
+
+	/*先对所有除SIO之外的求和*/
+	for (i = 0; i<len; i++)
 	{
-		return;
+		re_value = re_value+buffer[i];
 	}
-	else 
-	{		
-		*(g_SENData.SENDBuffPtr + 1) = reg_type;
-	}	
-	
-	*(g_SENData.SENDBuffPtr + 2) = reg.b[1];				/*寄存器地址*/
-	*(g_SENData.SENDBuffPtr + 3) = reg.b[0];
-	
-	*(g_SENData.SENDBuffPtr + 4) = 0x00;					/*寄存器数量*/
-	*(g_SENData.SENDBuffPtr + 5) = reg_num;
-			
-	 reg.i = get_crc16(g_SENData.SENDBuffPtr,6);			/*加入CRC校验*/
-	*(g_SENData.SENDBuffPtr + 6) = reg.b[0];
-	*(g_SENData.SENDBuffPtr + 7) = reg.b[1];
-	
-	g_SENData.SENDLength= 8;
-	g_TxDataCtr = 0;
-	//SendResponse();
-} 
+	// 模65535的余数+1
+	re_value = (~(re_value&0xFFFF))+1;	// 再模65536余数取反加1
+
+	return re_value;
+}
 
 
 /***********************************************************************
@@ -781,22 +1026,86 @@ void comm_ask_ups(INT16U start_reg,INT8U reg_num,INT8U reg_type)
 
 功能说明:              读取寄存器处理
 ***********************************************************************/
-void comm_ask_spd(INT16U start_reg,INT8U reg_num,INT8U reg_type)
+void comm_ask_ups(INT16U station,USART_LIST buf_no,INT16U cid2,INT8U info_len,INT8U command)
+{
+	INT8U c_value[4] = {0,0,};
+	USP_LENGTH_BITS uspLenthData;
+	INT16U temp = 0;
+	INT16U send_len = 0;
+		
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
+	
+	*g_SENData.SENDBuffPtr = UPS_SOI;	// 电总协议0x7E开始
+	send_len++;
+	
+	hex2_to_ascii(UPS_VER, c_value);
+	*(g_SENData.SENDBuffPtr + 1) = c_value[1]; // 通讯版本号0x21
+	*(g_SENData.SENDBuffPtr + 2) = c_value[0]; 
+	send_len += 2;
+	
+	hex2_to_ascii(station, c_value);			// 设备地址
+	*(g_SENData.SENDBuffPtr + 3) = c_value[1]; 
+	*(g_SENData.SENDBuffPtr + 4) = c_value[0]; 
+	send_len += 2;
+
+	hex2_to_ascii(UPS_CID1, c_value);			// 设备地址
+	*(g_SENData.SENDBuffPtr + 5) = c_value[1]; 
+	*(g_SENData.SENDBuffPtr + 6) = c_value[0];
+	send_len += 2;
+
+	hex2_to_ascii(cid2, c_value);			// 设备地址
+	*(g_SENData.SENDBuffPtr + 7) = c_value[1]; 
+	*(g_SENData.SENDBuffPtr + 8) = c_value[0];
+	send_len += 2;
+
+	/*LENTH的计算*/
+	uspLenthData.lenth_bits.lenid = info_len;
+	uspLenthData.lenth_bits.lchksum = lchkSumCalc(uspLenthData.lenth_bits.lenid) &0x0F;
+	hex4_to_ascii(uspLenthData.lenth_word, c_value);
+	*(g_SENData.SENDBuffPtr + 9) = c_value[3]; 
+	*(g_SENData.SENDBuffPtr + 10) = c_value[2];
+	*(g_SENData.SENDBuffPtr + 11) = c_value[1]; 
+	*(g_SENData.SENDBuffPtr + 12) = c_value[0];
+	send_len += 4;
+
+	/*g_SENData.SENDBuffPtr都已经转成了ASCII码*/
+	temp = checkSumCalc(g_SENData.SENDBuffPtr+1, 12);	//SOI不算在内
+	hex4_to_ascii(temp, c_value);
+	*(g_SENData.SENDBuffPtr + 13) = c_value[3]; 
+	*(g_SENData.SENDBuffPtr + 14) = c_value[2];
+	*(g_SENData.SENDBuffPtr + 15) = c_value[1]; 
+	*(g_SENData.SENDBuffPtr + 16) = c_value[0];
+	send_len += 4;
+
+	*(g_SENData.SENDBuffPtr + 17) = UPS_EOI;
+	send_len++;
+
+	g_SENData.SENDLength= send_len;
+	g_TxDataCtr = 0;
+	data_send_directly(buf_no);
+} 
+
+/***********************************************************************
+函数名:		comm_ask(INT16U start_reg,INT8U reg_num,INT8U reg_type)
+
+输入参数:		start_reg:	读取的寄存器开始地址
+              reg_num:		读取的寄存器个数
+
+输出参数:		无.
+
+返回值:		无.
+
+功能说明:              读取寄存器处理
+***********************************************************************/
+void comm_ask_spd(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,INT8U reg_type)
 {
 	INTEGER_UNION reg;
 	
 	reg.i = start_reg;	
-	g_SENData.SENDBuffPtr = UARTBuf[UPS_UART].RxBuf;
-	*g_SENData.SENDBuffPtr = RSU_STATION_ADDRESS;
-
-	if(reg_type!=READREG_COMMAND )
-	{
-		return;
-	}
-	else 
-	{		
-		*(g_SENData.SENDBuffPtr + 1) = reg_type;
-	}	
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
+	*g_SENData.SENDBuffPtr = station;
+		
+	*(g_SENData.SENDBuffPtr + 1) = reg_type;
 	
 	*(g_SENData.SENDBuffPtr + 2) = reg.b[1];				/*寄存器地址*/
 	*(g_SENData.SENDBuffPtr + 3) = reg.b[0];
@@ -810,9 +1119,8 @@ void comm_ask_spd(INT16U start_reg,INT8U reg_num,INT8U reg_type)
 	
 	g_SENData.SENDLength= 8;
 	g_TxDataCtr = 0;
-	//SendResponse();
+	data_send_directly(buf_no);
 } 
-#endif
 /***********************************************************************
 函数名:			void comm_process(void)
 
@@ -902,15 +1210,33 @@ void comm_polling_process(void)
 				comm_EnviAirAlarm_analyse();
 			break;
 
-	#if 0
-			case UPS_DATA_ANALYSE:	
-				comm_UPSData_analyse();
+			case UPS_PARAM_ANALYSE:	
+				comm_UPSParam_ANALYSE();
 			break;
 			
-			case SPD_DATA_ANALYSE:
-				comm_SPDData_analyse();
+			case UPS_IN_ANALYSE:	
+				comm_UPSIn_ANALYSE();
 			break;
-	#endif
+
+			case UPS_OUT_ANALYSE:	
+				comm_UPSOut_ANALYSE();
+			break;
+
+			case UPS_BAT_ANALYSE:	
+				comm_UPSBat_ANALYSE();
+			break;
+
+			case UPS_STATUS_ANALYSE:	
+				comm_UPSStatus_ANALYSE();
+			break;
+
+			case SPD_STATUS_ANALYSE:
+				comm_SPDStatus_analyse();
+			break;
+			
+			case SPD_TIMES_ANALYSE:
+				comm_SPDTimes_analyse();
+			break;
 			
 			default:
 			break;
@@ -970,30 +1296,69 @@ void comm_polling_process(void)
 
 		else if (comm_flag & UPS_PARAM_SEND_FLAG)
 		{
-			#if 0
 			comm_flag &= ~UPS_PARAM_SEND_FLAG;
 			//ups走的是电总协议
-			comm_ask_ups(UPS_REG, UPS_DATA_NUM, READREG_COMMAND);	/*读取UPS参数数据*/  
-			WAIT_response_flag = UPS_DATA_ANALYSE;
-			#endif
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_ALL, 0, NULL);
+			WAIT_response_flag = UPS_PARAM_ANALYSE;
 		}
+		else if (comm_flag & UPS_IN_SEND_FLAG)
+		{
+			comm_flag &= ~UPS_IN_SEND_FLAG;
+			//ups走的是电总协议
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_IN, 0, NULL);
+			WAIT_response_flag = UPS_IN_ANALYSE;
+		}
+		else if (comm_flag & UPS_OUT_SEND_FLAG)
+		{
+			comm_flag &= ~UPS_OUT_SEND_FLAG;
+			//ups走的是电总协议
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_OUT, 0, NULL);
+			WAIT_response_flag = UPS_OUT_ANALYSE;
+		}
+		else if (comm_flag & UPS_BAT_SEND_FLAG)
+		{
+			comm_flag &= ~UPS_BAT_SEND_FLAG;
+			//ups走的是电总协议
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_BAT, 0, NULL);
+			WAIT_response_flag = UPS_BAT_ANALYSE;
+		}
+		#if 0
+		// 协议不支持
+		else if (comm_flag & UPS_TIME_SEND_FLAG)
+		{
+			comm_flag &= ~UPS_TIME_SEND_FLAG;
+			//ups走的是电总协议
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_TIME, 0, NULL);
+			WAIT_response_flag = UPS_TIME_ANALYSE;
+		}
+		#endif
+		else if (comm_flag & UPS_STATUS_SEND_FLAG)
+		{
+			comm_flag &= ~UPS_STATUS_SEND_FLAG;
+			//ups走的是电总协议
+			/*读取UPS参数数据*/  
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_STATUS, 0, NULL);
+			WAIT_response_flag = UPS_STATUS_ANALYSE;
+		}
+
 
 		else if (comm_flag & SPD_STATUS_SEND_FLAG)
 		{
-			#if 0
 			comm_flag &= ~SPD_STATUS_SEND_FLAG;
-			comm_ask_spd(SPD_STATUS_REG, SPD_STATUS_NUM, 0x02);	/*读取SPD参数数据*/  
+			comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_STATUS_REG, SPD_STATUS_NUM, SPD_DIREAD_COMMAND);	/*读取SPD参数数据*/  
 			WAIT_response_flag = SPD_STATUS_ANALYSE;
-			#endif
 		}
 
 		else if (comm_flag & SPD_TIMES_SEND_FLAG)
 		{
-			#if 0
 			comm_flag &= ~SPD_TIMES_SEND_FLAG;
-			comm_ask_spd(SPD_TIMES_REG, SPD_STATUS_NUM, 0x04);		/*读取SPD参数数据*/  
+			comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
 			WAIT_response_flag = SPD_TIMES_ANALYSE;
-			#endif
 		}
 
 		else if (comm_flag & ENVI_TEMP_SEND_FLAG)
@@ -1168,35 +1533,78 @@ void start_comm(void)
 	{
 		comm_flag |= REAL_DATA_SEND_FLAG;
 	}
+	// 查询UPS数据
+	else if (polling_counter ==2)
+	{
+		comm_flag |= UPS_PARAM_SEND_FLAG;
+	}
+	// 查询UPS数据
+	else if (polling_counter ==3)
+	{
+		comm_flag |= UPS_IN_SEND_FLAG;
+	}
+	// 查询UPS数据
+	else if (polling_counter ==4)
+	{
+		comm_flag |= UPS_OUT_SEND_FLAG;
+	}
+	// 查询UPS数据
+	else if (polling_counter ==5)
+	{
+		comm_flag |= UPS_BAT_SEND_FLAG;
+	}
+	// 查询UPS数据
+	else if (polling_counter ==6)
+	{
+		;
+	}
+	// 查询UPS数据
+	else if (polling_counter ==7)
+	{
+		comm_flag |= UPS_STATUS_SEND_FLAG;
+	}
+
+	
 	// 查询参数数据1
-	else if (polling_counter == 2)
+	else if (polling_counter == 8)
 	{
 		comm_flag |= DEV_PARAM_SEND_FLAG_1;
 	}
 	// 查询参数数据2
-	else if (polling_counter == 3)
+	else if (polling_counter == 9)
 	{
 		comm_flag |= DEV_PARAM_SEND_FLAG_2;
 	}
 	// 查询温湿度数据
-	else if (polling_counter ==4)
+	else if (polling_counter ==10)
 	{
 		comm_flag |= ENVI_TEMP_SEND_FLAG;
 	}
 	// 查询空调状态数据
-	else if (polling_counter ==5)
+	else if (polling_counter ==11)
 	{
 		comm_flag |= ENVI_AIRCOND_ONOFF_FLAG;
 	}
 	// 查询空调温度数据
-	else if (polling_counter ==6)
+	else if (polling_counter ==12)
 	{
 		comm_flag |= ENVI_AIRCOND_TEMP_FLAG;
 	}
 	// 查询空调报警数据
-	else if (polling_counter ==7)
+	else if (polling_counter ==13)
 	{
 		comm_flag |= ENVI_AIRCOND_ALARM_FLAG;
+	}
+	// 查询SPD状态数据
+	else if (polling_counter ==14)
+	{
+		comm_flag |= SPD_STATUS_SEND_FLAG;
+
+	}
+	// 查询SPD次数数据
+	else if (polling_counter ==15)
+	{
+		comm_flag |= SPD_TIMES_SEND_FLAG;
 		polling_counter = 0;
 	}
 }

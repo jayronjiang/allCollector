@@ -675,3 +675,110 @@ void int_to_char(INT8U *buffer, INT16U value)
 }
 
 
+UINT8 char_to_ascii(UINT8 x)
+{
+	UINT8 re_value = 0;
+
+	assert_param(((x >= 0) && (x <= 9)) ||((x >= 0x0A) && (x <= 0x0F)));
+	
+	if ((x >= 0) && (x <= 9))
+	{
+		re_value = x+0x30;	// 数字加上0x30，即0的ascii码
+	}
+	else if ((x >= 0x0A) && (x <= 0x0F))
+	{
+		re_value =(x-0x0A)+65;	// A的ASCII码是65
+	}
+	
+	return re_value;
+}
+
+/*将一个hex转换成2个ascii字符，如0x4B-> 0x34, 0x42*/
+ void hex2_to_ascii(UINT8 x, UINT8 * buffer)
+{
+	buffer[1] = (x>>4)&0x0F;
+	buffer[1] = char_to_ascii(buffer[1]);
+	
+	buffer[0] = x&0x0F;
+	buffer[0] = char_to_ascii(buffer[0]);
+}
+
+/*将一个16位的hex转换成4个ascii字符，如0x4B-> 0x34, 0x42*/
+ void hex4_to_ascii(UINT16 x, UINT8 * buffer)
+{
+	buffer[3] = (x>>12)&0x0F;
+	buffer[3] = char_to_ascii(buffer[3]);
+
+	buffer[2] = (x>>8)&0x0F;
+	buffer[2] = char_to_ascii(buffer[2]);
+
+	buffer[1] = (x>>4)&0x0F;
+	buffer[1] = char_to_ascii(buffer[1]);
+	
+	buffer[0] = x&0x0F;
+	buffer[0] = char_to_ascii(buffer[0]);
+}
+
+// 把几个ASCII码合成16进制
+UINT8 ascii_to_char(UINT8 x)
+{
+	UINT8 re_value = 0;
+
+	assert_param(((x >= 0x30) && (x <= 0x39)) ||((x >= 65) && (x <= 70)) ||((x >= 97) && (x <= 102)));	// ascii码要在0~9,A~F,a~f之间
+	
+	if ((x >= 0x30) && (x <= 0x39))
+	{
+		re_value = x-0x30;	// 数字加上0x30，即0的ascii码
+	}
+	else if ((x >= 65) && (x <= 70))
+	{
+		re_value =(x-65)+0x0A;	// A的ASCII码是65
+	}
+	else if ((x >= 97) && (x <= 102))
+	{
+		re_value =(x-97)+0x0A;	// a的ASCII码是97
+	}
+	re_value = re_value&0x0F;	// 高4位清0
+	
+	return re_value;
+}
+
+/*将2个ascii字符转换成一个8位的hex，如 0x34, 0x42->0x4B*/
+// 传输时 高位在前,从而buffer0应该是高位
+ UINT8 ascii_to_hex2(UINT8 * buffer)
+{
+	UINT8 re_value=0;
+	const UINT8 cmp2[2] = {0x20,0x20};
+
+	if ((memcmp(buffer, cmp2, 2)) == 0)
+	{
+		return 0xFF;		// 当全部为空格时,返回0xFFFF
+	}
+
+	re_value = ascii_to_char(buffer[0]);
+	re_value = (re_value<<4) |(ascii_to_char(buffer[1]));
+
+	return re_value;
+}
+
+/*将4个ascii字符转换成一个16位的hex，如 0x34, 0x42->0x4B*/
+// 传输时 高位在前,从而buffer0应该是高位
+ UINT16 ascii_to_hex4(UINT8 * buffer)
+{
+	UINT16 re_value = 0;
+	const UINT8 cmp2[4] = {0x20,0x20,0x20,0x20};
+
+	if ((memcmp(buffer, cmp2, 4)) == 0)
+	{
+		return 0xFFFF;		// 当全部为空格时,返回0xFFFF
+	}
+
+	re_value = ascii_to_char(buffer[0]);
+	re_value = (re_value<<4) |(ascii_to_char(buffer[1]));
+	re_value = (re_value<<4) |(ascii_to_char(buffer[2]));
+	re_value = (re_value<<4) |(ascii_to_char(buffer[3]));
+
+	return re_value;
+}
+
+

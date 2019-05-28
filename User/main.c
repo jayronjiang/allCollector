@@ -46,14 +46,14 @@ static void Task_Schedule(void)
 	if (system_flag&KEY_CHANGED)
 	{
 		system_flag &= ~KEY_CHANGED;
-		ENVIParms.water_flag = di_status.status_bits.di_1;
-		ENVIParms.door_flag = di_status.status_bits.di_2;
-		ENVIParms.fire_move_flag = di_status.status_bits.di_3;
-		ENVIParms.smoke_event_flag = di_status.status_bits.di_4;
+		ENVIParms.water_flag = !di_status.status_bits.di_1;	// di是低电平有效,flag是高电平有效
+		ENVIParms.door_flag = !di_status.status_bits.di_2;
+		ENVIParms.fire_move_flag = !di_status.status_bits.di_3;
+		ENVIParms.smoke_event_flag = !di_status.status_bits.di_4;
 	}
 
 	// 低电平有效
-	if (ENVIParms.door_flag == 0)
+	if (ENVIParms.door_flag == 1)
 	{
 		//超时计数器开始
 		// 超过1个小时,超时,测试的时候为10s

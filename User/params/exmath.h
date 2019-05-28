@@ -68,5 +68,13 @@ UINT16  get_crc16(INT8U * pBuffer,INT16U len);
  void char_to_int(INT8U* buffer,INT16U* value);
 
  void int_to_char(INT8U *buffer, INT16U value);
+
+ void hex2_to_ascii(UINT8 x, UINT8 * buffer);
+
+ void hex4_to_ascii(UINT16 x, UINT8 * buffer);
+
+UINT8 ascii_to_hex2(UINT8 * buffer);
+
+UINT16 ascii_to_hex4(UINT8 * buffer);
  
 #endif

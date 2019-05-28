@@ -37,42 +37,100 @@ typedef struct rsu_struct
 	RSU_PHASE_PARAMS phase[RSU_NUM];		// 暂时为6路RSU
 }RSU_PARAMS;
 
-
-// USP结构体
-typedef struct ups_struct
+// USP子结构体--输入
+typedef struct ups_in_struct
 {
 	UINT16 phase_num;	// 相数
-	UINT16 volt_Ain;
+	UINT16 volt_Ain;		//功能码42
 	UINT16 volt_Bin;
 	UINT16 volt_Cin;
+	// 功能码E0
 	UINT16 amp_Ain;
 	UINT16 amp_Bin;
 	UINT16 amp_Cin;
+	UINT16 freq;			// 频率
+	UINT16 fact_Ain;		// 功率因素
+	UINT16 fact_Bin;		// 功率因素
+	UINT16 fact_Cin;		// 功率因素
 
+	UINT16 bypass_voltA;	// 旁路电压A
+	UINT16 bypass_voltB;	// 旁路电压B
+	UINT16 bypass_voltC;	// 旁路电压C
+	UINT16 bypass_freq;	// 旁路频率
+}UPS_IN_PARAMS;
+
+
+// USP子结构体--输出
+typedef struct ups_out_struct
+{
+	// 功能码42
 	UINT16 volt_Aout;
 	UINT16 volt_Bout;
 	UINT16 volt_Cout;
 	UINT16 amp_Aout;
 	UINT16 amp_Bout;
 	UINT16 amp_Cout;
+	UINT16 freq;
 
-	UINT16 running_day;
+	// 功能码E1
+	UINT16 phase_num;	// 相数
+	UINT16 fact_Aout;
+	UINT16 fact_Bout;
+	UINT16 fact_Cout;
+	UINT16 kw_Aout;		// 有功
+	UINT16 kw_Bout;		// 有功
+	UINT16 kw_Cout;		// 有功
+	UINT16 kva_Aout;		// 视在
+	UINT16 kva_Bout;
+	UINT16 kva_Cout;	
+
+	UINT16 load_Aout;		// 负载
+	UINT16 load_Bout;		// 负载
+	UINT16 load_Cout;		// 负载
+}UPS_OUT_PARAMS;
+
+// USP子结构体--电池
+typedef struct ups_bat_struct
+{
+	// 功能码E3
+	UINT16 running_day;			// UPS运行时间,电池运行时间是E4
 	UINT16 battery_volt;
 	UINT16 amp_charge;
+	UINT16 amp_discharge;
 	UINT16 battery_left;
-	UINT16 battery_tmp;
+	UINT16 battery_tmp;	// 环境温度
 	UINT16 battery_capacity;
 	UINT16 battery_dischg_times;
-	UINT32 battery_running_time;
-	UINT32 battery_dischg_time;
-	UINT16 battery_status;	
+	//UINT32 battery_running_time;	//电池运行时间是E4,不支持
+}UPS_BAT_PARAMS;
+
+
+// USP子结构体--状态
+typedef struct ups_status_struct
+{
+	// 功能码43	
+	UINT16 supply_out_status;		// 输出供电状态
+	UINT16 supply_in_status;		// 输入供电状态
+	UINT16 battery_status;			// UPS运行时间,电池运行时间是E4
+}UPS_STATUS_PARAMS;
+
+
+// USP结构体
+typedef struct ups_struct
+{
+	UPS_IN_PARAMS ups_in;	// 输入数据
+	UPS_OUT_PARAMS ups_out;	// 输出数据
+	UPS_BAT_PARAMS  battery;
+	UPS_STATUS_PARAMS status;
 }UPS_PARAMS;
+
+
 
 // 防雷器结构体
 typedef struct spd_struct
 {
 	UINT16 status;	// 状态
-	UINT16 grd_res;	// 接地电阻
+	UINT16 DI_status;	// 接地电阻
 	UINT16 struck_times;	// 雷击次数
 }SPD_PARAMS;
 
@@ -112,19 +170,7 @@ typedef struct device_params_struct	/*共384个字节*/
 	UINT16 AirColdLoop;		/*空调制冷回差*/
 	UINT16 AirHotStartPoint;		/*空调制冷点*/
 	UINT16 AirHotLoop;		/*空调制冷回差*/
-	
-	//UINT16 Parity;
-	//UINT16 PassWord;
-	//UINT16 BackLight;	/* 背光时间*/
 
-	//UINT16 DispType;/*显示模式,0：静态显示，1~60：循环轮显间隔时间(s)*/
-	//UINT16 ChlKeyWord;	/*通道投退位*/
-	//SETPOINT SetPoint[CHL_NUM][2];	/*温度定值越限,12通道，每通道2组*/
-	
-	//UINT16 DI_TingleTime;		/*DI去抖时间*/
-	//UINT16 DI_Type[DI_NUM];			/*DI类型配置，0:常开，1：常闭 */
-	//UINT16 DI_LinkCfg[DI_NUM];	/*DI联动配置，DI_Num宏定义为2*/
-	//UINT16 DI_Delay[DI_NUM]; /*DI动作延时，0~999.9s，返回延时不能设置默认为10ms*/
 }DEVICE_PARAMS;
 
 typedef  struct  _DeviceInfo_Struct      /*用于整块写命令时边界判断，例如防止32BIT数只写了16BIT*/

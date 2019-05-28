@@ -69,7 +69,7 @@ void ReadKey(void)
 	static uint8_t buffer_index = 0;
 	/*因为初始时外部默认为高电平,所以初始化为0xFF */
 	/*如果初始时外部为低电平,要初始化为0, 否则开始会有一次变位 */
-	static uint16_t key_effective_port_last= 0xFF; /*上次经过防抖的真实按键端口状态*/
+	static uint16_t key_effective_port_last= 0; /*上次经过防抖的真实按键端口状态*/
 	static uint16_t key_effective_port = 0xFF;	/*表示经过消抖后确认得到的按键状态*/
 	uint16_t constant_high = 0xFF;	/*当相应位为1表明读取的几次相应位都为1*/
 	uint16_t constant_low = 0xFF;	/*当相应位为1表明读取的几次相应位都为0*/
