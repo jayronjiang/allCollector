@@ -3,7 +3,7 @@
 
 /*一般情况下要求BD_USART_NUM >= PC_USART_NUM*/
 #define PC_USART_NUM		1		// 可以连接几个工控机?
-#define BD_USART_NUM		4		// 工作板上有几个串口?
+#define BD_USART_NUM		4		// 工作板上有几个串口?,新板只有3个串口,UART4为485
 
 #define BAUD_1200                       		0
 #define BAUD_2400				1

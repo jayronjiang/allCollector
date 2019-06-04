@@ -4,35 +4,35 @@
 
 /*Low level, e.g. if want to up the BAR, set: BAR_UP = 0 */
 #define DO1_OUT_GRP			GPIOA
-#define DO1_POUT				GPIO_Pin_0	//栏杆起
+#define DO1_POUT				GPIO_Pin_0
 
-#define DO2_OUT_GRP		GPIOA
-#define DO2_POUT			GPIO_Pin_1 	// 栏杆落
+#define DO2_OUT_GRP			GPIOA
+#define DO2_POUT				GPIO_Pin_1 
 
-/*雨棚灯改到O7引脚*/
-#define DO7_OUT_GRP		GPIOC
-#define DO7_POUT			GPIO_Pin_8	// 雨棚灯
+#define DO3_OUT_GRP			GPIOA   		
+#define DO3_POUT				GPIO_Pin_6  	// 备用1
 
-/*声光报警统一到O6引脚*/
-#define DO6_OUT_GRP			GPIOB
+#define DO4_OUT_GRP			GPIOA		
+#define DO4_POUT				GPIO_Pin_7	// 备用2
+
+/*O5-O6 UART5的Tx选择*/
+#define DO6_OUT_GRP		GPIOB
 #define DO6_POUT			GPIO_Pin_1	// 声音报警器
 
 #define DO5_OUT_GRP		GPIOB
-#define DO5_POUT			GPIO_Pin_1	// 光报警器
+#define DO5_POUT			GPIO_Pin_0	// 光报警器
 
+
+#define DO7_OUT_GRP		GPIOC
+#define DO7_POUT			GPIO_Pin_8
 /*O8引脚不变*/
 #define DO8_OUT_GRP		GPIOC
 #define DO8_POUT			GPIO_Pin_9	// 车道通信灯
 
-/*新的电路板备用1,2移到了原来的TTL和VOX位置,TTL/VOX顺势后移*/
-/*注意: 因为和上位机的协议没有变,所以结构体的位定义不能改变*/
-/*只需要改变物理层的输出引脚定义就可以了*/
-#define DO3_OUT_GRP		GPIOA   		
-#define DO3_POUT			GPIO_Pin_6  	// 备用1
-
-#define DO4_OUT_GRP		GPIOA		
-#define DO4_POUT			GPIO_Pin_7	// 备用2
-
+#define CHANNEL_0		0
+#define CHANNEL_1		1
+#define CHANNEL_2		2
+#define CHANNEL_3		3
 
 
 #define RELAY_REMOTE_PRESET_CANCEL	0
@@ -46,10 +46,10 @@
 #define RELAY_FORCE_RETURN				8
 
 #define REMOTEACT	BIT0
-#define PROACT	BIT1
+#define PROACT		BIT1
 #define FORCEACT		BIT2
 
-#define REMOTE_ACTED	BIT3		/*标识遥控操作继电器动作过*/
+#define REMOTE_ACTED		BIT3		/*标识遥控操作继电器动作过*/
 #define PRO_ACTED		BIT4		/*动作过标识*/
 
 
@@ -69,16 +69,13 @@ typedef enum
 	DO_2,		// bit1
 	DO_3,		// bit2
 	DO_4,		// bit3
-	DO_5,		// bit4, 和VOX共用了,这里保留,占有一个位
+	DO_5,		// bit4
 	DO_6,		// bit5
-	DO_7,		//这个备用的已经用来作为降杠或者抬杠的选择逻辑开关
+	DO_7,		// bit6
 	DO_8,		// bit7
 
 	DO_NUM
 }DEVICE_CTRL_LIST;
-
-
-#define VOX_ALM	DO_4
 
 
 typedef struct relay_status_struct
@@ -108,6 +105,8 @@ void DO_Queue_Init(void);
 void DI_Queue_Init(void);
 void DeviceX_Activate(DEVICE_CTRL_LIST dev);
 void DeviceX_Deactivate(DEVICE_CTRL_LIST dev);
+void rs485FuncSelect(bool value);
+void realDataChannelSelect(UINT8 seq);
 
 #endif
 

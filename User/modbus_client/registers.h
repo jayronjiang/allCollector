@@ -34,7 +34,7 @@
 /*SPARK01装置寄存器的范围*/
 /*实时数据寄存器*/
 #define DATA_START_ADDR			0		/*数据寄存器起始地址*/
-#define DATA_REG_MAX			68		/*本版本所支持的最大寄存器数*/
+#define DATA_REG_MAX			93		/*本版本所支持的最大寄存器数*/
 
 /*环境数据寄存器*/
 #define ENVI_START_ADDR			300		/*数据寄存器起始地址*/
@@ -54,6 +54,8 @@
 #define REMOTE_RESET_REG					1548		/*遥控复位*/
 #define DOOR_OPEN_REG					1549		/*电子门锁开*/
 #define DOOR_CLOSE_REG					1550		/*电子门锁关*/
+
+#define ACTRUL_DO_NUM					4		/*实际支持的DO数量*/
 
 
 /*寄存器对象定义*/

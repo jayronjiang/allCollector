@@ -653,6 +653,34 @@ void char_to_int(INT8U* buffer,INT16U* value)
 	*value = int_value.i;
 }
 
+
+/******************************************************************************
+*  函数名: void char_to_long(INT8U* buffer,LONG32U* value)
+*
+*  描述: 字符转化为整型
+*			
+*			
+*
+*  输入: 
+*
+*  输出: 
+*
+*  返回值: 
+*
+*  其它: 
+*******************************************************************************/
+void char3_to_int(INT8U* buffer,INT32U* value)
+{
+	LONG_UNION int_value;
+
+	int_value.b[3] = 0;
+	int_value.b[2] = *(buffer);
+	int_value.b[1] = *(buffer + 1);
+	int_value.b[0] = *(buffer + 2);
+	*value = int_value.i;
+}
+
+
 /******************************************************************************
 *  函数名: void int_to_char(INT8U *buffer, INT16U value)
 *

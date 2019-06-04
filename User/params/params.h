@@ -5,30 +5,34 @@
 
 #define DEVICE_TYPE 		"SPARK01"		/*装置设备类型的定义*/
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190510 			/*版本日期*/
+#define VERSION_DATE		 190603 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
-#define SYSTEM_SYNC		12341236		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341230		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
-
-#define DATA_BLOCK_SIZE  	0X450		/*预留1104个字节*/
 
 #define FM_FIRST_WORD    	0X04		/*首次上电标志的地址*/
 #define FM_DEVICE                	0X10
 #define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+410,留576*/
 
-#define RSU_NUM		6	// RSU天线数目
-
+#define RSU_NUM			6	// RSU天线数目
 #define DOOR_TIME_OUT	10	// 10s
 
 /*******************************************************************************************/
 typedef struct phase_struct
 {
 	UINT16 vln;
+	// 传感器有1个电压参数寄存器和1个K系数
+	UINT32 param_v;
+	UINT16 k_v;
+	// 传感器还有1个电流参数寄存器和1个K系数
 	UINT16 amp;
+	UINT32 param_a;
+	UINT16 k_a;
 	// 投切标志
 	UINT16 enable;
+	
 }RSU_PHASE_PARAMS;
 
 
@@ -114,6 +118,26 @@ typedef struct ups_status_struct
 	UINT16 battery_status;			// UPS运行时间,电池运行时间是E4
 }UPS_STATUS_PARAMS;
 
+// USP子结构体--告警
+typedef struct ups_alarm_struct
+{
+	// 功能码44	
+	UINT16 main_abnormal;			// 主路异常
+	UINT16 system_overtemp;		// 系统过温
+	UINT16 sysbat_low_prealarm;	// 系统电池电量低预告警
+	UINT16 rectifier_overload;		// 整流器过载
+	UINT16 inverter_overload;		// 整流器过载
+	UINT16 bypass_overload;		// 旁路异常
+	UINT16 battery_low_prealarm;	// 电池电压低
+	UINT16 battery_abnomal;		// 电池电压异常
+	UINT16 battery_overtemp;		// 电池过温
+	UINT16 fan_abnormal;			// 风扇故障
+	UINT16 shutdown_alarm;			//紧急关机告警
+	UINT16 maintain_status;			//维修模式
+	UINT16 inverter_supply;				//电池逆变供电
+	UINT16 bypass_supply;				//旁路供电
+}UPS_ALARM_PARAMS;
+
 
 // USP结构体
 typedef struct ups_struct
@@ -122,6 +146,7 @@ typedef struct ups_struct
 	UPS_OUT_PARAMS ups_out;	// 输出数据
 	UPS_BAT_PARAMS  battery;
 	UPS_STATUS_PARAMS status;
+	UPS_ALARM_PARAMS alarm;
 }UPS_PARAMS;
 
 
@@ -194,6 +219,7 @@ extern const DEVICE_PARAMS Init_DevParams;
 void Write_DevParams(void);
 void Init_Params(void);
 void ComDeviceInfoInit(void);
+void RSUKsInit(void);
 
 #endif
 

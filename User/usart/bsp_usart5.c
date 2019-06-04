@@ -186,7 +186,6 @@ void UART5_IRQHandler(void)
 	} 
 	else if (USART_GetITStatus(USARTn, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
 	{
-		UARTBuf[UART_COM].RecFlag = TRUE;
 		/* 需要读这2个寄存器清除中断标志*/
 		/*USART_GetITStatus 函数已经读了SR寄存器*/
 		//ch = USART2->SR;
@@ -194,7 +193,15 @@ void UART5_IRQHandler(void)
 		ch = USART_ReceiveData(USARTn);
 		LED_Set(LED_COM, OFF); 	// 通信完毕
 
-		data_received_handle(UART5_COM);
+		if (g_PDUData.PDULength == REAL_DATA_NUM)
+		{
+			UARTBuf[UART_COM].RecFlag = TRUE;
+			data_received_handle(UART5_COM);
+		}
+		else
+		{
+			g_PDUData.PDULength = 0;	// 准备再次接收
+		}
 	}
 }
 #endif

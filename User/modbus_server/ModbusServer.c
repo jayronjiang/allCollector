@@ -143,6 +143,7 @@ void data_send_directly(USART_LIST destUtNo)
 	else if (destUtNo == UART4_COM)
 	{
 		PUSART = UART4;
+		rs485FuncSelect(SEND_S);		//485开始发送
 	}
 #endif
 #if (BD_USART_NUM >= 4)
@@ -173,7 +174,11 @@ void data_send_directly(USART_LIST destUtNo)
 	g_SENData.SENDLength = 0;
 	g_TxDataCtr  = 0;
 
-	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/	          
+	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
+	if (destUtNo == UART4_COM)
+	{
+		rs485FuncSelect(RECEIVE_S);		//485默认为
+	}
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
 	g_PDUData.PDULength = 0;	// 准备接收
 }
@@ -213,6 +218,52 @@ INT8U CRC_check(void)
 	}
 	return 0;
 }
+
+
+/******************************************************************************
+ * 函数名:	realSum_check 
+ * 描述: 
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:付志武 
+ * 创建日期:2009.1.6
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+INT8U realSum_check(void)
+{
+	INT16U re_value = 0;
+	INT16U i = 0;
+
+	/*此处理解决在长度小于2时，指针越限引起装置重起问题*/	
+	if(g_PDUData.PDULength != REAL_DATA_NUM)
+	{
+		return 0;
+	}
+
+	/*对从电压参数寄存器开始求和*/
+	for (i = 2; i < g_PDUData.PDULength-1; i++)
+	{
+		re_value = re_value + *(g_PDUData.PDUBuffPtr+i);
+	}
+
+	if ((INT8U)re_value == *(g_PDUData.PDUBuffPtr+g_PDUData.PDULength -1))
+	{
+		re_value = 1;
+	}
+	else
+	{
+		re_value = 0;
+	}
+
+	return ((INT8U)re_value);
+}
+
 
 /******************************************************************************
  * 函数名:	comm_DeviceParam_set 
@@ -305,72 +356,46 @@ void comm_DeviceParam_set_2(void)
 
 
 /******************************************************************************
- * 函数名:	comm_ProtectData_analyse 
- * 描述: 		保护参数的解析
+ * 函数名:	comm_RealData0_analyse 
+ * 描述: 		电压电流传感器0通道数据解析
  *            -
  * 输入参数: 
  * 输出参数: 
  * 返回值: 
  * 
- * 作者:付志武 
- * 创建日期:2009.1.6
+ * 作者:
+ * 创建日期:
  * 
  *------------------------
- * 修改人:Amy Wen	
+ * 修改人:
  * 修改内容: 使用指针对结构体变量赋值
- * 修改日期:2012-2-13
- * 修改人:CZH
- * 修改内容: 对新规约进行解析
- * 修改日期:2012-10-09
+ * 修改日期:
  ******************************************************************************/
-void comm_RealData_analyse(void)			 
+bool comm_RealData_analyse(INT8U ch)			 
 {
-	INT8U i;
-	INT16U * pointer = &RSUParams.phase[0].vln;/*第0相*/
+	INT32U * pointer = &RSUParams.phase[ch].param_v;	/*第0相参数*/
+	INT32U temp = 0;
 
-	if(CRC_check() && (g_PDUData.PDULength == (REAL_DATA_NUM*2+5)))
+	if(realSum_check())
 	{		
-		for (i=0;i<2;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
-		}
+		char3_to_int(g_PDUData.PDUBuffPtr + 2, pointer);
+		char3_to_int(g_PDUData.PDUBuffPtr + 5, &temp);
+		// 浮点运算，扩大100倍,因为kv扩大了100倍
+		RSUParams.phase[ch].vln = ((float)RSUParams.phase[ch].param_v/temp)*RSUParams.phase[ch].k_v;
 
-		/*第1相*/
-		pointer = &RSUParams.phase[1].vln;
-		for(i = 7;i <= 8;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-7));
-		}
-
-		/*第2相*/
-		pointer = &RSUParams.phase[2].vln;
-		for(i = 14;i <= 15;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-14));
-		}
-
-		/*第3相*/
-		pointer = &RSUParams.phase[3].vln;
-		for(i = 21;i <= 22;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-21));
-		}
-
-		/*第4相*/
-		pointer = &RSUParams.phase[4].vln;
-		for(i = 27;i <= 28;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-27));
-		}
-
-		/*第5相*/
-		pointer = &RSUParams.phase[5].vln;
-		for(i = 35;i <= 36;i++)
-		{
-			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i-35));
-		}
+		pointer = &RSUParams.phase[ch].param_a;
+		char3_to_int(g_PDUData.PDUBuffPtr + 8, pointer);
+		char3_to_int(g_PDUData.PDUBuffPtr + 11, &temp);
+		// 浮点运算，扩大100倍
+		RSUParams.phase[ch].amp = ((float)RSUParams.phase[ch].param_a/temp)*RSUParams.phase[ch].k_a;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
 	}
 }
+
 
 /******************************************************************************
  * 函数名:	comm_DeviceParam_1_analyse 
@@ -460,7 +485,6 @@ void comm_DeviceParam_2_analyse(void)
  
 void comm_UPSParam_ANALYSE(void)	
 {
-	volatile static INT32U addr  = 0;
 	INT16U* pointer = &UPSParams.ups_in.volt_Ain;
 	INT16U ups_chksum = 0;
 
@@ -469,10 +493,8 @@ void comm_UPSParam_ANALYSE(void)
 	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_PARAM_RES_LEN-6) == ups_chksum) \
 	    && (g_PDUData.PDULength == UPS_PARAM_RES_LEN))
 	{
-		addr = pointer;
 		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_AIN_POS);
 		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_BIN_POS);
-		addr = (pointer+1);
 		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ VOLT_CIN_POS);
 
 		pointer = &UPSParams.ups_out.volt_Aout;
@@ -982,6 +1004,37 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	data_send_directly(buf_no);
 } 
 
+
+/***********************************************************************
+函数名:		comm_wait(INT16U start_reg,INT8U reg_num,INT8U reg_type)
+
+输入参数:		start_reg:	读取的寄存器开始地址
+              reg_num:		读取的寄存器个数
+
+输出参数:		无.
+
+返回值:		无.
+
+功能说明:              读取寄存器处理
+***********************************************************************/
+void comm_wait(USART_LIST destUtNo, UINT16 seq)
+{	
+	// 开始接收
+	realDataChannelSelect(seq);
+	// 不发送,直接准备接收
+	StartCounterT100;					/*开始等待计数*/
+	//g_SENData.SENDLength = 0;
+	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
+	if (destUtNo == UART4_COM)
+	{
+		rs485FuncSelect(RECEIVE_S);		//485默认为
+	}
+	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
+	g_PDUData.PDULength = 0;			// 准备接收
+	UARTBuf[destUtNo].RecFlag = FALSE;	// 把上次的接收标志清掉
+} 
+
+
 /*根据lenth计算电总协议的LCHKSUM*/
  UINT16 lchkSumCalc(UINT16 len_value)
 {
@@ -1136,6 +1189,8 @@ void comm_polling_process(void)
 {
 	static INT8U Init_sign = FALSE;
 	static INT8U Init_send = FALSE;
+	//static INT8U last_rec_flag = 0;
+	//bool try_again = FALSE;
 	
 	if( Init_sign == FALSE)	/*初始化装置参数*/
 	{
@@ -1157,7 +1212,8 @@ void comm_polling_process(void)
 	if (comm_flag & (DEV_PARAM_SET_FLAG_1 +DEV_PARAM_SET_FLAG_2 + DOOR_OPEN_SET_FLAG + DOOR_CLOSE_SET_FLAG) )		
 	{
 		// 轮询也取消掉
-		comm_flag &= ~(REAL_DATA_SEND_FLAG +UPS_PARAM_SEND_FLAG +SPD_STATUS_SEND_FLAG +SPD_TIMES_SEND_FLAG \
+		comm_flag &= ~(REAL_DATA0_SEND_FLAG +REAL_DATA1_SEND_FLAG+REAL_DATA2_SEND_FLAG +REAL_DATA3_SEND_FLAG \
+					     +UPS_PARAM_SEND_FLAG +SPD_STATUS_SEND_FLAG +SPD_TIMES_SEND_FLAG \
 					     +ENVI_TEMP_SEND_FLAG +ENVI_AIRCOND_ONOFF_FLAG+ENVI_AIRCOND_TEMP_FLAG \
 					     +ENVI_AIRCOND_ALARM_FLAG + DEV_PARAM_SEND_FLAG_1+ DEV_PARAM_SEND_FLAG_2);
 		if(Recive_Flag>0)
@@ -1174,8 +1230,30 @@ void comm_polling_process(void)
 	{
 		switch(Recive_Flag)
 		{
-			case REAL_DATA_ANALYSE:					/*接收到实时数据*/
-				comm_RealData_analyse();
+			case REAL_DATA0_ANALYSE:
+				comm_RealData_analyse(CHANNEL_0);		/*接收到实时数据*/
+				#if 0		// 在串口接收的时候已经校验了长度
+				if (!comm_RealData_analyse(CHANNEL_0))		// 数据不对，再接收一次
+				{
+					if (last_rec_flag != Recive_Flag)		// 如果是第一次接收
+					{
+						try_again = TRUE;				//再接收一次
+					}
+				}
+				last_rec_flag = Recive_Flag;
+				#endif
+			break;
+
+			case REAL_DATA1_ANALYSE:					/*接收到实时数据*/
+				comm_RealData_analyse(CHANNEL_1);
+			break;
+
+			case REAL_DATA2_ANALYSE:					/*接收到实时数据*/
+				comm_RealData_analyse(CHANNEL_2);
+			break;
+
+			case REAL_DATA3_ANALYSE:					/*接收到实时数据*/
+				comm_RealData_analyse(CHANNEL_3);
 			break;
 			
 			case DEVICE_DATA_1_ANALYSE:				/*接收到装置参数*/
@@ -1241,7 +1319,7 @@ void comm_polling_process(void)
 			default:
 			break;
 		}
-		
+
 		Recive_Flag = 0;
 		WAIT_response_flag = 0;						/*将等待标志以及接收标志都清零*/
 		g_PDUData.PDULength = 0;
@@ -1266,13 +1344,41 @@ void comm_polling_process(void)
 			WAIT_response_flag = WAIT_PARAM_SET_2; 
 		}
 		
-		// RSU数据，这个是MODBUS协议
-		else if (comm_flag & REAL_DATA_SEND_FLAG)
+		// RSU数据
+		else if (comm_flag & REAL_DATA0_SEND_FLAG)
 		{
-			comm_flag &= ~REAL_DATA_SEND_FLAG;
+			comm_flag &= ~REAL_DATA0_SEND_FLAG;
 			/*读取实时测量数据,电能数据等*/  
-			comm_ask(RSU_STATION_ADDRESS, MEAS_UART,RSU_REG, REAL_DATA_NUM, READREG_COMMAND);
-			WAIT_response_flag = REAL_DATA_ANALYSE;
+			//comm_ask(RSU_STATION_ADDRESS, MEAS_UART,RSU_REG, REAL_DATA_NUM, READREG_COMMAND);
+			comm_wait(REAL_DATA_UART,CHANNEL_0);
+			WAIT_response_flag = REAL_DATA0_ANALYSE;
+		}
+		// RSU数据
+		else if (comm_flag & REAL_DATA1_SEND_FLAG)
+		{
+			comm_flag &= ~REAL_DATA1_SEND_FLAG;
+			/*读取实时测量数据,电能数据等*/  
+			//comm_ask(RSU_STATION_ADDRESS, MEAS_UART,RSU_REG, REAL_DATA_NUM, READREG_COMMAND);
+			comm_wait(REAL_DATA_UART,CHANNEL_1);
+			WAIT_response_flag = REAL_DATA1_ANALYSE;
+		}
+		// RSU数据
+		else if (comm_flag & REAL_DATA2_SEND_FLAG)
+		{
+			comm_flag &= ~REAL_DATA2_SEND_FLAG;
+			/*读取实时测量数据,电能数据等*/  
+			//comm_ask(RSU_STATION_ADDRESS, MEAS_UART,RSU_REG, REAL_DATA_NUM, READREG_COMMAND);
+			comm_wait(REAL_DATA_UART,CHANNEL_2);
+			WAIT_response_flag = REAL_DATA2_ANALYSE;
+		}
+		// RSU数据
+		else if (comm_flag & REAL_DATA3_SEND_FLAG)
+		{
+			comm_flag &= ~REAL_DATA3_SEND_FLAG;
+			/*读取实时测量数据,电能数据等*/  
+			//comm_ask(RSU_STATION_ADDRESS, MEAS_UART,RSU_REG, REAL_DATA_NUM, READREG_COMMAND);
+			comm_wait(REAL_DATA_UART,CHANNEL_3);
+			WAIT_response_flag = REAL_DATA3_ANALYSE;
 		}
 
 		else if (comm_flag & DEV_PARAM_SEND_FLAG_1)
@@ -1402,7 +1508,7 @@ void ModbusServer_init(void)
 	g_CommRxFlag = FALSE; 	/*主站使能发送*/
 	g_TxDataCtr = 0;
 		
-	g_PDUData.PDUBuffPtr = UARTBuf[MEAS_UART].RxBuf;
+	g_PDUData.PDUBuffPtr = UARTBuf[REAL_DATA_UART].RxBuf;
 	g_PDUData.PDULength =0;
 }
 
@@ -1454,7 +1560,7 @@ void ModbusServer_init(void)
 ***************************************************************************/
 void data_received_handle(USART_LIST uartNo)
 {
-	if ((MEAS_UART == uartNo) ||(AIR_COND_UART == uartNo)||(UPS_UART == uartNo) ||(TEMP_UART== uartNo))
+	if ((REAL_DATA_UART == uartNo) ||(AIR_COND_UART == uartNo)||(UPS_UART == uartNo) ||(TEMP_UART== uartNo))
 	{
 		/*一次有效的接收后，置该位为FALSE，防止在数据处理之前
 		又来数据冲掉已保存在数据接收缓冲区中的数据*/
@@ -1531,78 +1637,90 @@ void start_comm(void)
 	// 查询RSU数据
 	if (polling_counter == 1)
 	{
-		comm_flag |= REAL_DATA_SEND_FLAG;
+		comm_flag |= REAL_DATA0_SEND_FLAG;
 	}
-	// 查询UPS数据
 	else if (polling_counter ==2)
+	{
+		comm_flag |= REAL_DATA1_SEND_FLAG;
+	}
+	else if (polling_counter ==3)
+	{
+		comm_flag |= REAL_DATA2_SEND_FLAG;
+	}
+	else if (polling_counter ==4)
+	{
+		comm_flag |= REAL_DATA3_SEND_FLAG;
+	}
+	
+	// 查询UPS数据
+	else if (polling_counter ==5)
 	{
 		comm_flag |= UPS_PARAM_SEND_FLAG;
 	}
 	// 查询UPS数据
-	else if (polling_counter ==3)
+	else if (polling_counter ==6)
 	{
 		comm_flag |= UPS_IN_SEND_FLAG;
 	}
 	// 查询UPS数据
-	else if (polling_counter ==4)
+	else if (polling_counter ==7)
 	{
 		comm_flag |= UPS_OUT_SEND_FLAG;
 	}
 	// 查询UPS数据
-	else if (polling_counter ==5)
+	else if (polling_counter ==8)
 	{
 		comm_flag |= UPS_BAT_SEND_FLAG;
 	}
-	// 查询UPS数据
-	else if (polling_counter ==6)
+	// 查询UPS数据,不支持查询
+	else if (polling_counter ==9)
 	{
 		;
 	}
 	// 查询UPS数据
-	else if (polling_counter ==7)
+	else if (polling_counter ==10)
 	{
 		comm_flag |= UPS_STATUS_SEND_FLAG;
 	}
-
 	
 	// 查询参数数据1
-	else if (polling_counter == 8)
+	else if (polling_counter == 11)
 	{
 		comm_flag |= DEV_PARAM_SEND_FLAG_1;
 	}
 	// 查询参数数据2
-	else if (polling_counter == 9)
+	else if (polling_counter == 12)
 	{
 		comm_flag |= DEV_PARAM_SEND_FLAG_2;
 	}
 	// 查询温湿度数据
-	else if (polling_counter ==10)
+	else if (polling_counter ==13)
 	{
 		comm_flag |= ENVI_TEMP_SEND_FLAG;
 	}
 	// 查询空调状态数据
-	else if (polling_counter ==11)
+	else if (polling_counter ==14)
 	{
 		comm_flag |= ENVI_AIRCOND_ONOFF_FLAG;
 	}
 	// 查询空调温度数据
-	else if (polling_counter ==12)
+	else if (polling_counter ==15)
 	{
 		comm_flag |= ENVI_AIRCOND_TEMP_FLAG;
 	}
 	// 查询空调报警数据
-	else if (polling_counter ==13)
+	else if (polling_counter ==16)
 	{
 		comm_flag |= ENVI_AIRCOND_ALARM_FLAG;
 	}
 	// 查询SPD状态数据
-	else if (polling_counter ==14)
+	else if (polling_counter ==17)
 	{
 		comm_flag |= SPD_STATUS_SEND_FLAG;
 
 	}
 	// 查询SPD次数数据
-	else if (polling_counter ==15)
+	else if (polling_counter ==18)
 	{
 		comm_flag |= SPD_TIMES_SEND_FLAG;
 		polling_counter = 0;

@@ -67,7 +67,7 @@
 #define	SPD_TIMESREAD_COMMAND		0x04		//防雷自己的雷击读功能码为04
 
 
-#define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址*/
+#define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址,未使用*/
 #define 	AIR_STATION_ADDRESS  	02		/*默认空调从站从站地址*/
 #define 	TEMP_STATION_ADDRESS  	03		/*默认温湿度从站从站地址*/
 #define 	UPS_STATION_ADDRESS  	01		/*默认UPS从站地址*/
@@ -78,32 +78,35 @@
 /*********************************************************************************
 *                                      通信设置参数标志
 **********************************************************************************/
-#define REAL_DATA_SEND_FLAG    	BIT0		/*实时数据查询*/
+#define REAL_DATA0_SEND_FLAG    	BIT0		/*实时数据查询,传感器0*/
+#define REAL_DATA1_SEND_FLAG    	BIT1		/*实时数据查询,传感器1*/
+#define REAL_DATA2_SEND_FLAG    	BIT2		/*实时数据查询,传感器2*/
+#define REAL_DATA3_SEND_FLAG    	BIT3		/*实时数据查询,传感器3*/
 
-#define UPS_PARAM_SEND_FLAG		BIT1		/*USP的总体参数*/
-#define UPS_IN_SEND_FLAG			BIT2		/*USP的输入侧参数*/
-#define UPS_OUT_SEND_FLAG		BIT3		/*USP的输出侧参数*/
-#define UPS_BAT_SEND_FLAG		BIT4		/*USP的电池参数*/
-#define UPS_TIME_SEND_FLAG		BIT5		/*USP的运行时间参数*/
-#define UPS_STATUS_SEND_FLAG	BIT6		/*USP的运行状态参数*/
+#define UPS_PARAM_SEND_FLAG		BIT4		/*USP的总体参数*/
+#define UPS_IN_SEND_FLAG			BIT5		/*USP的输入侧参数*/
+#define UPS_OUT_SEND_FLAG		BIT6		/*USP的输出侧参数*/
+#define UPS_BAT_SEND_FLAG		BIT7		/*USP的电池参数*/
+#define UPS_TIME_SEND_FLAG		BIT8		/*USP的运行时间参数*/
+#define UPS_STATUS_SEND_FLAG	BIT9		/*USP的运行状态参数*/
 
 
-#define SPD_STATUS_SEND_FLAG		BIT8
-#define SPD_TIMES_SEND_FLAG			BIT9
+#define SPD_STATUS_SEND_FLAG		BIT10
+#define SPD_TIMES_SEND_FLAG			BIT11
 
-#define ENVI_TEMP_SEND_FLAG         		BIT10		// 温湿度
-#define ENVI_AIRCOND_ONOFF_FLAG         BIT11		// 空调参数读取
-#define ENVI_AIRCOND_TEMP_FLAG         	BIT12		// 空调参数读取
-#define ENVI_AIRCOND_ALARM_FLAG         BIT13		// 空调参数读取
+#define ENVI_TEMP_SEND_FLAG         		BIT12		// 温湿度
+#define ENVI_AIRCOND_ONOFF_FLAG         BIT13		// 空调参数读取
+#define ENVI_AIRCOND_TEMP_FLAG         	BIT14		// 空调参数读取
+#define ENVI_AIRCOND_ALARM_FLAG         BIT15		// 空调参数读取
 
-#define DEV_PARAM_SEND_FLAG_1         	BIT14		/*参数查询*/
-#define DEV_PARAM_SEND_FLAG_2         	BIT15		/*参数查询*/
+#define DEV_PARAM_SEND_FLAG_1         	BIT16		/*参数查询*/
+#define DEV_PARAM_SEND_FLAG_2         	BIT17		/*参数查询*/
 
-#define DEV_PARAM_SET_FLAG_1          	BIT16	 // 参数设置	--空调开关机
-#define DEV_PARAM_SET_FLAG_2       	BIT17	 // 参数设置	--空调温度设置
+#define DEV_PARAM_SET_FLAG_1          	BIT18	 // 参数设置	--空调开关机
+#define DEV_PARAM_SET_FLAG_2       	BIT19	 // 参数设置	--空调温度设置
 
-#define DOOR_OPEN_SET_FLAG          		BIT18	 // 电子锁开
-#define DOOR_CLOSE_SET_FLAG          	BIT19	 // 电子锁关
+#define DOOR_OPEN_SET_FLAG          		BIT20	 // 电子锁开
+#define DOOR_CLOSE_SET_FLAG          	BIT21	 // 电子锁关
 
 
 /*********************************************************************************
@@ -129,7 +132,11 @@
 #define WAIT_PARAM_SET_1		1	/*等待装置参数设置帧回复*/
 #define WAIT_PARAM_SET_2		2	/*等待装置参数设置帧回复*/
 // 需要参数解析的帧
-#define REAL_DATA_ANALYSE		7	/*实时数据解析,即RSU参数*/
+#define REAL_DATA0_ANALYSE		3	/*实时数据解析,即RSU参数*/
+#define REAL_DATA1_ANALYSE		4	/*实时数据解析,即RSU参数*/
+#define REAL_DATA2_ANALYSE		5	/*实时数据解析,即RSU参数*/
+#define REAL_DATA3_ANALYSE		6	/*实时数据解析,即RSU参数*/
+
 #define ENVI_TEMP_ANALYSE	9	/*温湿度参数解析*/
 //#define ENVI_AIR_ANALYSE		10	/*空调参数解析*/
 #define ENVI_AIR_ONOFF_ANALYSE		10	/*空调参数解析*/
@@ -153,9 +160,9 @@
 /*********************************************************************************
 *                                     读取相关参数长度
 **********************************************************************************/	
-#define REAL_DATA_NUM		42  	/*需实时更新数据长度，0x69-0x40*/
+#define REAL_DATA_NUM		24  	/*固定为24个字节*/
 //#define REAL_TIME_SOE_NUM			37  		/*读取SOE、统计信息等数据长度*/
-#define UPS_DATA_NUM 			4
+//#define UPS_DATA_NUM 			4
 #define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
 #define SPD_TIMES_NUM 			3		// 读3个,分别为当前雷击次数,总雷击次数,最高清零的雷击次数
 #define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
@@ -251,6 +258,8 @@ void data_send_directly(USART_LIST destUtNo);
 void comm_polling_process(void);
 
 UINT16 checkSumCalc(UINT8 *buffer, UINT8 len);
+void comm_wait(USART_LIST destUtNo, UINT16 seq);
+INT8U realSum_check(void);
 #endif
 /*********************************************************************************************************
 **                            文件结束

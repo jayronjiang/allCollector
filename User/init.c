@@ -79,7 +79,7 @@ static void Key_First_Read(void)
 	ReadKey();					// 千万注意此函数的重入
 	Delay_Ms(25);					// 防抖
 	ReadKey();
-	/*第一次也必须读取变位,否则dete_bit_recd刚上电读不到状态*/
+	/*第一次也必须读取变位,读到正确的键值*/
 	//system_flag &= ~KEY_CHANGED;	// 第一次读取不变位
 }
 
@@ -136,6 +136,9 @@ void Init_System(void)
 	/* 也就是硬件初始化完毕后定时器开始运行*/
 	SysTick_Init();	// 本程序不带操作系统,只是一个普通的ms定时器
 
+	/*对外部设备进行初始化*/
+	DIDO_Init();			// 要放在串口初始化的前面,否则会被非法引用卡死
+
 	W25QXX_Init();		//W25QXX初始化
 	/*放在串口初始化前面,因为串口也有参数*/
 	Init_Params();		//上电读取参数并自检
@@ -146,6 +149,7 @@ void Init_System(void)
 	Comm2_Init(Baud[DevParams.BaudRate_2]);	// USART2 配置模式为 115200 8-N-1，中断接收
 #endif
 #if (BD_USART_NUM >= 3)
+	/*固定为RS485*/
 	Comm4_Init(Baud[DevParams.BaudRate_3]);	// USART2 配置模式为 115200 8-N-1，中断接收
 #endif
 #if (BD_USART_NUM >= 4)
@@ -155,8 +159,6 @@ void Init_System(void)
 	ModbusServer_init();
 	/*上电闪烁3次,每次60ms*/
 	LED_Flashing(LED_RUN, 60, 3);
-	/*对外部设备进行初始化*/
-	DIDO_Init();
 
 	IWDG_Init(IWDG_Prescaler_64,625);    //预分频值为64，重装载值为625, 看门狗为1s.
 	

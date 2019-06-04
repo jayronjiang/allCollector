@@ -210,8 +210,9 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 			*perr = DATA_ERR;		/*如果不是FF00是报04还是03?,应该是帧错误,报03*/
 			return(0);
 		}
-		
-		if((nStartRegNo >=(DO_START_ADDR+DO_NUM*4))&&(nStartRegNo!=REMOTE_RESET_REG)) /*当遥控DO超出DO数量范围时失败*/
+
+		//注意这里实际只支持4个DO
+		if((nStartRegNo >=(DO_START_ADDR+ ACTRUL_DO_NUM*4))&&(nStartRegNo!=REMOTE_RESET_REG)) /*当遥控DO超出DO数量范围时失败*/
 		{
 			*perr = REGADDR_ERR;
 			return(0);

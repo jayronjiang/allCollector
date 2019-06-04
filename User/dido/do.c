@@ -95,7 +95,7 @@ void DO_Init(void)
 void DeviceX_Activate(DEVICE_CTRL_LIST dev)
 {
 	assert_param(dev<DO_NUM);
-	GPIO_ResetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
+	GPIO_SetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
 }
 
 /***********************************************************************************
@@ -119,7 +119,7 @@ void DeviceX_Activate(DEVICE_CTRL_LIST dev)
 void DeviceX_Deactivate(DEVICE_CTRL_LIST dev)
 {
 	assert_param(dev<DO_NUM);
-	GPIO_SetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
+	GPIO_ResetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
 }
 
 
@@ -414,41 +414,6 @@ UINT8 RelayOperate(UINT8 num, UINT8 mode)
 			return 0;
 	}
 }
-#if 0
-/******************************************************************************
- * 函数名:	Output_Control 
- * 描述: 
- *            -出口控制
- * 输入参数: 无
- * 输出参数: 无
- * 返回值: 无
- * 
- * 作者:汪治国 
- * 创建日期:2010.1.15
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- ******************************************************************************/
-void Output_Control(void)
-{
-	UINT16 relay[DO_NUM]={0,0};		/*继电器状态*/
-	UINT8 i;
-	
-	for(  i=0; i < DO_NUM; i++ )
-	{
-		relay[i] = ( Relay[i].SP_Chl[0] ||Relay[i].SP_Chl[1] || Relay[i].DI_Link );	/*对AL_NUM没有进行循环，这是不可移植的*/
-		if( relay[i] )		
-		{
-			RelayOperate(i, RELAY_ALARM_ACT);	/*定值越限或DI联动出现动作值,则DO出口动作*/
-		}
-		else	
-		{
-			RelayOperate(i, RELAY_ALARM_RETURN);	/*否则自动返回*/
-		}
-	}
-}
-#endif
 
 /***********************************************************************************
  * 函数名:	Device_Ctrl_Queue_Init 
@@ -497,6 +462,7 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_pin = DO4_POUT;
 			break;
 
+		/*测量电路的RX选择*/
 		case DO_5:
 			device_ctrl_queue[dev_type].gpio_grp = DO5_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO5_POUT;
@@ -506,12 +472,13 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_grp = DO6_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO6_POUT;
 			break;
-
+		/*485的RX_TX选择,高电平为TX，低电平为RX*/
 		case DO_7:
 			device_ctrl_queue[dev_type].gpio_grp = DO7_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO7_POUT;
 			break;
 
+		/*未使用*/
 		case DO_8:
 			device_ctrl_queue[dev_type].gpio_grp = DO8_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO8_POUT;
@@ -521,6 +488,44 @@ void DO_Queue_Init(void)
 			break;
 		}
 		DEVICE_GPIO_OUT_Config(dev_type);
+	}
+}
+
+
+void rs485FuncSelect(bool value)
+{
+	if (value == RECEIVE_S)
+	{
+		DeviceX_Deactivate(DO_7);
+	}
+	else
+	{
+		DeviceX_Activate(DO_7);	// 注意ACtive是高电平
+	}
+}
+
+
+void realDataChannelSelect(UINT8 seq)
+{
+	if (seq == CHANNEL_0)
+	{
+		DeviceX_Deactivate(DO_5);
+		DeviceX_Deactivate(DO_6);
+	}
+	else if (seq == CHANNEL_1)
+	{
+		DeviceX_Activate(DO_5);
+		DeviceX_Deactivate(DO_6);
+	}
+	else if (seq == CHANNEL_2)
+	{
+		DeviceX_Deactivate(DO_5);
+		DeviceX_Activate(DO_6);
+	}
+	else
+	{
+		DeviceX_Activate(DO_5);
+		DeviceX_Activate(DO_6);
 	}
 }
 

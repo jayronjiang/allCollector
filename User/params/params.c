@@ -23,7 +23,7 @@ const DEVICE_PARAMS Init_DevParams=
 					BAUD_115200,
 					BAUD_9600,
 					BAUD_9600,
-					BAUD_9600,
+					BAUD_4800,
 					0,
 					0,
 					0,
@@ -172,6 +172,7 @@ void Init_Params(void)
 
 	// 装置信息初始化
 	ComDeviceInfoInit();
+	RSUKsInit();
 }   
 
 /***********************************************************************************
@@ -217,6 +218,19 @@ void ComDeviceInfoInit(void)
 	DevicComInfor.softDate = (UINT32)VERSION_DATE-(UINT32)DevicComInfor.softYear*10000 
                                   - (UINT16)DevicComInfor.softMonth*100;
 	DevicComInfor.protocolVersion = PROTOCAL_REVISION;
+}
+
+
+/*K系数初始化*/
+void RSUKsInit(void)
+{
+	UINT8   i=0;
+
+	for(i = 0; i < RSU_NUM; i++)
+	{
+		RSUParams.phase[i].k_v = 202;	// 系数默认为202，扩大100倍，从而电压也扩大100倍
+		RSUParams.phase[i].k_a = 64;	// 系数默认为100，扩大100倍，从而电压也扩大100倍
+	}
 }
 
 
