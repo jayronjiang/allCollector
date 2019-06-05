@@ -5,10 +5,10 @@
 
 #define DEVICE_TYPE 		"SPARK01"		/*装置设备类型的定义*/
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190603 			/*版本日期*/
+#define VERSION_DATE		 190604 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
-#define SYSTEM_SYNC		12341230		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341231		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
@@ -163,8 +163,8 @@ typedef struct spd_struct
 // 环境数据结构体
 typedef struct envi_struct
 {
-	UINT16 temp;	// 温度
 	UINT16 moist;	// 湿度
+	UINT16 temp;	// 温度
 	UINT16 water_flag;	// 漏水
 	UINT16 door_flag;
 	UINT16 door_overtime;

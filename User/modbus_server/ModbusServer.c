@@ -169,6 +169,7 @@ void data_send_directly(USART_LIST destUtNo)
 		g_TxDataCtr++;
 	}
 	LED_Set(LED_COM, OFF); 	// 通信完毕
+	Delay_Ms(2);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
 
 	StartCounterT100;					/*开始等待计数*/
 	g_SENData.SENDLength = 0;
@@ -376,6 +377,8 @@ bool comm_RealData_analyse(INT8U ch)
 	INT32U * pointer = &RSUParams.phase[ch].param_v;	/*第0相参数*/
 	INT32U temp = 0;
 
+	//USART_ITConfig(UART5, USART_IT_RXNE, DISABLE);	//禁止中断,防止频繁收到无效数据
+	USART_Cmd(UART5, DISABLE);
 	if(realSum_check())
 	{		
 		char3_to_int(g_PDUData.PDUBuffPtr + 2, pointer);
@@ -858,7 +861,7 @@ void comm_SPDTimes_analyse(void)
 void comm_EnviTemp_analyse(void)				 
 {
 	INT8U i=0;
-	INT16U* pointer = &ENVIParms.temp;
+	INT16U* pointer = &ENVIParms.moist;
 
 	if(CRC_check() && (g_PDUData.PDULength == (ENVI_TEMP_NUM*2+5)))
 	{
@@ -1021,6 +1024,8 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 {	
 	// 开始接收
 	realDataChannelSelect(seq);
+	//USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);		// 直接使用UART5的
+	USART_Cmd(UART5, ENABLE);
 	// 不发送,直接准备接收
 	StartCounterT100;					/*开始等待计数*/
 	//g_SENData.SENDLength = 0;

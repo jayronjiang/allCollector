@@ -119,7 +119,7 @@
 #define AIR_ONOFF_REG             		0x0801	// 空调开关机
 #define AIR_TEMP_REG             		0x0700	// 空调高温低温点
 
-#define ENVI_TEMP_REG             					0x02		// 温湿度
+#define ENVI_TEMP_REG             					0x00		// 温湿度
 #define ENVI_AIRCOND_ONOFF_REG             		0x0100	// 空调状态
 #define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
 #define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
