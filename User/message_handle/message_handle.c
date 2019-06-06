@@ -11,8 +11,6 @@
   
 #include "include.h"
 
-const char VerInfo[]="LC-301-V4.1-190316";
-
 /*定义通信缓冲区*/
 PROTOCOL_BUF ProtocolBuf[UART_NUM];
 
@@ -125,49 +123,6 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART5_COM].TxLen = 0;
 }
 #endif
-
-
-/******************************************************************************
- * 函数名:	Bits_Swap 
- * 描述: 交换字节中的2个位
- *         		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:2019.03.10
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- ******************************************************************************/
- uint8_t Bits_Swap(uint8_t vbyte, uint8_t num1, uint8_t num2)
-{
-	uint8_t tmp_v1 = 0;
-	uint8_t tmp_re = 0;
-	uint8_t i = 0;
-
-	tmp_v1 = vbyte;
-	for (i = 0; i< 8; i++)
-	{
-		
-		if (i == num1)
-		{	
-			tmp_re |= ((tmp_v1 >> i)&0x01)<<num2;
-		}
-		else if (i == num2)
-		{
-			tmp_re |= ((tmp_v1 >> i)&0x01)<<num1;
-		}
-		else
-		{
-			/*取剩下位*/
-			tmp_re |= ((tmp_v1 >> i)&0x01)<<i;
-		}
-	}
-	return tmp_re;
-}
 
 
 /******************************************************************************
@@ -371,7 +326,6 @@ void Comm_Proc(void)
 			{
 				message_send_printf(i, i, FALSE, NOT_USED_MSG);
 				UARTBuf[i].TxLen = 0;
-					//Rs485StartSend();
 			}
 			Delay_clk(50);
 			UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/

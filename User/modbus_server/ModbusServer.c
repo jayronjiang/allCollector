@@ -144,6 +144,7 @@ void data_send_directly(USART_LIST destUtNo)
 	{
 		PUSART = UART4;
 		rs485FuncSelect(SEND_S);		//485开始发送
+		Delay_Ms(1);	// 等待1ms
 	}
 #endif
 #if (BD_USART_NUM >= 4)
@@ -169,7 +170,6 @@ void data_send_directly(USART_LIST destUtNo)
 		g_TxDataCtr++;
 	}
 	LED_Set(LED_COM, OFF); 	// 通信完毕
-	Delay_Ms(2);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
 
 	StartCounterT100;					/*开始等待计数*/
 	g_SENData.SENDLength = 0;
@@ -178,6 +178,7 @@ void data_send_directly(USART_LIST destUtNo)
 	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
 	if (destUtNo == UART4_COM)
 	{
+		Delay_Ms(2);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
 		rs485FuncSelect(RECEIVE_S);		//485默认为
 	}
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
@@ -698,10 +699,10 @@ void comm_UPSBat_ANALYSE(void)
 	}
 }
 
-#if 0
+
 /******************************************************************************
- * 函数名:	comm_UPSTime_ANALYSE 
- * 描述: 		UPS电池运行时间解析0xE4
+ * 函数名:	comm_UPSAlarm_ANALYSE 
+ * 描述: 		UPS电池报警解析0x44
  *            -
  * 输入参数: 
  * 输出参数: 
@@ -715,31 +716,48 @@ void comm_UPSBat_ANALYSE(void)
  * 修改内容: 对新规约进行解析
  * 修改日期:2012-10-16
  ******************************************************************************/
-#define UPS_BATTIME_RES_LEN			56			 // 0xE4返回数据长度72
+#define UPS_ALARM_RES_LEN			146			 // 0xE4返回数据长度146
+#define MAIN_ABNOMAL_POS			31			// 31字节开始是主路异常告警
+#define SYSTEM_OVERTEMP_POS			(MAIN_ABNOMAL_POS+2)		// 1个状态占1个字节所以+2	
+#define SYSTEM_LOWBAT_POS			(SYSTEM_OVERTEMP_POS+2)
+#define RECTIFIER_OVERLOAD_POS		(SYSTEM_LOWBAT_POS+8)
+#define INVERTER_OVERLOAD_POS		(RECTIFIER_OVERLOAD_POS+4)
+#define BYPASS_ABNORMAL_POS		(INVERTER_OVERLOAD_POS+8)
+#define BATTERY_LOW_POS				(BYPASS_ABNORMAL_POS+12)
+#define BATTERY_ABNORMAL_POS		(BATTERY_LOW_POS+2)
+#define BATTERY_OVERTEMP_POS		(BATTERY_ABNORMAL_POS+4)
+#define FAN_ABNORMAL_POS			(BATTERY_OVERTEMP_POS+8)
+#define SHUTDOWM_POS				(FAN_ABNORMAL_POS+2)
+#define MAINTAIN_STATUS_POS			(SHUTDOWM_POS+18)
+#define INVERTER_POS					(MAINTAIN_STATUS_POS+2)
+#define BYPASS_POS					(INVERTER_POS+2)
 
-
-
-void comm_UPSTime_ANALYSE(void)	
+void comm_UPSAlarm_ANALYSE(void)	
 {
-	INT16U* pointer = &UPSParams.battery.running_day;
+	INT16U* pointer = &UPSParams.alarm.main_abnormal;
 	INT16U ups_chksum = 0;
 
-	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_BAT_RES_LEN-5);
+	ups_chksum = ascii_to_hex4(g_PDUData.PDUBuffPtr+UPS_ALARM_RES_LEN-5);
 
-	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_BAT_RES_LEN-6) == ups_chksum) \
-	    && (g_PDUData.PDULength == UPS_BAT_RES_LEN))
+	if((checkSumCalc(g_PDUData.PDUBuffPtr+1, UPS_ALARM_RES_LEN-6) == ups_chksum) \
+	    && (g_PDUData.PDULength == UPS_ALARM_RES_LEN))
 	{
-		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_RUNNING_DAY_POS);
-		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLT_POS);
-		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_CHARGE_AMP_POS);
-		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_AMP_POS);
-		*(pointer+4) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_BACKUP_TIME_POS);
-		*(pointer+5) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_ENVI_TMP_POS);	// 环境温度
-		*(pointer+6) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_VOLUMN_POS);		// 电池容量
-		*(pointer+7) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BAT_DISCHG_TIMES_POS);		// 放电次数
+		*pointer = ascii_to_hex4(g_PDUData.PDUBuffPtr+ MAIN_ABNOMAL_POS);		// 主路异常
+		*(pointer+1) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ SYSTEM_OVERTEMP_POS);	//系统过温
+		*(pointer+2) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ SYSTEM_LOWBAT_POS);	//系统电池低
+		*(pointer+3) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ RECTIFIER_OVERLOAD_POS);	//整流器过载
+		*(pointer+4) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ INVERTER_OVERLOAD_POS);	//逆变器过载
+		*(pointer+5) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_ABNORMAL_POS);	// 旁路异常
+		*(pointer+6) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BATTERY_LOW_POS);		// 电池电压低
+		*(pointer+7) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BATTERY_ABNORMAL_POS);		// 电池异常
+		*(pointer+8) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ BATTERY_OVERTEMP_POS);		// 电池过温
+		*(pointer+9) = 	ascii_to_hex4(g_PDUData.PDUBuffPtr+ FAN_ABNORMAL_POS);		// 风扇异常
+		*(pointer+10) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ SHUTDOWM_POS);		// 紧急关机
+		*(pointer+11) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ MAINTAIN_STATUS_POS);		// 维修模式
+		*(pointer+12) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ INVERTER_POS);		// 逆变器状态
+		*(pointer+13) = ascii_to_hex4(g_PDUData.PDUBuffPtr+ BYPASS_POS);		// 旁路状态
 	}
 }
-#endif
 
 
 /******************************************************************************
@@ -872,6 +890,32 @@ void comm_EnviTemp_analyse(void)
 	}
 }
 
+
+/*****************************************************************************
+ * 函数名:	comm_config_analyse 
+ * 描述: 		读取温湿度
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:付志武 
+ * 创建日期:2009.1.6
+ * 
+ ******************************************************************************/
+void comm_water_in_analyse(void)				 
+{
+	INT8U i=0;
+	INT16U* pointer = &ENVIParms.water_flag;
+
+	if(CRC_check() && (g_PDUData.PDULength == (WATER_IN_NUM*2+5)))
+	{
+		for (i=0;i<WATER_IN_NUM;i++)
+		{
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+		}
+	}
+}
 
 /******************************************************************************
  * 函数名:	comm_config_analyse 
@@ -1220,7 +1264,8 @@ void comm_polling_process(void)
 		comm_flag &= ~(REAL_DATA0_SEND_FLAG +REAL_DATA1_SEND_FLAG+REAL_DATA2_SEND_FLAG +REAL_DATA3_SEND_FLAG \
 					     +UPS_PARAM_SEND_FLAG +SPD_STATUS_SEND_FLAG +SPD_TIMES_SEND_FLAG \
 					     +ENVI_TEMP_SEND_FLAG +ENVI_AIRCOND_ONOFF_FLAG+ENVI_AIRCOND_TEMP_FLAG \
-					     +ENVI_AIRCOND_ALARM_FLAG + DEV_PARAM_SEND_FLAG_1+ DEV_PARAM_SEND_FLAG_2);
+					     +ENVI_AIRCOND_ALARM_FLAG + DEV_PARAM_SEND_FLAG_1+ DEV_PARAM_SEND_FLAG_2\
+					     +WATER_IN_FLAG);
 		if(Recive_Flag>0)
 		{
 			WAIT_response_flag = 0;
@@ -1309,6 +1354,10 @@ void comm_polling_process(void)
 				comm_UPSBat_ANALYSE();
 			break;
 
+			case UPS_ALARM_ANALYSE:	
+				comm_UPSAlarm_ANALYSE();
+			break;
+
 			case UPS_STATUS_ANALYSE:	
 				comm_UPSStatus_ANALYSE();
 			break;
@@ -1319,6 +1368,10 @@ void comm_polling_process(void)
 			
 			case SPD_TIMES_ANALYSE:
 				comm_SPDTimes_analyse();
+			break;
+
+			case WATER_IN_ANALYSE:
+				comm_water_in_analyse();
 			break;
 			
 			default:
@@ -1437,17 +1490,15 @@ void comm_polling_process(void)
 			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_BAT, 0, NULL);
 			WAIT_response_flag = UPS_BAT_ANALYSE;
 		}
-		#if 0
-		// 协议不支持
-		else if (comm_flag & UPS_TIME_SEND_FLAG)
+		// 报警信息轮询
+		else if (comm_flag & UPS_ALARM_SEND_FLAG)
 		{
-			comm_flag &= ~UPS_TIME_SEND_FLAG;
+			comm_flag &= ~UPS_ALARM_SEND_FLAG;
 			//ups走的是电总协议
 			/*读取UPS参数数据*/  
-			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_TIME, 0, NULL);
-			WAIT_response_flag = UPS_TIME_ANALYSE;
+			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_ALARM, 0, NULL);
+			WAIT_response_flag = UPS_ALARM_ANALYSE;
 		}
-		#endif
 		else if (comm_flag & UPS_STATUS_SEND_FLAG)
 		{
 			comm_flag &= ~UPS_STATUS_SEND_FLAG;
@@ -1498,6 +1549,13 @@ void comm_polling_process(void)
 			comm_flag &= ~ENVI_AIRCOND_ALARM_FLAG;
 			comm_ask(AIR_STATION_ADDRESS, AIR_COND_UART,ENVI_AIRCOND_ALARM_REG, ENVI_AIRCOND_ALARM_NUM, READREG_COMMAND);	/*读取空调报警数据*/  
 			WAIT_response_flag = ENVI_AIR_ALARM_ANALYSE;
+		}
+
+		else if (comm_flag & WATER_IN_FLAG)
+		{
+			comm_flag &= ~WATER_IN_FLAG;
+			comm_ask(WATERIN_STATION_ADDRESS, WATER_UART,WATER_IN_REG, WATER_IN_NUM, READREG_COMMAND);	/*读取空调报警数据*/  
+			WAIT_response_flag = WATER_IN_ANALYSE;
 		}
 	}    
 	
@@ -1680,7 +1738,7 @@ void start_comm(void)
 	// 查询UPS数据,不支持查询
 	else if (polling_counter ==9)
 	{
-		;
+		comm_flag |= UPS_ALARM_SEND_FLAG;
 	}
 	// 查询UPS数据
 	else if (polling_counter ==10)
@@ -1722,12 +1780,15 @@ void start_comm(void)
 	else if (polling_counter ==17)
 	{
 		comm_flag |= SPD_STATUS_SEND_FLAG;
-
 	}
 	// 查询SPD次数数据
 	else if (polling_counter ==18)
 	{
 		comm_flag |= SPD_TIMES_SEND_FLAG;
+	}
+	else if (polling_counter ==19)
+	{
+		comm_flag |= WATER_IN_FLAG;
 		polling_counter = 0;
 	}
 }

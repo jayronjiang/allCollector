@@ -17,7 +17,7 @@
 #define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+410,留576*/
 
 #define RSU_NUM			6	// RSU天线数目
-#define DOOR_TIME_OUT	10	// 10s
+#define DOOR_TIME_OUT	3600	// 1hour
 
 /*******************************************************************************************/
 typedef struct phase_struct
@@ -122,20 +122,20 @@ typedef struct ups_status_struct
 typedef struct ups_alarm_struct
 {
 	// 功能码44	
-	UINT16 main_abnormal;			// 主路异常
-	UINT16 system_overtemp;		// 系统过温
-	UINT16 sysbat_low_prealarm;	// 系统电池电量低预告警
-	UINT16 rectifier_overload;		// 整流器过载
-	UINT16 inverter_overload;		// 整流器过载
-	UINT16 bypass_overload;		// 旁路异常
-	UINT16 battery_low_prealarm;	// 电池电压低
-	UINT16 battery_abnomal;		// 电池电压异常
-	UINT16 battery_overtemp;		// 电池过温
-	UINT16 fan_abnormal;			// 风扇故障
-	UINT16 shutdown_alarm;			//紧急关机告警
-	UINT16 maintain_status;			//维修模式
-	UINT16 inverter_supply;				//电池逆变供电
-	UINT16 bypass_supply;				//旁路供电
+	UINT16 main_abnormal;			// 主路异常, 9
+	UINT16 system_overtemp;		// 系统过温, 10
+	UINT16 sysbat_low_prealarm;	// 系统电池电量低预告警,11
+	UINT16 rectifier_overload;		// 整流器过载,15
+	UINT16 inverter_overload;		// 逆变器过载,17
+	UINT16 bypass_abnomal;		// 旁路异常,21
+	UINT16 battery_low_prealarm;	// 电池电压低,27
+	UINT16 battery_abnomal;		// 电池电压异常,28
+	UINT16 battery_overtemp;		// 电池过温,30
+	UINT16 fan_abnormal;			// 风扇故障,34
+	UINT16 shutdown_alarm;			//紧急关机告警,35
+	UINT16 maintain_status;			//维修模式,44
+	UINT16 inverter_supply;				//电池逆变供电,45
+	UINT16 bypass_supply;				//旁路供电,46
 }UPS_ALARM_PARAMS;
 
 
@@ -166,7 +166,8 @@ typedef struct envi_struct
 	UINT16 moist;	// 湿度
 	UINT16 temp;	// 温度
 	UINT16 water_flag;	// 漏水
-	UINT16 door_flag;
+	UINT16 front_door_flag;
+	UINT16 back_door_flag;
 	UINT16 door_overtime;
 	UINT16 fire_move_flag;
 	UINT16 smoke_event_flag;

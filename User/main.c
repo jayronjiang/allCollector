@@ -35,38 +35,70 @@ const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
  ******************************************************************************/
 static void Task_Schedule(void)
 {
-	static uint32_t door_timeout_t=0;
+	static uint32_t front_door_timeout_t=0;
+	static uint32_t back_door_timeout_t=0;
+	static uint8_t front_flag = FALSE;
+	static uint8_t back_flag = FALSE;
 	/* 记住上次栏杆状态检测的错误状态,以便返回的时候上报*/
 	//static bool TTL_ALG_Wrong = FALSE;
 	//USART_LIST i = PC_UART;
 
 	//uint8_t datatemp[64];
 	
-	/* 检测到外部传感器变位,或者控制逻辑和检测逻辑不配合*/
+	/* 检测开关量,(门磁,烟雾,漏水)*/
 	if (system_flag&KEY_CHANGED)
 	{
 		system_flag &= ~KEY_CHANGED;
-		ENVIParms.water_flag = !di_status.status_bits.di_1;	// di是低电平有效,flag是高电平有效
-		ENVIParms.door_flag = !di_status.status_bits.di_2;
-		ENVIParms.fire_move_flag = !di_status.status_bits.di_3;
-		ENVIParms.smoke_event_flag = !di_status.status_bits.di_4;
+		 // 2个门磁开关，任何一个打开就认为柜门被打开
+		ENVIParms.front_door_flag = (!di_status.status_bits.di_1);
+		ENVIParms.back_door_flag = (!di_status.status_bits.di_2);
+		//ENVIParms.fire_move_flag = 0;					// 已经没有了
+		//ENVIParms.water_flag = !di_status.status_bits.di_3;	// di是低电平有效,flag是高电平有效
+		ENVIParms.smoke_event_flag = !di_status.status_bits.di_3;	 // 烟雾传感器状态
 	}
 
-	// 低电平有效
-	if (ENVIParms.door_flag == 1)
+	/* di低电平有效,但是标志位为高电平逻辑*/
+	if (ENVIParms.front_door_flag == 1)
 	{
-		//超时计数器开始
 		// 超过1个小时,超时,测试的时候为10s
-		if(time_interval(door_timeout_t) >= DOOR_TIME_OUT)
+		if(time_interval(front_door_timeout_t) >= DOOR_TIME_OUT)		//超时计数器开始
 		{
-			door_timeout_t = system_time_s;
+			front_door_timeout_t = system_time_s;
 			ENVIParms.door_overtime = TRUE;
+			front_flag = TRUE;
 		}
 	}
 	else
 	{
-		ENVIParms.door_overtime = FALSE;
-		door_timeout_t = system_time_s;
+		//ENVIParms.door_overtime = FALSE;
+		front_flag = FALSE;
+		front_door_timeout_t = system_time_s;
+		if( !back_flag )
+		{
+			ENVIParms.door_overtime = FALSE;
+		}
+	}
+
+	/* di低电平有效,但是标志位为高电平逻辑*/
+	if (ENVIParms.back_door_flag == 1)
+	{
+		// 超过1个小时,超时,测试的时候为10s
+		if(time_interval(back_door_timeout_t) >= DOOR_TIME_OUT)		//超时计数器开始
+		{
+			back_door_timeout_t = system_time_s;
+			ENVIParms.door_overtime = TRUE;
+			back_flag = TRUE;
+		}
+	}
+	else
+	{
+		//ENVIParms.door_overtime = FALSE;
+		back_flag = FALSE;
+		back_door_timeout_t = system_time_s;
+		if( !front_flag )
+		{
+			ENVIParms.door_overtime = FALSE;
+		}
 	}
 
 

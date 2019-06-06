@@ -70,8 +70,10 @@
 #define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址,未使用*/
 #define 	AIR_STATION_ADDRESS  	02		/*默认空调从站从站地址*/
 #define 	TEMP_STATION_ADDRESS  	03		/*默认温湿度从站从站地址*/
+#define 	WATERIN_STATION_ADDRESS  	04	/*默认水浸地址*/
 #define 	UPS_STATION_ADDRESS  	01		/*默认UPS从站地址*/
 #define 	SPD_STATION_ADDRESS	05
+
 
 #define Wait_max_time  		200 		/* 发送后等待接收帧的最长时间为200ms */
 
@@ -87,8 +89,8 @@
 #define UPS_IN_SEND_FLAG			BIT5		/*USP的输入侧参数*/
 #define UPS_OUT_SEND_FLAG		BIT6		/*USP的输出侧参数*/
 #define UPS_BAT_SEND_FLAG		BIT7		/*USP的电池参数*/
-#define UPS_TIME_SEND_FLAG		BIT8		/*USP的运行时间参数*/
-#define UPS_STATUS_SEND_FLAG	BIT9		/*USP的运行状态参数*/
+#define UPS_STATUS_SEND_FLAG	BIT8		/*USP的运行状态参数*/
+#define UPS_ALARM_SEND_FLAG		BIT9		/*USP的报警信息参数*/
 
 
 #define SPD_STATUS_SEND_FLAG		BIT10
@@ -108,6 +110,8 @@
 #define DOOR_OPEN_SET_FLAG          		BIT20	 // 电子锁开
 #define DOOR_CLOSE_SET_FLAG          	BIT21	 // 电子锁关
 
+#define WATER_IN_FLAG          	BIT22	 // 水进也是485的了
+
 
 /*********************************************************************************
 *                                     读取相关参数起始地址
@@ -124,6 +128,7 @@
 #define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
 #define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
 
+#define WATER_IN_REG             					0x0010	// 水浸
 
 /*********************************************************************************
 *                                         等待帧回复状态
@@ -154,8 +159,10 @@
 #define UPS_IN_ANALYSE			19
 #define UPS_OUT_ANALYSE			20
 #define UPS_BAT_ANALYSE			21
-#define UPS_TIME_ANALYSE			22
+#define UPS_ALARM_ANALYSE		22
 #define UPS_STATUS_ANALYSE		23
+
+#define WATER_IN_ANALYSE		24	/*水浸参数解析*/
 
 /*********************************************************************************
 *                                     读取相关参数长度
@@ -172,6 +179,8 @@
 #define ENVI_AIRCOND_ONOFF_NUM 			1
 #define ENVI_AIRCOND_TEMP_NUM 			3
 #define ENVI_AIRCOND_ALARM_NUM 			2
+
+#define WATER_IN_NUM 			1
 
 
 #define FRAME_HEAD_NUM 			3		/*读数据时返回帧有效数据前数据个数*/
@@ -204,6 +213,7 @@ typedef union{
 #define   UPS_CID2_BAT	0xE3
 #define   UPS_CID2_TIME	0xE4
 #define   UPS_CID2_STATUS	0x43
+#define   UPS_CID2_ALARM	0x44
 
 #define   UPS_EOI		0x0D
 
