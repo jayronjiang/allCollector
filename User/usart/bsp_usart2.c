@@ -167,7 +167,7 @@ void USART2_IRQHandler(void)
 	
 	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	{	
-		LED_Set(LED_COM, ON); 	// 开始通信指示
+		//LED_Set(LED_COM, ON); 	// 开始通信指示
 		ch = USART_ReceiveData(USART2);
 
 	#if 0
@@ -189,7 +189,7 @@ void USART2_IRQHandler(void)
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USART2);
-		LED_Set(LED_COM, OFF); 	// 通信完毕
+		//LED_Set(LED_COM, OFF); 	// 通信完毕
 
 		data_received_handle(UART2_COM);
 	}

@@ -170,7 +170,7 @@ void UART5_IRQHandler(void)
 	
 	if(USART_GetITStatus(USARTn, USART_IT_RXNE) != RESET)
 	{	
-		LED_Set(LED_COM, ON); 	// 开始通信指示
+		//LED_Set(LED_COM, ON); 	// 开始通信指示
 		ch = USART_ReceiveData(USARTn);
 
 		#if 0
@@ -191,7 +191,7 @@ void UART5_IRQHandler(void)
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USARTn);
-		LED_Set(LED_COM, OFF); 	// 通信完毕
+		//LED_Set(LED_COM, OFF); 	// 通信完毕
 
 		if (g_PDUData.PDULength == REAL_DATA_NUM)
 		{

@@ -13,7 +13,6 @@
 #define BD4_UART			UART5_COM	//定义与第二个PC通信的为哪个串口?
 #endif
 /*定义成超出串口的值,表示不需要这个功能*/
-#define FEE_UART			UART_NUM	//定义与费显和声音的串口
 #define TRANS_UART		UART2_COM	//定义透传的串口
 #define PC_UART			UART1_COM	// 定义上位机是哪个串口
 #define REAL_DATA_UART	UART5_COM	// 板载传感器是UART5
@@ -55,6 +54,6 @@ void Comm5_Init(uint32_t baudrate);
 #endif
 void message_pack(USART_LIST uart_no, uint8_t msg_type,PROTOCOL_BUF *buf);
 void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uint8_t msg_type);
-void Comm_Proc(void);
+void comm_rec_proc(void);
 
 #endif /* __MESSAGE_HANDLE_H */

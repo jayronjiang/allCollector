@@ -1,32 +1,21 @@
 /********************************************************************************
-*  版权所有: 深圳市中电电力技术有限公司				
+*  版权所有: 	广东利通科技		
 *
-*  文件名:       ModbusClient.h
+*  文件名:       ModbusServer.c
 *
 *
 *  当前版本:                       0.1
 *  
-*  作者:                                  曾伟
+*  作者:     JERRY                     
 *
-*  完成日期:  
-*
-*
-*  取代版本:    无
+*  完成日期:  20190613
 *                 
 *  作者:    无
 *
-*  完成日期:     无
+*  完成日期:                       无
 *
 *
 *  描述: 
-*
-*  其它: 由于51的中断函数都需要分配到COMMON，因此将MODBUS模块的物理层接收
-*                函数放到COMM.C中形成一个单独的源文件，在其他应用中可以将COMM.C
-*                中的代码导入本模块
-*
-*  历史: 
-*                1. 
-*                2. 
 ********************************************************************************/
 
 #ifndef _ModbusServer_H
@@ -255,18 +244,15 @@ extern INT32U  comm_flag;
 *                                          ModbusClient模块接口函数
 ********************************************************************************************************/
 void UARTInit(void);
-void comm_process(void);
 void CommTimer(void);
 void ModbusServer_init(void);
 void ReceOneChar(INT8U ReceCharacter);
 void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,INT8U reg_type);
-void comm_ask_ups(INT16U station,USART_LIST buf_no,INT16U cid2,INT8U info_len,INT8U command);
 void start_comm(void);	
 INT8U CRC_check(void);
 void data_received_handle(USART_LIST uartNo);
 void data_send_directly(USART_LIST destUtNo);
 void comm_polling_process(void);
-
 UINT16 checkSumCalc(UINT8 *buffer, UINT8 len);
 void comm_wait(USART_LIST destUtNo, UINT16 seq);
 INT8U realSum_check(void);

@@ -548,13 +548,8 @@ UINT8 Write_Register( UINT16 nStartRegNo, INT16 nRegNum, const UINT8 *pdatabuf, 
 	UINT16 nEndRegNo;
 	INT32 temp_value=0;		                  /*存储要写入寄存器的值*/
 	UINT16 temp_index;			          /*数组Reg_Table元素下标*/
-	//UINT32 temp_unix_value=0;	/*存储要写入Unix寄存器的值*/
-	//UINT16 sub_fnc_code=0;	/*专门用来处理Unix时间的功能子码*/
-
 	
 	nEndRegNo = nStartRegNo + nRegNum - 1;
-	
-
 	/*写装置参数寄存器*/
 	if(( nStartRegNo >= PARAMS_START_ADDR) && (nEndRegNo < (PARAMS_START_ADDR + PARAMS_REG_MAX )))
 	{

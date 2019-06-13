@@ -224,13 +224,11 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		}
 		else if( nStartRegNo == DOOR_OPEN_REG )
 		{
-			//System_Reset = 1;
-			comm_flag |= DOOR_OPEN_SET_FLAG;
+			//comm_flag |= DOOR_OPEN_SET_FLAG;
 		}
 		else if( nStartRegNo == DOOR_CLOSE_REG )
 		{
-			//System_Reset = 1;
-			comm_flag |= DOOR_CLOSE_SET_FLAG;
+			//comm_flag |= DOOR_CLOSE_SET_FLAG;
 		}
 		else
 		{

@@ -168,7 +168,7 @@ void USART1_IRQHandler(void)
 	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{	
-		LED_Set(LED_COM, ON); 	// 开始通信指示
+		LED_Set(LED_COM, ON); 	// 只有UART1收到数据才闪灯
 		ch = USART_ReceiveData(USART1);
 
 		UARTBuf[UART1_COM].RxBuf[UARTBuf[UART1_COM].RxLen] = ch ;

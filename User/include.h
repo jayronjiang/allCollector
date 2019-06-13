@@ -37,6 +37,7 @@
 #include "modbus_rtu.h"
 #include "di.h"
 #include "do.h"
+#include "Ydn23.h"
 #include "ModbusServer.h"
 #include "debug.h"
 

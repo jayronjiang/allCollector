@@ -64,7 +64,7 @@ static void Task_Schedule(void)
 		if(time_interval(front_door_timeout_t) >= DOOR_TIME_OUT)		//超时计数器开始
 		{
 			front_door_timeout_t = system_time_s;
-			ENVIParms.door_overtime = TRUE;
+			ENVIParms.door_overtime = TRUE;		// 任何一个门打开超时就算超时
 			front_flag = TRUE;
 		}
 	}
@@ -73,7 +73,7 @@ static void Task_Schedule(void)
 		//ENVIParms.door_overtime = FALSE;
 		front_flag = FALSE;
 		front_door_timeout_t = system_time_s;
-		if( !back_flag )
+		if( !back_flag )		// 只有都不超时才不算超时
 		{
 			ENVIParms.door_overtime = FALSE;
 		}
@@ -149,7 +149,7 @@ int main(void)
 	{
 		/*主函数初始化,定时中断喂狗,能同时防止主函数和中断程序跑飞*/
 		wdt_counter = 0;
-		Comm_Proc();	// CLIENT
+		comm_rec_proc();			// CLIENT
 		comm_polling_process();	//SERVER
 		Task_Schedule();			// 系统任务列表
 	}

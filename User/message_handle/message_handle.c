@@ -202,6 +202,7 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	if (destUtNo == UART1_COM)
 	{
 		PUSART = USART1;
+		LED_Set(LED_COM, ON);
 	}
 #if (BD_USART_NUM >= 2)
 	else if (destUtNo == UART2_COM)
@@ -234,7 +235,7 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 		message_pack(destUtNo, msg_type, pScbuf);
 	}
 
-	LED_Set(LED_COM, ON); 	// 开始通信指示
+	//LED_Set(LED_COM, ON); 	// 开始通信指示
 	/*和printf一样,是阻塞型的发送*/
 	for (i = 0; i < pDestbuf->TxLen; i++)
 	{
@@ -253,6 +254,18 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	}
 }
 
+/******************************************************************************
+ * 函数名:	params_modify_deal 
+ * 描述: 
+ *            -MODBUS client接收数据后的处理,要在主循环里面调用
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:20190613
+ * 
+ ******************************************************************************/
 void params_modify_deal(void)
 {
 	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM1_MODIFIED) )	/*修改了通信参数*/
@@ -288,8 +301,8 @@ void params_modify_deal(void)
 }
 
 /******************************************************************************
- * 函数名:	Comm_Proc 
- * 描述: -通讯处理函数,主程序中调用,主要处理RS 485口数据,
+ * 函数名:	comm_rec_proc 
+ * 描述: -通讯接收数据处理函数,主程序中调用,处理RS232口数据,
  *				   若是本装置的数据则进入解包处理
  *
  * 输入参数: 
@@ -303,35 +316,32 @@ void params_modify_deal(void)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-void Comm_Proc(void)
+void comm_rec_proc(void)
 {
-	//uint8_t err = ERR_OK;
 	USART_LIST i = BD1_UART;
 
-	/*注意不能改成i < pc_com[PC_USART_NUM], 数组溢出*/
-	//for (i = bd_com[0]; i <= bd_com[BD_USART_NUM-1]; i++)
-	//{
-		if (UARTBuf[PC_UART].RecFlag)		                      //client的RS485口有数据
+	if (UARTBuf[PC_UART].RecFlag)		                      //client的RS485口有数据
+	{
+		UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+		ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+		ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+		ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+		ProtocolBuf[i].TxLen = 0;
+
+		modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
+
+		UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
+		if(UARTBuf[i].TxLen >0)
 		{
-			UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
-			ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
-			ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
-			ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
-			ProtocolBuf[i].TxLen = 0;
-
-			modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
-
-			UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
-			if(UARTBuf[i].TxLen >0)
-			{
-				message_send_printf(i, i, FALSE, NOT_USED_MSG);
-				UARTBuf[i].TxLen = 0;
-			}
-			Delay_clk(50);
-			UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+			message_send_printf(i, i, FALSE, NOT_USED_MSG);
+			UARTBuf[i].TxLen = 0;
 		}
+		Delay_clk(50);
+		UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+	}
+	params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
 
-		#if 0
+	#if 0
 			err = message_process(i);		//通信协议处理
 			if (err == TRANS_REQ)							// 需要透传的
 			{
@@ -351,8 +361,6 @@ void Comm_Proc(void)
 			{
 				params_modify_deal();		//后续的数据改变处理
 			}
-		#endif
-		params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
-	//}
+	#endif
 }
 /*********************************************END OF FILE**********************/

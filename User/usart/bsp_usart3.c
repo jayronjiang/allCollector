@@ -169,7 +169,7 @@ void USART3_IRQHandler(void)
 	
 	if(USART_GetITStatus(USARTn, USART_IT_RXNE) != RESET)
 	{	
-		LED_Set(LED_COM, ON); 	// 开始通信指示
+		//LED_Set(LED_COM, ON); 	// 开始通信指示
 		ch = USART_ReceiveData(USARTn);
 
 		UARTBuf[UART_COM].RxBuf[UARTBuf[UART_COM].RxLen] = ch ;
@@ -188,7 +188,7 @@ void USART3_IRQHandler(void)
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USARTn);
-		LED_Set(LED_COM, OFF); 	// 通信完毕
+		//LED_Set(LED_COM, OFF); 	// 通信完毕
 
 		data_received_handle(UART3_COM);
 	}
