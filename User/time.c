@@ -224,7 +224,7 @@ void Start_Timer_x(TIM_TypeDef* TIMx)
  ******************************************************************************/
 void Stop_Timer_x(TIM_TypeDef* TIMx)
 {
-	TIM_Cmd(TIM2, DISABLE);
+	TIM_Cmd(TIMx, DISABLE);
 }
 
 /******************************************************************************

@@ -59,7 +59,7 @@ INT8U Com_err_counter = 0;		/* 通信错误计数器*/
 INT8U Com_err_flag = 0;			/* 通信错误标志*/
 //INT8U g_Comm_init = FALSE;		/* 通信初始化标志*/
 
-INT8U g_CommRxFlag;          	/*注意需要初使化为TRUE，方便上电时接收使能*/
+INT8U g_CommRxFlag = TRUE;          	/*注意需要初使化为TRUE，方便上电时接收使能*/
 INT16U g_TxDataCtr;              	/*发送数据发送个数计数*/
 SEND_Struct g_SENData;		/* 发送数据的结构体 */
 PDU_Struct  g_PDUData;  		/* 接收数据的结构体 */
@@ -160,7 +160,7 @@ void data_send_directly(USART_LIST destUtNo)
 	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
 	if (destUtNo == UART4_COM)
 	{
-		Delay_Ms(2);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
+		Delay_Ms(1);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
 		rs485FuncSelect(RECEIVE_S);		//485默认为
 	}
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;

@@ -34,6 +34,9 @@ extern uint8_t  reset_flag;
 #define	DELAY_1uS()	{DELAY_500nS();DELAY_500nS();}
 #define	DELAY_2uS()	{DELAY_1uS();DELAY_1uS();}
 #define	DELAY_4uS()	{DELAY_2uS();DELAY_2uS();}
+#define	DELAY_10uS() {DELAY_2uS();DELAY_2uS();DELAY_2uS();DELAY_2uS();DELAY_2uS();}
+#define	DELAY_20uS() {DELAY_10uS();DELAY_10uS();}
+#define	DELAY_50uS() {DELAY_10uS();DELAY_10uS();DELAY_10uS();DELAY_10uS();DELAY_10uS();}
 
 
 // xx时间片（机器周期数）
