@@ -60,7 +60,7 @@ void USART5_Config(uint32_t baudrate)
 	USART_Init(USARTn, &USART_InitStructure);
 	
 	/* 使能串口5接收中断 */
-	USART_ITConfig(USARTn, USART_IT_RXNE, ENABLE);
+	USART_ITConfig(USARTn, USART_IT_RXNE, DISABLE);
 	/* 使能串口2空闲中断 */
 	USART_ITConfig(USARTn, USART_IT_IDLE, ENABLE);
 	

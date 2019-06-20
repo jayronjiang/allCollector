@@ -31,7 +31,11 @@
 //#define StartCounterT35		(g_T35_num = 0)
 //#define StartCounterT15		(g_T15_num = 0)
 #define StartCounterT100 		(g_T100_num = 0)
-#define StoptCounterT100			(g_T100_num = -1)
+/*不能初始化为-1, 否则CommTimer中g_T100_num++会变成0*/
+/*就满足g_T100_num>= 0条件,导致无休止进入CommTimer判断*/
+/*至于为什么第一次会进入,很有可能是g_T100_num是全局*/
+/*变量，2个中断同时读写导致*/
+#define StoptCounterT100			(g_T100_num = -2)
 
 /********************************************************************************************************
                                   通信定时器所使用的变量
@@ -360,8 +364,8 @@ bool comm_RealData_analyse(INT8U ch)
 	INT32U * pointer = &RSUParams.phase[ch].param_v;	/*第0相参数*/
 	INT32U temp = 0;
 
-	//USART_ITConfig(UART5, USART_IT_RXNE, DISABLE);	//禁止中断,防止频繁收到无效数据
-	USART_Cmd(UART5, DISABLE);
+	USART_ITConfig(UART5, USART_IT_RXNE, DISABLE);	//禁止中断,防止频繁收到无效数据
+	//USART_Cmd(UART5, DISABLE);
 	if(realSum_check())
 	{		
 		char3_to_int(g_PDUData.PDUBuffPtr + 2, pointer);
@@ -707,8 +711,7 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 {	
 	// 开始接收
 	realDataChannelSelect(seq);
-	//USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);		// 直接使用UART5的
-	USART_Cmd(UART5, ENABLE);
+	//USART_Cmd(UART5, ENABLE);
 	// 不发送,直接准备接收
 	StartCounterT100;					/*开始等待计数*/
 	//g_SENData.SENDLength = 0;
@@ -720,6 +723,7 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
 	g_PDUData.PDULength = 0;			// 准备接收
 	UARTBuf[destUtNo].RecFlag = FALSE;	// 把上次的接收标志清掉
+	USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);		// 直接使用UART5的
 } 
 
 
