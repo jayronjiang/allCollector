@@ -364,8 +364,8 @@ bool comm_RealData_analyse(INT8U ch)
 	INT32U * pointer = &RSUParams.phase[ch].param_v;	/*第0相参数*/
 	INT32U temp = 0;
 
-	USART_ITConfig(UART5, USART_IT_RXNE, DISABLE);	//禁止中断,防止频繁收到无效数据
-	//USART_Cmd(UART5, DISABLE);
+	//USART_ITConfig(UART5, USART_IT_RXNE, DISABLE);	//禁止中断,防止频繁收到无效数据
+	USART_Cmd(UART5, DISABLE);
 	if(realSum_check())
 	{		
 		char3_to_int(g_PDUData.PDUBuffPtr + 2, pointer);
@@ -711,7 +711,7 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 {	
 	// 开始接收
 	realDataChannelSelect(seq);
-	//USART_Cmd(UART5, ENABLE);
+	USART_Cmd(UART5, ENABLE);
 	// 不发送,直接准备接收
 	StartCounterT100;					/*开始等待计数*/
 	//g_SENData.SENDLength = 0;
@@ -723,7 +723,7 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
 	g_PDUData.PDULength = 0;			// 准备接收
 	UARTBuf[destUtNo].RecFlag = FALSE;	// 把上次的接收标志清掉
-	USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);		// 直接使用UART5的
+	//USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);		// 直接使用UART5的
 } 
 
 

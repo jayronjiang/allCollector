@@ -49,11 +49,10 @@ static void Task_Schedule(void)
 	if (system_flag&KEY_CHANGED)
 	{
 		system_flag &= ~KEY_CHANGED;
+		 // di是低电平有效,flag是高电平有效
 		 // 2个门磁开关，任何一个打开就认为柜门被打开
-		ENVIParms.front_door_flag = (!di_status.status_bits.di_1);
-		ENVIParms.back_door_flag = (!di_status.status_bits.di_2);
-		//ENVIParms.fire_move_flag = 0;					// 已经没有了
-		//ENVIParms.water_flag = !di_status.status_bits.di_3;	// di是低电平有效,flag是高电平有效
+		ENVIParms.front_door_flag = di_status.status_bits.di_1;
+		ENVIParms.back_door_flag = di_status.status_bits.di_2;
 		ENVIParms.smoke_event_flag = !di_status.status_bits.di_3;	 // 烟雾传感器状态
 	}
 
