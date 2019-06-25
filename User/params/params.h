@@ -171,11 +171,27 @@ typedef struct envi_struct
 	UINT16 door_overtime;
 	UINT16 fire_move_flag;
 	UINT16 smoke_event_flag;
-	UINT16 air_cond_status;
+	UINT16 air_cond_status;		// 整机状态
+	UINT16 air_cond_fan_in_status;	// 内风机
+	UINT16 air_cond_fan_out_status;	// 外风机
+	UINT16 air_cond_comp_status;	// 压缩机
+	UINT16 air_cond_heater_status;	// 电加热
+	UINT16 air_cond_fan_emgy_status;	// 应急风机
+	
 	UINT16 air_cond_temp_out;
 	UINT16 air_cond_temp_in;
+	UINT16 air_cond_amp;	// 扩大1000倍
+	UINT16 air_cond_volt;	// 实际值,不扩大
+	
 	UINT16 air_cond_hightemp_alarm;
 	UINT16 air_cond_lowtemp_alarm;
+	UINT16 air_cond_highmoist_alarm;
+	UINT16 air_cond_lowmoist_alarm;
+	UINT16 air_cond_infan_alarm;	// 内风机
+	UINT16 air_cond_outfan_alarm;	// 外风机
+	UINT16 air_cond_comp_alarm;	// 压缩机
+	UINT16 air_cond_heater_alarm;	// 电加热
+	UINT16 air_cond_emgyfan_alarm;	// 应急风机
 }ENVI_PARAMS;
 
 typedef struct device_params_struct	/*共384个字节*/

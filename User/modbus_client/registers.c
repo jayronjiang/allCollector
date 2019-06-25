@@ -148,10 +148,26 @@ const static Map_Reg_Table Reg_Table[] =
 	{ENVI_START_ADDR+8, (UINT16*)&RegValue16, READONLY, 1},
 	{ENVI_START_ADDR+9, (UINT16*)&RegValue16, READONLY, 1},
 	{ENVI_START_ADDR+10, (UINT16*)&ENVIParms.air_cond_status, READONLY, 1},
-	{ENVI_START_ADDR+11, (UINT16*)&ENVIParms.air_cond_temp_in, READONLY, 1},
-	{ENVI_START_ADDR+12, (UINT16*)&ENVIParms.air_cond_temp_out, READONLY, 1},
-	{ENVI_START_ADDR+13, (UINT16*)&ENVIParms.air_cond_hightemp_alarm, READONLY, 1},
-	{ENVI_START_ADDR+14, (UINT16*)&ENVIParms.air_cond_lowtemp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+11, (UINT16*)&ENVIParms.air_cond_fan_in_status, READONLY, 1},
+	{ENVI_START_ADDR+12, (UINT16*)&ENVIParms.air_cond_fan_out_status, READONLY, 1},
+	{ENVI_START_ADDR+13, (UINT16*)&ENVIParms.air_cond_comp_status, READONLY, 1},
+	{ENVI_START_ADDR+14, (UINT16*)&ENVIParms.air_cond_heater_status, READONLY, 1},
+	{ENVI_START_ADDR+15, (UINT16*)&ENVIParms.air_cond_fan_emgy_status, READONLY, 1},
+	
+	{ENVI_START_ADDR+16, (UINT16*)&ENVIParms.air_cond_temp_in, READONLY, 1},
+	{ENVI_START_ADDR+17, (UINT16*)&ENVIParms.air_cond_temp_out, READONLY, 1},
+	{ENVI_START_ADDR+18, (UINT16*)&ENVIParms.air_cond_amp, READONLY, 1},
+	{ENVI_START_ADDR+19, (UINT16*)&ENVIParms.air_cond_volt, READONLY, 1},
+	
+	{ENVI_START_ADDR+20, (UINT16*)&ENVIParms.air_cond_hightemp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+21, (UINT16*)&ENVIParms.air_cond_lowtemp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+22, (UINT16*)&ENVIParms.air_cond_highmoist_alarm, READONLY, 1},
+	{ENVI_START_ADDR+23, (UINT16*)&ENVIParms.air_cond_lowmoist_alarm, READONLY, 1},
+	{ENVI_START_ADDR+24, (UINT16*)&ENVIParms.air_cond_infan_alarm, READONLY, 1},
+	{ENVI_START_ADDR+25, (UINT16*)&ENVIParms.air_cond_outfan_alarm, READONLY, 1},
+	{ENVI_START_ADDR+26, (UINT16*)&ENVIParms.air_cond_comp_alarm, READONLY, 1},
+	{ENVI_START_ADDR+27, (UINT16*)&ENVIParms.air_cond_heater_alarm, READONLY, 1},
+	{ENVI_START_ADDR+28, (UINT16*)&ENVIParms.air_cond_emgyfan_alarm, READONLY, 1},
 	
 
 

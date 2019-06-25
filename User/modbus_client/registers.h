@@ -38,7 +38,7 @@
 
 /*环境数据寄存器*/
 #define ENVI_START_ADDR			300		/*数据寄存器起始地址*/
-#define ENVI_REG_MAX			15		/*暂定为15*/
+#define ENVI_REG_MAX				29		/*暂定为29*/
 
 /*装置信息寄存器*/
 #define DEVICEINFO_START_ADDR			900

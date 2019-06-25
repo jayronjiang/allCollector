@@ -23,6 +23,38 @@
 #ifndef _YDN23_H
 #define _YDN23_H
 
+/*********************************************************************************
+*                                    UPS 协议宏定义
+**********************************************************************************/
+/*状态有效为1, 无效为0*/
+typedef union{
+	struct
+	{
+		uint16_t lenid:12;
+		uint16_t lchksum:4;
+	}lenth_bits;
+	/* 必须以数组形式定义,否则连续定义2个变量会放在同一个地址*/
+	uint16_t lenth_word;
+}USP_LENGTH_BITS;
+
+
+#define   UPS_SOI		0x7E
+// ver-0x21
+#define   UPS_VER		0x21
+// ver-0x2A
+#define   UPS_CID1		0x2A
+
+#define   UPS_CID2_ALL	0x42
+#define   UPS_CID2_IN		0xE0
+#define   UPS_CID2_OUT	0xE1
+#define   UPS_CID2_BAT	0xE3
+#define   UPS_CID2_TIME	0xE4
+#define   UPS_CID2_STATUS	0x43
+#define   UPS_CID2_ALARM	0x44
+
+#define   UPS_EOI		0x0D
+
+
 /********************************************************************************************************
 *                                          ydn23模块接口函数
 ********************************************************************************************************/

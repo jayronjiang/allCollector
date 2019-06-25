@@ -212,7 +212,8 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		}
 
 		//注意这里实际只支持4个DO
-		if((nStartRegNo >=(DO_START_ADDR+ ACTRUL_DO_NUM*4))&&(nStartRegNo!=REMOTE_RESET_REG)) /*当遥控DO超出DO数量范围时失败*/
+		if((nStartRegNo >=(DO_START_ADDR+ ACTRUL_DO_NUM*4))&&(nStartRegNo!=REMOTE_RESET_REG)
+		    &&(nStartRegNo!=DOOR_OPEN_REG)&&(nStartRegNo!=DOOR_CLOSE_REG)) /*当遥控DO超出DO数量范围时失败*/
 		{
 			*perr = REGADDR_ERR;
 			return(0);
@@ -224,11 +225,11 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		}
 		else if( nStartRegNo == DOOR_OPEN_REG )
 		{
-			//comm_flag |= DOOR_OPEN_SET_FLAG;
+			comm_flag |= DOOR_OPEN_SET_FLAG;
 		}
 		else if( nStartRegNo == DOOR_CLOSE_REG )
 		{
-			//comm_flag |= DOOR_CLOSE_SET_FLAG;
+			comm_flag |= DOOR_CLOSE_SET_FLAG;
 		}
 		else
 		{

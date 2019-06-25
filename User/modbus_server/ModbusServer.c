@@ -621,6 +621,16 @@ void comm_EnviAirTemp_analyse(void)
 		{
 			ENVIParms.air_cond_temp_in = 0xFFFF;
 		}
+
+		/*读电流值*/
+		pointer = &ENVIParms.air_cond_amp;
+		i = 5;	// 电流值多了5个寄存器
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
+
+		/*读电压值*/
+		pointer = &ENVIParms.air_cond_volt;
+		i = 6;	// 电压值多了6个寄存器
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
 	}
 }
 
@@ -643,11 +653,18 @@ void comm_EnviAirAlarm_analyse(void)
 
 	if(CRC_check() && (g_PDUData.PDULength == (ENVI_AIRCOND_ALARM_NUM*2+5)))
 	{
-		for (i=0;i<ENVI_AIRCOND_ALARM_NUM;i++)
+		for (i=0;i<4;i++)		// 高温、低温、高湿、低湿报警
 		{
 			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 		}
+		/*读电压值*/
+		pointer = &ENVIParms.air_cond_infan_alarm;
+		for (i=0;i<5;i++)		// 内外风机,压缩机,电加热,应急风机
+		{
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + (i+12)*2, (pointer+i));
+		}
 	}
+
 }
 
 /***********************************************************************
@@ -834,6 +851,101 @@ void comm_ask_spd(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_nu
 	g_TxDataCtr = 0;
 	data_send_directly(buf_no);
 } 
+
+
+//用软件计算CRC4函数
+void CalulateCRCbySoft(INT8U *pucData,INT8U wLength,INT8U *pOutData)
+{
+	INT8U ucTemp;
+	INT16U wValue;
+	INT16U crc_tbl[16]={0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
+	0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef};  //四位余式表
+
+	wValue=0;
+
+	//本字节的CRC余式等于上一字节的CRC余式的低12位左移4位后，
+	//再加上上一字节CRC余式右移4位（也既取高4位）和本字节之和后所求得的CRC码
+	while(wLength--!=0)
+	{
+		//根据四位CRC余式表，先计算高四位CRC余式
+		ucTemp=((wValue>>8))>>4;
+		wValue<<=4;
+		wValue^=crc_tbl[ucTemp^((*pucData)>>4)];
+		//再计算低四位余式
+		ucTemp=((wValue>>8))>>4;
+		wValue<<=4;
+		wValue^=crc_tbl[ucTemp^((*pucData)&0x0f)];
+		pucData++;
+	}
+	pOutData[0]=wValue;	
+	pOutData[1]=(wValue>>8);
+    
+}
+
+/***********************************************************************
+函数名:		comm_ask_locker(INT16U start_reg,INT8U reg_num,INT8U reg_type)
+
+输入参数:		info_len:	净荷长度
+              msg:		消息参数
+
+输出参数:		无.
+
+返回值:		无.
+
+功能说明:       生久锁命令函数
+***********************************************************************/
+void comm_ask_locker(INT16U station,USART_LIST buf_no,INT16U signal,INT16U info_len,INT16U msg)
+{
+	INT8U lock_chksum[2] = {0,0};
+	INT16U send_len = 0;
+		
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
+	
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_SOI) = LOCK_SOI;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_DES_STA) = station;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_SRC_STA) = station;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_DES_THRD) = LOCK_DES_THREAD;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_SRC_THRD) = LOCK_SRC_THREAD;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_LENTH_HIGH) = info_len>>8;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_LENTH_LOW) = (info_len&0xFF);
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_SIGNAL) =  signal>>8;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+LOCK_SQU_SIGNAL+1) = (signal&0xFF);
+	send_len++;
+
+	if (msg != NULL)
+	{
+		*(g_SENData.SENDBuffPtr+send_len) = msg>>8;
+		send_len++;
+		*(g_SENData.SENDBuffPtr+send_len) = (msg&0xFF);
+		send_len++;
+	}
+	
+	CalulateCRCbySoft(g_SENData.SENDBuffPtr+1, send_len-1,lock_chksum);
+	
+
+	*(g_SENData.SENDBuffPtr+send_len) = lock_chksum[1];
+	send_len++;
+	*(g_SENData.SENDBuffPtr+send_len) = lock_chksum[0];
+	send_len++;
+	*(g_SENData.SENDBuffPtr+send_len) = LOCK_EOI1;
+	send_len++;
+	*(g_SENData.SENDBuffPtr+send_len) = LOCK_EOI2;
+	send_len++;
+	
+	g_SENData.SENDLength= send_len;
+	g_TxDataCtr = 0;
+	data_send_directly(buf_no);
+}
+
+
 /***********************************************************************
 函数名:			void comm_polling_process(void)
 
@@ -1006,6 +1118,22 @@ void comm_polling_process(void)
 			comm_flag &= ~DEV_PARAM_SET_FLAG_2;
 			comm_DeviceParam_set_2();
 			WAIT_response_flag = WAIT_PARAM_SET_2; 
+		}
+
+		else if(comm_flag & DOOR_OPEN_SET_FLAG)			
+		{
+			comm_flag &= ~DOOR_OPEN_SET_FLAG;
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_OPEN, 0x02, NULL);
+			WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(comm_flag & DOOR_CLOSE_SET_FLAG)			
+		{
+			comm_flag &= ~DOOR_CLOSE_SET_FLAG;
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_CLOSE, 0x02, NULL);
+			WAIT_response_flag = WAIT_DOOR_CLOSE; 
 		}
 		
 		// RSU数据

@@ -96,10 +96,10 @@
 #define DEV_PARAM_SET_FLAG_1          	BIT18	 // 参数设置	--空调开关机
 #define DEV_PARAM_SET_FLAG_2       	BIT19	 // 参数设置	--空调温度设置
 
-#define DOOR_OPEN_SET_FLAG          		BIT20	 // 电子锁开
+#define DOOR_OPEN_SET_FLAG          		BIT20	 // 电子锁开renda-生久
 #define DOOR_CLOSE_SET_FLAG          	BIT21	 // 电子锁关
 
-#define WATER_IN_FLAG          	BIT22	 // 水进也是485的了
+#define WATER_IN_FLAG          	BIT22	 // 水进也是485的了renda
 
 
 /*********************************************************************************
@@ -117,7 +117,7 @@
 #define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
 #define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
 
-#define WATER_IN_REG             					0x0010	// 水浸
+#define WATER_IN_REG             					0x0010	// 水浸renda
 
 /*********************************************************************************
 *                                         等待帧回复状态
@@ -153,6 +153,8 @@
 
 #define WATER_IN_ANALYSE		24	/*水浸参数解析*/
 
+#define WAIT_DOOR_OPEN		25	/*等待开锁设置帧回复*/
+#define WAIT_DOOR_CLOSE		26	/*等待关锁设置帧回复*/
 /*********************************************************************************
 *                                     读取相关参数长度
 **********************************************************************************/	
@@ -165,9 +167,9 @@
 #define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
 
 #define ENVI_TEMP_NUM 			2
-#define ENVI_AIRCOND_ONOFF_NUM 			1
-#define ENVI_AIRCOND_TEMP_NUM 			3
-#define ENVI_AIRCOND_ALARM_NUM 			2
+#define ENVI_AIRCOND_ONOFF_NUM 			6	//扩展到6个
+#define ENVI_AIRCOND_TEMP_NUM 			7	// 增加了电压电流
+#define ENVI_AIRCOND_ALARM_NUM 			17	// 一共17个报警量
 
 #define WATER_IN_NUM 			1
 
@@ -175,36 +177,42 @@
 #define FRAME_HEAD_NUM 			3		/*读数据时返回帧有效数据前数据个数*/
 #define SET_FRAME_HEAD_NUM 		7		/*写数据时返回帧有效数据前数据个数*/
 
+
 /*********************************************************************************
-*                                    UPS 协议宏定义
+*                                    生久锁 协议宏定义
 **********************************************************************************/
-/*状态有效为1, 无效为0*/
-typedef union{
-	struct
-	{
-		uint16_t lenid:12;
-		uint16_t lchksum:4;
-	}lenth_bits;
-	/* 必须以数组形式定义,否则连续定义2个变量会放在同一个地址*/
-	uint16_t lenth_word;
-}USP_LENGTH_BITS;
+#define   LOCK_NUM		3
+
+#define   LOCK_ADDR_1		0x01
+#define   LOCK_SOI		0x7E
+
+#define   LOCK_DES_THREAD	0x00
+#define   LOCK_SRC_THREAD	0x00
+
+#define   LOCK_EOI1		0x7E
+#define   LOCK_EOI2		0x7E
+
+/* 协议字节顺序号定义*/
+#define   LOCK_SQU_SOI		0
+#define   LOCK_SQU_DES_STA	1	// 目的地址
+#define   LOCK_SQU_SRC_STA	2	// 源地址
+#define   LOCK_SQU_DES_THRD	3	// 目的进程
+#define   LOCK_SQU_SRC_THRD	4	// 源进程号
+#define   LOCK_SQU_LENTH_HIGH	5	// 长度高字节
+#define   LOCK_SQU_LENTH_LOW		6	// 长度高字节
+#define   LOCK_SQU_SIGNAL		7	// 长度高字节
 
 
-#define   UPS_SOI		0x7E
-// ver-0x21
-#define   UPS_VER		0x21
-// ver-0x2A
-#define   UPS_CID1		0x2A
+#define   LOCK_OPEN		0x0005
+#define   LOCK_CLOSE		0x0006
 
-#define   UPS_CID2_ALL	0x42
-#define   UPS_CID2_IN		0xE0
-#define   UPS_CID2_OUT	0xE1
-#define   UPS_CID2_BAT	0xE3
-#define   UPS_CID2_TIME	0xE4
-#define   UPS_CID2_STATUS	0x43
-#define   UPS_CID2_ALARM	0x44
+#if (LOCK_NUM >= 2)
+#define   LOCK_ADDR_2		0x02
+#endif
 
-#define   UPS_EOI		0x0D
+#if (LOCK_NUM >= 3)
+#define   LOCK_ADDR_3		0x03
+#endif
 
 
 /*******************************/
@@ -256,6 +264,8 @@ void comm_polling_process(void);
 UINT16 checkSumCalc(UINT8 *buffer, UINT8 len);
 void comm_wait(USART_LIST destUtNo, UINT16 seq);
 INT8U realSum_check(void);
+void comm_ask_locker(INT16U station,USART_LIST buf_no,INT16U signal,INT16U info_len,INT16U msg);
+void CalulateCRCbySoft(INT8U *pucData,INT8U wLength,INT8U *pOutData);
 #endif
 /*********************************************************************************************************
 **                            文件结束
