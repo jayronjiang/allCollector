@@ -91,49 +91,62 @@ const static Map_Reg_Table Reg_Table[] =
 	{DATA_START_ADDR+54, (UINT16*)&UPSParams.ups_out.amp_Bout, READONLY, 1},
 	{DATA_START_ADDR+55, (UINT16*)&UPSParams.ups_out.amp_Cout, READONLY, 1},
 
-	{DATA_START_ADDR+56, (UINT16*)&UPSParams.battery.running_day, READONLY, 1},
-	{DATA_START_ADDR+57, (UINT16*)&UPSParams.battery.battery_volt, READONLY, 1},
-	{DATA_START_ADDR+58, (UINT16*)&UPSParams.battery.amp_charge, READONLY, 1},
-	{DATA_START_ADDR+59, (UINT16*)&UPSParams.battery.battery_left, READONLY, 1},
-	{DATA_START_ADDR+60, (UINT16*)&UPSParams.battery.battery_tmp, READONLY, 1},
-	{DATA_START_ADDR+61, (UINT16*)&UPSParams.battery.battery_capacity, READONLY, 1},
-	{DATA_START_ADDR+62, (UINT16*)&UPSParams.battery.battery_dischg_times, READONLY, 1},
+	{DATA_START_ADDR+56, (UINT16*)&UPSParams.ups_out.kw_Aout, READONLY, 1},
+	{DATA_START_ADDR+57, (UINT16*)&UPSParams.ups_out.kw_Bout, READONLY, 1},
+	{DATA_START_ADDR+58, (UINT16*)&UPSParams.ups_out.kw_Cout, READONLY, 1},
+	{DATA_START_ADDR+59, (UINT16*)&UPSParams.ups_out.kva_Aout, READONLY, 1},
+	{DATA_START_ADDR+60, (UINT16*)&UPSParams.ups_out.kva_Bout, READONLY, 1},
+	{DATA_START_ADDR+61, (UINT16*)&UPSParams.ups_out.kva_Cout, READONLY, 1},
+	{DATA_START_ADDR+62, (UINT16*)&UPSParams.ups_out.load_Aout, READONLY, 1},
+	{DATA_START_ADDR+63, (UINT16*)&UPSParams.ups_out.load_Bout, READONLY, 1},
+	{DATA_START_ADDR+64, (UINT16*)&UPSParams.ups_out.load_Cout, READONLY, 1},
+
+	{DATA_START_ADDR+65, (UINT16*)&UPSParams.battery.running_day, READONLY, 1},
+	{DATA_START_ADDR+66, (UINT16*)&UPSParams.battery.battery_volt, READONLY, 1},
+	{DATA_START_ADDR+67, (UINT16*)&UPSParams.battery.amp_charge, READONLY, 1},
+	{DATA_START_ADDR+68, (UINT16*)&UPSParams.battery.battery_left, READONLY, 1},
+	{DATA_START_ADDR+69, (UINT16*)&UPSParams.battery.battery_tmp, READONLY, 1},
+	{DATA_START_ADDR+70, (UINT16*)&UPSParams.battery.battery_capacity, READONLY, 1},
+	{DATA_START_ADDR+71, (UINT16*)&UPSParams.battery.battery_dischg_times, READONLY, 1},
 
 	 // 状态
-	{DATA_START_ADDR+63, (UINT16*)&UPSParams.status.supply_in_status, READONLY, 1},
-	{DATA_START_ADDR+64, (UINT16*)&UPSParams.status.supply_out_status, READONLY, 1},
-	{DATA_START_ADDR+65, (UINT16*)&UPSParams.status.battery_status, READONLY, 1},
+	{DATA_START_ADDR+72, (UINT16*)&UPSParams.status.supply_in_status, READONLY, 1},
+	{DATA_START_ADDR+73, (UINT16*)&UPSParams.status.supply_out_status, READONLY, 1},
+	{DATA_START_ADDR+74, (UINT16*)&UPSParams.status.battery_status, READONLY, 1},
 
 	 // 告警
-	{DATA_START_ADDR+66, (UINT16*)&UPSParams.alarm.main_abnormal, READONLY, 1},
-	{DATA_START_ADDR+67, (UINT16*)&UPSParams.alarm.system_overtemp, READONLY, 1},
-	{DATA_START_ADDR+68, (UINT16*)&UPSParams.alarm.sysbat_low_prealarm, READONLY, 1},
-	{DATA_START_ADDR+69, (UINT16*)&UPSParams.alarm.rectifier_overload, READONLY, 1},
-	{DATA_START_ADDR+70, (UINT16*)&UPSParams.alarm.inverter_overload, READONLY, 1},
-	{DATA_START_ADDR+71, (UINT16*)&UPSParams.alarm.bypass_abnomal, READONLY, 1},
-	{DATA_START_ADDR+72, (UINT16*)&UPSParams.alarm.battery_low_prealarm, READONLY, 1},
-	{DATA_START_ADDR+73, (UINT16*)&UPSParams.alarm.battery_abnomal, READONLY, 1},
-	{DATA_START_ADDR+74, (UINT16*)&UPSParams.alarm.battery_overtemp, READONLY, 1},
-	{DATA_START_ADDR+75, (UINT16*)&UPSParams.alarm.fan_abnormal, READONLY, 1},
-	{DATA_START_ADDR+76, (UINT16*)&UPSParams.alarm.shutdown_alarm, READONLY, 1},
-	{DATA_START_ADDR+77, (UINT16*)&UPSParams.alarm.maintain_status, READONLY, 1},
-	{DATA_START_ADDR+78, (UINT16*)&UPSParams.alarm.inverter_supply, READONLY, 1},
-	{DATA_START_ADDR+79, (UINT16*)&UPSParams.alarm.bypass_supply, READONLY, 1},
-	{DATA_START_ADDR+80, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+81, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+82, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+83, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+84, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+85, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+86, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+87, (UINT16*)&RegValue16, READONLY, 1},
-	{DATA_START_ADDR+88, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+75, (UINT16*)&UPSParams.alarm.main_abnormal, READONLY, 1},
+	{DATA_START_ADDR+76, (UINT16*)&UPSParams.alarm.system_overtemp, READONLY, 1},
+	{DATA_START_ADDR+77, (UINT16*)&UPSParams.alarm.sysbat_low_prealarm, READONLY, 1},
+	{DATA_START_ADDR+78, (UINT16*)&UPSParams.alarm.rectifier_overload, READONLY, 1},
+	{DATA_START_ADDR+79, (UINT16*)&UPSParams.alarm.inverter_overload, READONLY, 1},
+	{DATA_START_ADDR+80, (UINT16*)&UPSParams.alarm.bypass_abnomal, READONLY, 1},
+	{DATA_START_ADDR+81, (UINT16*)&UPSParams.alarm.battery_low_prealarm, READONLY, 1},
+	{DATA_START_ADDR+82, (UINT16*)&UPSParams.alarm.battery_abnomal, READONLY, 1},
+	{DATA_START_ADDR+83, (UINT16*)&UPSParams.alarm.battery_overtemp, READONLY, 1},
+	{DATA_START_ADDR+84, (UINT16*)&UPSParams.alarm.fan_abnormal, READONLY, 1},
+	{DATA_START_ADDR+85, (UINT16*)&UPSParams.alarm.shutdown_alarm, READONLY, 1},
+	{DATA_START_ADDR+86, (UINT16*)&UPSParams.alarm.maintain_status, READONLY, 1},
+	{DATA_START_ADDR+87, (UINT16*)&UPSParams.alarm.inverter_supply, READONLY, 1},
+	{DATA_START_ADDR+88, (UINT16*)&UPSParams.alarm.bypass_supply, READONLY, 1},
 	{DATA_START_ADDR+89, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+90, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+91, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+92, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+93, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+94, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+95, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+96, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+97, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+98, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+99, (UINT16*)&RegValue16, READONLY, 1},
+	{DATA_START_ADDR+100, (UINT16*)&RegValue16, READONLY, 1},
 
 	// 防雷器
-	{DATA_START_ADDR+90, (UINT16*)&SPDParams.status, READONLY, 1},
-	{DATA_START_ADDR+91, (UINT16*)&SPDParams.DI_status, READONLY, 1},
-	{DATA_START_ADDR+92, (UINT16*)&SPDParams.struck_times, READONLY, 1},
+	{DATA_START_ADDR+101, (UINT16*)&SPDParams[0].status, READONLY, 1},
+	{DATA_START_ADDR+102, (UINT16*)&SPDParams[0].struck_times, READONLY, 1},
+	{DATA_START_ADDR+103, (UINT16*)&SPDParams[1].status, READONLY, 1},
+	{DATA_START_ADDR+104, (UINT16*)&SPDParams[1].struck_times, READONLY, 1},
 	
 
 	//环境数据
@@ -147,7 +160,7 @@ const static Map_Reg_Table Reg_Table[] =
 	{ENVI_START_ADDR+7, (UINT16*)&RegValue16, READONLY, 1},
 	{ENVI_START_ADDR+8, (UINT16*)&RegValue16, READONLY, 1},
 	{ENVI_START_ADDR+9, (UINT16*)&RegValue16, READONLY, 1},
-	{ENVI_START_ADDR+10, (UINT16*)&ENVIParms.air_cond_status, READONLY, 1},
+	{ENVI_START_ADDR+10, (UINT16*)&DevParams.AirCondSet, READONLY, 1},
 	{ENVI_START_ADDR+11, (UINT16*)&ENVIParms.air_cond_fan_in_status, READONLY, 1},
 	{ENVI_START_ADDR+12, (UINT16*)&ENVIParms.air_cond_fan_out_status, READONLY, 1},
 	{ENVI_START_ADDR+13, (UINT16*)&ENVIParms.air_cond_comp_status, READONLY, 1},
@@ -231,9 +244,9 @@ const INT32 Reg_max[] = {
 							/*实时数据寄存器*/
 							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
 							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
-							0,0,0,0,0,0,0,0,0,0,  0,0,0,
+							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,
 							/*环境数据寄存器*/
-							0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,
+							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,
 
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
@@ -249,9 +262,9 @@ const INT32 Reg_min[] = {
 							/*实时数据寄存器*/
 							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
 							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
-							0,0,0,0,0,0,0,0,0,0,  0,0,0,
+							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,
 							/*环境数据寄存器*/
-							0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,
+							0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,
 
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
@@ -339,7 +352,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
-				comm_flag |= DEV_PARAM_SET_FLAG_1;
+				control_flag |= DEV_PARAM_SET_FLAG_1;
 				return 0;
 			}
 		}
@@ -349,7 +362,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
-				comm_flag |= DEV_PARAM_SET_FLAG_2;
+				control_flag |= DEV_PARAM_SET_FLAG_2;
 				return 0;
 			}
 		}

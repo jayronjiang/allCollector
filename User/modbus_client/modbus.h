@@ -58,6 +58,10 @@
 #define	READ_REFS_BYTES_MAX		245
 #define	READ_REFS_BYTES_MIN		7
 
+#define	REMOTE_CLOSE			0xFF00
+#define	REMOTE_OPEN			0xFF01
+#define	REMOTE_OPEN_LOCK		0xFF02	// ∑÷’¢À¯À¿
+#define	REMOTE_OPEN_UNLOCK	0xFF03	// ∑÷’¢Ω‚À¯
 
 void ModbusInit(void);
 UINT16 ModbusProcess(const UINT8 recv_buf[],UINT16 recv_len,UINT8 send_buf[]);

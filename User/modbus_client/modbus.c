@@ -198,54 +198,27 @@ UINT8 Rep_Write_Registers(UINT16 regStartAddr, UINT8 regNum, const UINT8 *databu
 UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr)
 {
 	UINT16  reg_value;
-	UINT8  coil_num;
-	UINT8  coil_action;
+	UINT16  coil_num;
+	UINT16  coil_action;
 
 	reg_value = (pdatabuf[0] << 8) + pdatabuf[1];
 
 	if((nStartRegNo >= DO_START_ADDR) && (nStartRegNo < (DO_START_ADDR + DO_REG_MAX)))
 	{
-		if(reg_value != 0xFF00)
+		/*遥合和遥分*/
+		if((reg_value != REMOTE_CLOSE) && (reg_value != REMOTE_OPEN))
 		{
 			*perr = DATA_ERR;		/*如果不是FF00是报04还是03?,应该是帧错误,报03*/
 			return(0);
 		}
 
-		//注意这里实际只支持4个DO
-		if((nStartRegNo >=(DO_START_ADDR+ ACTRUL_DO_NUM*4))&&(nStartRegNo!=REMOTE_RESET_REG)
-		    &&(nStartRegNo!=DOOR_OPEN_REG)&&(nStartRegNo!=DOOR_CLOSE_REG)) /*当遥控DO超出DO数量范围时失败*/
+		if( nStartRegNo < DO_START_ADDR+ACTRUL_DO_NUM)
 		{
-			*perr = REGADDR_ERR;
-			return(0);
-		}
-		
-		if( nStartRegNo == REMOTE_RESET_REG )
-		{
-			System_Reset = 1;
-		}
-		else if( nStartRegNo == DOOR_OPEN_REG )
-		{
-			comm_flag |= DOOR_OPEN_SET_FLAG;
-		}
-		else if( nStartRegNo == DOOR_CLOSE_REG )
-		{
-			comm_flag |= DOOR_CLOSE_SET_FLAG;
-		}
-		else
-		{
-			coil_num = (nStartRegNo - DO_START_ADDR) / 4;		/*第几个DO*/
-			coil_action = (nStartRegNo - DO_START_ADDR) % 4;	/*当前DO的操作*/
+			coil_num = (nStartRegNo - DO_START_ADDR);		/*第几个DO*/
+			coil_action = reg_value;			/*当前DO的操作*/
 			switch(coil_action)
 			{
-				case 0:		/*遥合预置*/	
-					if(!RelayOperate(coil_num, RELAY_REMOTE_ACT_PRESET))
-					{
-						*perr = OPERATION_ERR;
-						return(0);
-					}
-					break;
-
-				case 1:		/*遥合执行*/
+				case REMOTE_CLOSE:		/*遥合执行*/
 					if(!RelayOperate(coil_num, RELAY_REMOTE_ACT))
 					{
 						*perr = OPERATION_ERR;
@@ -253,22 +226,94 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 					}
 					break;
 
-				case 2:		/*遥分预置*/	
-					if(!RelayOperate(coil_num, RELAY_REMOTE_RETURN_PRESET))
-					{
-						*perr = OPERATION_ERR;
-						return(0);
-					}
-					break;
-
-				case 3:		/*遥分执行*/	
+				case REMOTE_OPEN:		/*遥分执行*/	
 					if( !RelayOperate(coil_num, RELAY_REMOTE_RETURN))
 					{
 						*perr = OPERATION_ERR;
 						return(0);
 					}
 					break;
+				default:
+					break;
 			}
+		}
+
+		else if( nStartRegNo == REMOTE_RESET_REG )
+		{
+			System_Reset = 1;
+		}
+		else if( nStartRegNo == DOOR_2_REMOTE_REG )
+		{
+			if (reg_value == REMOTE_OPEN)
+			{
+				control_flag |= DOOR2_OPEN_SET_FLAG;
+			}
+			else if (reg_value == REMOTE_CLOSE)
+			{
+				control_flag |= DOOR2_CLOSE_SET_FLAG;
+			}
+		}
+		else if( nStartRegNo == DOOR_3_REMOTE_REG )
+		{
+			if (reg_value == REMOTE_OPEN)
+			{
+				control_flag |= DOOR3_OPEN_SET_FLAG;
+			}
+			else if (reg_value == REMOTE_CLOSE)
+			{
+				control_flag |= DOOR3_CLOSE_SET_FLAG;
+			}
+		}
+		
+		else if ((nStartRegNo >= BRK1_REMOTE_REG )&&(nStartRegNo < (BRK1_REMOTE_REG +BRK_NUM) ))
+		{
+			coil_num = (nStartRegNo - BRK1_REMOTE_REG);		/*第几个DO*/
+			coil_action = reg_value;			/*当前DO的操作*/
+			switch(coil_action)
+			{
+				case REMOTE_CLOSE:		/*遥合执行*/
+					control_flag |= BRK1_CLOSE_SET_FLAG<<(4*coil_num);
+					break;
+
+				case REMOTE_OPEN:		/*遥分执行*/	
+					control_flag |= BRK1_OPEN_SET_FLAG<<(4*coil_num);
+					break;
+
+				case REMOTE_OPEN_LOCK:		/*遥分执行锁死*/	
+					control_flag |= BRK1_OPEN_LOCK_SET_FLAG<<(4*coil_num);
+					break;
+
+				case REMOTE_OPEN_UNLOCK:		/*遥分执行解锁*/	
+					control_flag |= BRK1_OPEN_UNLOCK_SET_FLAG<<(4*coil_num);
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		else if ((nStartRegNo >= ARD1_REMOTE_REG )&&(nStartRegNo < (ARD1_REMOTE_REG +ARD_NUM) ))
+		{
+			coil_num = (nStartRegNo - ARD1_REMOTE_REG);		/*第几个DO*/
+			coil_action = reg_value;			/*当前DO的操作*/
+			switch(coil_action)
+			{
+				case REMOTE_CLOSE:		/*遥合执行*/
+					control_flag |= (INT64U)ARD1_CLOSE_SET_FLAG<<(2*coil_num);
+					break;
+
+				case REMOTE_OPEN:		/*遥分执行*/	
+					control_flag |= (INT64U)ARD1_OPEN_SET_FLAG<<(2*coil_num);
+					break;
+
+				default:
+					break;
+			}
+		}
+		else
+		{
+			*perr = REGADDR_ERR;
+			return(0);
 		}
 	}
 	else

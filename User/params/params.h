@@ -19,6 +19,11 @@
 #define RSU_NUM			6	// RSU天线数目
 #define DOOR_TIME_OUT	3600	// 1hour
 
+
+#define BRK_NUM			2	//断路器数目
+#define ARD_NUM			11	//重合闸
+#define SPD_NUM			2	//防雷器个数
+
 /*******************************************************************************************/
 typedef struct phase_struct
 {
@@ -159,6 +164,28 @@ typedef struct spd_struct
 	UINT16 struck_times;	// 雷击次数
 }SPD_PARAMS;
 
+//自动重合闸结构体
+typedef struct ard_struct
+{
+	UINT16 address;	// 地址
+	UINT16 ard_en;	// 自动重合闸是否使能
+	UINT16 status;	// 状态
+	UINT16 act;		// 合闸-分闸控制
+	UINT16 failure;		// 自动重合闸后动作是否成功
+}ARD_PARAMS;
+
+
+//云断路器结构体
+typedef struct breaker_struct
+{	
+	UINT16 address;	// 地址
+	UINT16 drop_opening_en;	// 掉电分闸使能
+	UINT16 ard_en;	// 自动重合闸是否使能
+	UINT16 act;		// 合闸-分闸控制
+	UINT16 status;	// 状态
+	UINT16 failure;		// 自动重合闸后动作是否成功
+}BREAKER_PARAMS;
+
 
 // 环境数据结构体
 typedef struct envi_struct
@@ -228,8 +255,11 @@ typedef  struct  _DeviceInfo_Struct      /*用于整块写命令时边界判断，例如防止32B
 extern DEVICE_PARAMS DevParams;
 extern RSU_PARAMS RSUParams;
 extern UPS_PARAMS UPSParams;
-extern SPD_PARAMS SPDParams;
+extern SPD_PARAMS SPDParams[SPD_NUM];
 extern ENVI_PARAMS ENVIParms;
+extern ARD_PARAMS ARDParams[ARD_NUM];
+extern BREAKER_PARAMS BRKParams[BRK_NUM];
+
 extern DeviceInfoParams  DevicComInfor;
 extern const DEVICE_PARAMS Init_DevParams;
 

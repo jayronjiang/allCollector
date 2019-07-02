@@ -53,21 +53,42 @@
 
 
 #define	SPD_DIREAD_COMMAND			0x02		//防雷自己的读功能码为02
-#define	SPD_TIMESREAD_COMMAND		0x04		//防雷自己的雷击读功能码为04
+#define	SPD_TIMESREAD_COMMAND		0x03		//防雷自己的雷击读功能码为03
 
 
-#define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址,未使用*/
-#define 	AIR_STATION_ADDRESS  	02		/*默认空调从站从站地址*/
-#define 	TEMP_STATION_ADDRESS  	03		/*默认温湿度从站从站地址*/
-#define 	WATERIN_STATION_ADDRESS  	04	/*默认水浸地址*/
+//#define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址,未使用*/
+#define 	SMOKE_STATION_ADDRESS  		50		/*烟感地址*/
+#define 	WATERIN_STATION_ADDRESS  		51		/*默认水浸地址*/
+#define 	TEMP_STATION_ADDRESS  			52		/*默认温湿度从站从站地址*/
+#define 	AIR_STATION_ADDRESS  			60		/*默认空调从站从站地址*/
+
+#define 	SPD_STATION_1_ADDRESS	35
+#define 	SPD_STATION_2_ADDRESS	36
+
+#define 	BREAKER_STATION_1_ADDRESS  	1	/*断路器1地址*/
+#define 	BREAKER_STATION_2_ADDRESS  	2	/*断路器2地址*/
+
+#define 	ARD_STATION_1_ADDRESS  	3	/*自动重合闸1地址*/
+#define 	ARD_STATION_2_ADDRESS  	4	/*自动重合闸2地址*/
+#define 	ARD_STATION_3_ADDRESS  	5	/*自动重合闸3地址*/
+#define 	ARD_STATION_4_ADDRESS  	6	/*自动重合闸4地址*/
+#define 	ARD_STATION_5_ADDRESS  	7	/*自动重合闸5地址*/
+#define 	ARD_STATION_6_ADDRESS  	8	/*自动重合闸6地址*/
+#define 	ARD_STATION_7_ADDRESS  	9	/*自动重合闸7地址*/
+#define 	ARD_STATION_8_ADDRESS  	10	/*自动重合闸8地址*/
+#define 	ARD_STATION_9_ADDRESS  	11	/*自动重合闸9地址*/
+// 重合闸10空出
+
+#define 	ARD_STATION_10_ADDRESS  	13	/*自动重合闸11地址*/
+#define 	ARD_STATION_11_ADDRESS  	14	/*自动重合闸12地址*/
+
 #define 	UPS_STATION_ADDRESS  	01		/*默认UPS从站地址*/
-#define 	SPD_STATION_ADDRESS	05
 
 
 #define Wait_max_time  		200 		/* 发送后等待接收帧的最长时间为200ms */
 
 /*********************************************************************************
-*                                      通信设置参数标志
+*                                      通信轮询参数标志 comm_flag
 **********************************************************************************/
 #define REAL_DATA0_SEND_FLAG    	BIT0		/*实时数据查询,传感器0*/
 #define REAL_DATA1_SEND_FLAG    	BIT1		/*实时数据查询,传感器1*/
@@ -82,8 +103,10 @@
 #define UPS_ALARM_SEND_FLAG		BIT9		/*USP的报警信息参数*/
 
 
-#define SPD_STATUS_SEND_FLAG		BIT10
-#define SPD_TIMES_SEND_FLAG			BIT11
+//#define SPD_STATUS_SEND_FLAG		BIT10
+#define SPD_TIMES_SEND_FLAG_1		BIT10
+#define SPD_TIMES_SEND_FLAG_2		BIT11
+//#define SPD_TIMES_SEND_FLAG_3		BIT24
 
 #define ENVI_TEMP_SEND_FLAG         		BIT12		// 温湿度
 #define ENVI_AIRCOND_ONOFF_FLAG         BIT13		// 空调参数读取
@@ -93,22 +116,89 @@
 #define DEV_PARAM_SEND_FLAG_1         	BIT16		/*参数查询*/
 #define DEV_PARAM_SEND_FLAG_2         	BIT17		/*参数查询*/
 
-#define DEV_PARAM_SET_FLAG_1          	BIT18	 // 参数设置	--空调开关机
-#define DEV_PARAM_SET_FLAG_2       	BIT19	 // 参数设置	--空调温度设置
-
-#define DOOR_OPEN_SET_FLAG          		BIT20	 // 电子锁开renda-生久
-#define DOOR_CLOSE_SET_FLAG          	BIT21	 // 电子锁关
 
 #define WATER_IN_FLAG          	BIT22	 // 水进也是485的了renda
+#define SMOKE_FLAG          		BIT23	 // 烟感也是485的了renda
 
+#define BREAKER_OPEN_CLOSE_STATUS_1          	BIT24	 // 断路器1合分闸状态
+#define BREAKER_OPEN_CLOSE_STATUS_2          	BIT25	 // 断路器2合分闸状态
+
+#define ARD_STS_FLAG_1          					BIT26	 	// 自动重合闸1
+#define ARD_STS_FLAG_2          					BIT27	 	// 自动重合闸2
+#define ARD_STS_FLAG_3          					BIT28	 	// 自动重合闸3
+#define ARD_STS_FLAG_4          					BIT29	 	// 自动重合闸4
+#define ARD_STS_FLAG_5          					BIT30	 	// 自动重合闸5
+#define ARD_STS_FLAG_6          					BIT31	 	// 自动重合闸6
+#define ARD_STS_FLAG_7          					LBIT(32)	 	// 自动重合闸7
+#define ARD_STS_FLAG_8          					LBIT(33)	 	// 自动重合闸8
+#define ARD_STS_FLAG_9          					LBIT(34)	 	// 自动重合闸9
+#define ARD_STS_FLAG_10          					LBIT(35)	 	// 自动重合闸10
+#define ARD_STS_FLAG_11          					LBIT(36)	 	// 自动重合闸11
+
+
+/*********************************************************************************
+*                                      通信设置参数标志control_flag
+**********************************************************************************/
+#define DEV_PARAM_SET_FLAG_1          	BIT0	 	// 参数设置	--空调开关机
+#define DEV_PARAM_SET_FLAG_2       	BIT1	 	// 参数设置	--空调温度设置
+
+#define DOOR2_OPEN_SET_FLAG          	BIT2	 	// 电子锁开renda-生久
+#define DOOR2_CLOSE_SET_FLAG          	BIT3	 	// 电子锁关
+
+#define DOOR3_OPEN_SET_FLAG          	BIT4	 	// 电子锁开renda-生久
+#define DOOR3_CLOSE_SET_FLAG          	BIT5	 	// 电子锁关
+
+#define BRK1_CLOSE_SET_FLAG          	BIT6	 	// 断路器1关
+#define BRK1_OPEN_SET_FLAG          		BIT7 		// 断路器1开不锁死
+#define BRK1_OPEN_LOCK_SET_FLAG          	BIT8 		// 断路器1开锁死
+#define BRK1_OPEN_UNLOCK_SET_FLAG          	BIT9 		// 断路器1开解锁
+
+
+#define BRK2_CLOSE_SET_FLAG          	BIT10	 	// 断路器1关
+#define BRK2_OPEN_SET_FLAG          		BIT11 		// 断路器1开不锁死
+#define BRK2_OPEN_LOCK_SET_FLAG          	BIT12 		// 断路器1开锁死
+#define BRK2_OPEN_UNLOCK_SET_FLAG          	BIT13 		// 断路器1开解锁
+
+#define ARD1_CLOSE_SET_FLAG          	BIT14	 	// 自动重合闸1关
+#define ARD1_OPEN_SET_FLAG          		BIT15	 	// 自动重合闸1开
+
+#define ARD2_CLOSE_SET_FLAG          	BIT16	 	// 自动重合闸2关
+#define ARD2_OPEN_SET_FLAG          		BIT17	 	// 自动重合闸2开
+
+#define ARD3_CLOSE_SET_FLAG          	BIT18	 	// 自动重合闸3关
+#define ARD3_OPEN_SET_FLAG          		BIT19	 	// 自动重合闸3开
+
+#define ARD4_CLOSE_SET_FLAG          	BIT20	 	// 自动重合闸4关
+#define ARD4_OPEN_SET_FLAG          		BIT21	 	// 自动重合闸4开
+
+#define ARD5_CLOSE_SET_FLAG          	BIT22	 	// 自动重合闸5关
+#define ARD5_OPEN_SET_FLAG          		BIT23	 	// 自动重合闸5开
+
+#define ARD6_CLOSE_SET_FLAG          	BIT24	 	// 自动重合闸6关
+#define ARD6_OPEN_SET_FLAG          		BIT25	 	// 自动重合闸6开
+
+#define ARD7_CLOSE_SET_FLAG          	BIT26	 	// 自动重合闸7关
+#define ARD7_OPEN_SET_FLAG          		BIT27	 	// 自动重合闸7开
+
+#define ARD8_CLOSE_SET_FLAG          	BIT28	 	// 自动重合闸8关
+#define ARD8_OPEN_SET_FLAG          		BIT29	 	// 自动重合闸8开
+
+#define ARD9_CLOSE_SET_FLAG          	BIT30	 	// 自动重合闸9关
+#define ARD9_OPEN_SET_FLAG          		BIT31	 	// 自动重合闸9开
+
+#define ARD10_CLOSE_SET_FLAG          	LBIT(32)	 	// 自动重合闸10关
+#define ARD10_OPEN_SET_FLAG          	LBIT(33)	 	// 自动重合闸10开
+
+#define ARD11_CLOSE_SET_FLAG          	LBIT(34)	 	// 自动重合闸11关
+#define ARD11_OPEN_SET_FLAG          	LBIT(35)	 	// 自动重合闸11开
 
 /*********************************************************************************
 *                                     读取相关参数起始地址
 **********************************************************************************/
 #define RSU_REG        		0x40				// 从第一路电压开始读
 #define UPS_REG   			0x01
-#define SPD_STATUS_REG   	0x00				// 防雷的输入状态从地址0开始
-#define SPD_TIMES_REG   	0x0E				// 04码从0E开始读
+//#define SPD_STATUS_REG   	0x00				// 防雷的输入状态从地址0开始
+#define SPD_TIMES_REG   	2001				// 雷击计数
 #define AIR_ONOFF_REG             		0x0801	// 空调开关机
 #define AIR_TEMP_REG             		0x0700	// 空调高温低温点
 
@@ -118,6 +208,10 @@
 #define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
 
 #define WATER_IN_REG             					0x0010	// 水浸renda
+#define SMOKE_REG             						0x0		// 烟感renda
+#define BREAKER_REG             					0x5000	// 断路器renda
+#define ARD_REG             						0x10		// 重合闸状态renda
+
 
 /*********************************************************************************
 *                                         等待帧回复状态
@@ -138,8 +232,8 @@
 #define ENVI_AIR_ALARM_ANALYSE		12	/*空调参数解析*/
 
 //#define UPS_DATA_ANALYSE	13	/*UPS参数解析*/
-#define SPD_STATUS_ANALYSE	14	/*防雷参数解析*/
-#define SPD_TIMES_ANALYSE	15	/*防雷参数解析*/
+#define SPD_TIMES_ANALYSE_1	14	/*防雷参数解析*/
+#define SPD_TIMES_ANALYSE_2	15	/*防雷参数解析*/
 
 #define DEVICE_DATA_1_ANALYSE	16	/*装置参数读取解析,空调开关机*/
 #define DEVICE_DATA_2_ANALYSE	17	/*装置参数读取解析,空调温度*/
@@ -152,26 +246,45 @@
 #define UPS_STATUS_ANALYSE		23
 
 #define WATER_IN_ANALYSE		24	/*水浸参数解析*/
+#define SMOKE_ANALYSE		25	/*烟感参数解析*/
 
-#define WAIT_DOOR_OPEN		25	/*等待开锁设置帧回复*/
-#define WAIT_DOOR_CLOSE		26	/*等待关锁设置帧回复*/
+#define WAIT_DOOR_OPEN		26	/*等待开锁设置帧回复*/
+#define WAIT_DOOR_CLOSE		27	/*等待关锁设置帧回复*/
+
+#define BREAKER_OPEN_CLOSE_ST_ANALYSE_1	28
+#define BREAKER_OPEN_CLOSE_ST_ANALYSE_2	29
+
+#define ARD_STS_ANALYSE_1	30
+#define ARD_STS_ANALYSE_2	31
+#define ARD_STS_ANALYSE_3	32
+#define ARD_STS_ANALYSE_4	33
+#define ARD_STS_ANALYSE_5	34
+#define ARD_STS_ANALYSE_6	35
+#define ARD_STS_ANALYSE_7	36
+#define ARD_STS_ANALYSE_8	37
+#define ARD_STS_ANALYSE_9	38
+#define ARD_STS_ANALYSE_10	39
+#define ARD_STS_ANALYSE_11	40
 /*********************************************************************************
 *                                     读取相关参数长度
 **********************************************************************************/	
 #define REAL_DATA_NUM		24  	/*固定为24个字节*/
 //#define REAL_TIME_SOE_NUM			37  		/*读取SOE、统计信息等数据长度*/
 //#define UPS_DATA_NUM 			4
-#define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
-#define SPD_TIMES_NUM 			3		// 读3个,分别为当前雷击次数,总雷击次数,最高清零的雷击次数
+//#define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
+#define SPD_TIMES_NUM 			1		// 读1个,分别为当前雷击次数
 #define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
 #define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
 
 #define ENVI_TEMP_NUM 			2
-#define ENVI_AIRCOND_ONOFF_NUM 			6	//扩展到6个
+#define ENVI_AIRCOND_ONOFF_NUM 			5	//任达只有5个
 #define ENVI_AIRCOND_TEMP_NUM 			7	// 增加了电压电流
 #define ENVI_AIRCOND_ALARM_NUM 			17	// 一共17个报警量
 
 #define WATER_IN_NUM 			1
+#define SMOKE_EVENT_NUM 			1
+#define BREAKER_STATUS_NUM 		1
+#define ARD_REG_NUM             		0x01		// 重合闸renda
 
 
 #define FRAME_HEAD_NUM 			3		/*读数据时返回帧有效数据前数据个数*/
@@ -181,7 +294,7 @@
 /*********************************************************************************
 *                                    生久锁 协议宏定义
 **********************************************************************************/
-#define   LOCK_NUM		3
+#define   LOCK_NUM		3	// 3把锁
 
 #define   LOCK_ADDR_1		0x01
 #define   LOCK_SOI		0x7E
@@ -214,6 +327,26 @@
 #define   LOCK_ADDR_3		0x03
 #endif
 
+/*********************************************************************************
+*                                    断路器协议宏定义
+**********************************************************************************/
+#define BRK_REMOTE_ADDR 	0x6802		// 远程分合闸地址
+#define BRK_SINGLE_WRITE 	0x06			// 单个寄存器写命令
+
+#define BRK_OPEN_LOCK				0x03
+#define BRK_OPEN_WITHOUT_LOCK		0x13
+#define BRK_OPEN_UNLOCK				0x23		// 分闸解锁
+#define BRK_CLOSE					0x33
+
+
+/*********************************************************************************
+*                                   自动重合闸协议宏定义
+**********************************************************************************/
+#define ARD_REMOTE_ADDR 	0x11			// 远程分合闸地址
+#define ARD_SINGLE_WRITE 	0x06			// 单个寄存器写命令
+
+#define ARD_OPEN				0x01
+#define ARD_CLOSE			0x02
 
 /*******************************/
 /*链路层加应用层数据*/
@@ -246,7 +379,8 @@ extern INT8U Com_err_flag;			/* 通信错误标志*/
 extern INT32U CommAppFlag;
 extern PDU_Struct  g_PDUData;  
 
-extern INT32U  comm_flag;
+extern INT64U  comm_flag;
+extern INT64U  control_flag;
 
 /********************************************************************************************************
 *                                          ModbusClient模块接口函数

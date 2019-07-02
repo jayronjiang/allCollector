@@ -22,6 +22,9 @@
 #define TEMP_UART		UART4_COM	// 读电表数据串口
 #define WATER_UART		UART4_COM	// 水浸串口
 #define LOCKER_UART		UART4_COM	// 开锁串口
+#define SMOKE_UART		UART4_COM	// 烟感串口
+#define BREAKER_UART		UART4_COM	// 断路器
+#define ARD_UART			UART4_COM	// 自动重合闸
 
 #define RECEIVE_S		0
 #define SEND_S		1

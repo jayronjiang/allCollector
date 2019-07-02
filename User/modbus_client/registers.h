@@ -50,10 +50,14 @@
 
 /*遥控寄存器*/
 #define DO_START_ADDR					1500
-#define DO_REG_MAX						51
-#define REMOTE_RESET_REG					1548		/*遥控复位*/
-#define DOOR_OPEN_REG					1549		/*电子门锁开*/
-#define DOOR_CLOSE_REG					1550		/*电子门锁关*/
+#define DO_REG_MAX						56
+#define REMOTE_RESET_REG					1530		/*遥控复位*/
+#define DOOR_2_REMOTE_REG				1531		/*电子门锁2*/
+#define DOOR_3_REMOTE_REG				1532		/*电子门锁3*/
+
+#define BRK1_REMOTE_REG					1533		/*断路器1遥控*/
+#define BRK2_REMOTE_REG					1534		/*断路器1遥控*/
+#define ARD1_REMOTE_REG					1536		/*自动重合闸1遥控*/
 
 #define ACTRUL_DO_NUM					4		/*实际支持的DO数量*/
 

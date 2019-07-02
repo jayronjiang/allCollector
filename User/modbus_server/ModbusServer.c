@@ -49,7 +49,8 @@ static INT16S g_T100_num;	/*发送完成后等待接收计数器，初值为-1*/
 //static INT8U T15DelayTime[BAUDNUM] = {24,12,8,5,3};
 //static INT8U T35DelayTime[BAUDNUM] = {46,23,12,6,4};
 
-INT32U  comm_flag=0;
+INT64U  comm_flag=0;
+INT64U  control_flag=0;
 
 /********************************************************************************************************
                                   全局变量
@@ -441,7 +442,7 @@ void comm_DeviceParam_2_analyse(void)
 	}
 }
 
-
+#if 0
 /******************************************************************************
  * 函数名:	comm_SPDStatus_analyse 
  * 描述: 		防雷的输入状态解析
@@ -479,6 +480,7 @@ void comm_SPDStatus_analyse(void)
 		
 	}
 }
+#endif
 
 /******************************************************************************
  * 函数名:	comm_SPDData_analyse 
@@ -496,14 +498,14 @@ void comm_SPDStatus_analyse(void)
  * 修改内容: 对新规约进行解析
  * 修改日期:2012-10-16
  ******************************************************************************/
-void comm_SPDTimes_analyse(void)	
+void comm_SPDTimes_analyse(INT8U SPD_seq)	
 {
-	INT16U* pointer = &SPDParams.struck_times;
+	INT16U* pointer = &SPDParams[SPD_seq].struck_times;
 
 	if(CRC_check() && (g_PDUData.PDULength == (SPD_TIMES_NUM*2+5)))
 	{
 		// 只需要总雷击次数
-		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + 1*2, pointer);
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + 0*2, pointer);
 	}
 }
 
@@ -560,6 +562,100 @@ void comm_water_in_analyse(void)
 	}
 }
 
+
+/*****************************************************************************
+ * 函数名:	comm_config_analyse 
+ * 描述: 		读取温湿度
+ *            -
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:付志武 
+ * 创建日期:2009.1.6
+ * 
+ ******************************************************************************/
+void comm_smoke_analyse(void)				 
+{
+	INT8U i=0;
+	INT16U* pointer = &ENVIParms.smoke_event_flag;
+
+	/*回复数据只有1个字节*/
+	if(CRC_check() && (g_PDUData.PDULength == (SMOKE_EVENT_NUM*2+5)))
+	{
+		for (i=0;i<SMOKE_EVENT_NUM;i++)
+		{
+			*(pointer+i) = *(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i);
+			if (*(pointer+i) != 0)
+			{
+				*(pointer+i) = 1;
+			}
+		}
+	}
+}
+
+
+/******************************************************************************
+ * 函数名:	comm_SPDData_analyse 
+ * 描述: 		防雷的数据状态解析
+ *            -
+ * 输入参数:  05 04 00 0E 00 03 D0 4C			// 发送14开始读3个
+ * 输出参数:  05 04 06 00 00 00 00 00 00 52 53   // 接收6个数据
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:CZH
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+void comm_BRK_status_analyse(INT8U BRK_seq)	
+{
+	INT8U i=0;
+	INT16U* pointer = &BRKParams[BRK_seq].status;
+
+	if(CRC_check() && (g_PDUData.PDULength == (BREAKER_STATUS_NUM*2+5)))
+	{
+		for (i=0;i<BREAKER_STATUS_NUM;i++)
+		{
+			char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+		}
+	}
+}
+
+
+
+/******************************************************************************
+ * 函数名:	comm_SPDData_analyse 
+ * 描述: 		防雷的数据状态解析
+ *            -
+ * 输入参数:  05 04 00 0E 00 03 D0 4C			// 发送14开始读3个
+ * 输出参数:  05 04 06 00 00 00 00 00 00 52 53   // 接收6个数据
+ * 返回值: 
+ * 
+ * 作者:
+ * 创建日期:
+ * 
+ *------------------------
+ * 修改人:CZH
+ * 修改内容: 对新规约进行解析
+ * 修改日期:2012-10-16
+ ******************************************************************************/
+void comm_ARD_sts_analyse(INT8U ARD_seq)	
+{
+	INT8U i=0;
+	INT16U* pointer = &ARDParams[ARD_seq].status;
+
+	if(CRC_check() && (g_PDUData.PDULength == (ARD_REG_NUM*2+5)))
+	{
+		// 地址的在i = 0;
+		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
+	}
+}
+
+
 /******************************************************************************
  * 函数名:	comm_config_analyse 
  * 描述: 		读取温湿度
@@ -575,7 +671,7 @@ void comm_water_in_analyse(void)
 void comm_EnviAirOnOff_analyse(void)				 
 {
 	INT8U i=0;
-	INT16U* pointer = &ENVIParms.air_cond_status;
+	INT16U* pointer = &ENVIParms.air_cond_fan_in_status;	// 从内风机开始
 
 	if(CRC_check() && (g_PDUData.PDULength == (ENVI_AIRCOND_ONOFF_NUM*2+5)))
 	{
@@ -608,7 +704,7 @@ void comm_EnviAirTemp_analyse(void)
 	{
 		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
 		/*调试发现外温总是测不出来,总是为2000,此时判断为无效*/
-		if (ENVIParms.air_cond_temp_out > 1000)
+		if (ENVIParms.air_cond_temp_out >= 2000)
 		{
 			ENVIParms.air_cond_temp_out = 0xFFFF;
 		}
@@ -617,7 +713,7 @@ void comm_EnviAirTemp_analyse(void)
 		pointer = &ENVIParms.air_cond_temp_in;
 		i = 2;	// 室内温度跳了1个寄存器
 		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, pointer);
-		if (ENVIParms.air_cond_temp_in > 1000)
+		if (ENVIParms.air_cond_temp_in >= 2000)
 		{
 			ENVIParms.air_cond_temp_in = 0xFFFF;
 		}
@@ -686,15 +782,7 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	reg.i = start_reg;	
 	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
 	*g_SENData.SENDBuffPtr = station;
-
-	if(reg_type!=READREG_COMMAND )
-	{
-		return;
-	}
-	else 
-	{		
-		*(g_SENData.SENDBuffPtr + 1) = reg_type;
-	}	
+	*(g_SENData.SENDBuffPtr + 1) = reg_type;		// 不检查是否为0x03
 	
 	*(g_SENData.SENDBuffPtr + 2) = reg.b[1];				/*寄存器地址*/
 	*(g_SENData.SENDBuffPtr + 3) = reg.b[0];
@@ -711,7 +799,83 @@ void comm_ask(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num,IN
 	data_send_directly(buf_no);
 } 
 
+#if 0
+/***********************************************************************
+函数名:		comm_set(INT16U start_reg,INT8U reg_num,INT8U reg_type)
 
+输入参数:		start_reg:	读取的寄存器开始地址
+              buffer:		要设置的数据缓存起始地址
+
+输出参数:		无.
+
+返回值:		无.
+
+功能说明:              设置相应的寄存器
+***********************************************************************/
+void comm_set(INT16U station,USART_LIST buf_no,INT16U start_reg,INT8U reg_num, INT16U *buffer)
+{
+	INT8U i=0;
+	INT16U* pointer = buffer;
+	INTEGER_UNION int_value;
+	INT8U reg_num = reg_num;	/*装置参数寄存器的个数*/
+	int_value.i=start_reg;					/*装置参数寄存器的首地址*/
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;;
+	*g_SENData.SENDBuffPtr = station;
+	*(g_SENData.SENDBuffPtr+1) = 0x10;
+	*(g_SENData.SENDBuffPtr+2)=int_value.b[1];
+	*(g_SENData.SENDBuffPtr+3)=int_value.b[0];/*寄存器地址*/		
+	*(g_SENData.SENDBuffPtr+4) = 0X00;
+	*(g_SENData.SENDBuffPtr+5) = reg_num;	/*4,5为字节数*/
+	*(g_SENData.SENDBuffPtr+6) = reg_num*2; 
+	
+	for(i=0;i<1;i++)
+	{
+		int_to_char(g_SENData.SENDBuffPtr + SET_FRAME_HEAD_NUM +i*2 ,	*(pointer+i));
+	}
+	
+	/*CRC校验*/
+	int_value.i=get_crc16(g_SENData.SENDBuffPtr,SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2);
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2)= int_value.b[0];
+	*(g_SENData.SENDBuffPtr+SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+1)= int_value.b[1];
+	g_SENData.SENDLength=SET_FRAME_HEAD_NUM+AIR_ONOFF_SET_NUM*2+2;
+	data_send_directly(buf_no);
+}
+#endif
+
+
+/***********************************************************************
+函数名:		control_set(INT16U station,USART_LIST buf_no,INT16U start_reg,INT16U value)
+
+输入参数:		start_reg:	读取的寄存器开始地址
+
+输出参数:		无.
+
+返回值:		无.
+
+功能说明:              遥控相应的寄存器
+***********************************************************************/
+void control_set(INT16U station,INT16U cmd, USART_LIST buf_no,INT16U start_reg,INT16U value)
+{
+	INTEGER_UNION reg;
+	
+	reg.i = start_reg;
+	g_SENData.SENDBuffPtr = UARTBuf[buf_no].RxBuf;
+	
+	*g_SENData.SENDBuffPtr = station;
+	*(g_SENData.SENDBuffPtr + 1) = cmd;		// 要兼容06的功能码
+	*(g_SENData.SENDBuffPtr + 2) = reg.b[1];
+	*(g_SENData.SENDBuffPtr + 3) = reg.b[0];			/*寄存器地址*/
+	*(g_SENData.SENDBuffPtr + 4) = (value>>8)&0xFF;
+	*(g_SENData.SENDBuffPtr + 5) = value&0xFF;
+		
+	reg.i = get_crc16(g_SENData.SENDBuffPtr,6);		/*加入CRC校验*/
+	*(g_SENData.SENDBuffPtr + 6) = reg.b[0];
+	*(g_SENData.SENDBuffPtr + 7) = reg.b[1];
+		
+	g_SENData.SENDLength = 8;
+	g_TxDataCtr = 0;
+	data_send_directly(buf_no);
+}
 /***********************************************************************
 函数名:		comm_wait(INT16U start_reg,INT8U reg_num,INT8U reg_type)
 
@@ -975,15 +1139,10 @@ void comm_polling_process(void)
 	***时做一定过滤，如装置参数过滤条件"if(!(comm_flag & PARAM_SET_FLAG))"，需要十分注意 !!!!    ***
 	********************************************************************************************************************/
 	 /*如果发现参数设置帧，则将接收标志以及发送标志都清零*/
-	if (comm_flag & (DEV_PARAM_SET_FLAG_1 +DEV_PARAM_SET_FLAG_2 + DOOR_OPEN_SET_FLAG + DOOR_CLOSE_SET_FLAG) )		
+	if (control_flag)		
 	{
-		// 轮询也取消掉
-		comm_flag &= ~(REAL_DATA0_SEND_FLAG +REAL_DATA1_SEND_FLAG+REAL_DATA2_SEND_FLAG +REAL_DATA3_SEND_FLAG \
-					     +UPS_PARAM_SEND_FLAG + UPS_IN_SEND_FLAG + UPS_OUT_SEND_FLAG + UPS_BAT_SEND_FLAG \
-					     + UPS_STATUS_SEND_FLAG +UPS_ALARM_SEND_FLAG + SPD_STATUS_SEND_FLAG +SPD_TIMES_SEND_FLAG \
-					     +ENVI_TEMP_SEND_FLAG +ENVI_AIRCOND_ONOFF_FLAG+ENVI_AIRCOND_TEMP_FLAG \
-					     +ENVI_AIRCOND_ALARM_FLAG + DEV_PARAM_SEND_FLAG_1+ DEV_PARAM_SEND_FLAG_2\
-					     +WATER_IN_FLAG);
+		// 轮询全部取消掉
+		comm_flag = 0;
 		if(Recive_Flag>0)
 		{
 			WAIT_response_flag = 0;
@@ -1025,7 +1184,7 @@ void comm_polling_process(void)
 			break;
 			
 			case DEVICE_DATA_1_ANALYSE:				/*接收到装置参数*/
-				if(!(comm_flag & DEV_PARAM_SET_FLAG_1))
+				if(!(control_flag & DEV_PARAM_SET_FLAG_1))
 				{
 					// 装置参数
 					comm_DeviceParam_1_analyse();
@@ -1033,7 +1192,7 @@ void comm_polling_process(void)
 			break;
 
 			case DEVICE_DATA_2_ANALYSE:				/*接收到装置参数*/
-				if(!(comm_flag & DEV_PARAM_SET_FLAG_2))
+				if(!(control_flag & DEV_PARAM_SET_FLAG_2))
 				{
 					// 装置参数
 					comm_DeviceParam_2_analyse();
@@ -1080,16 +1239,62 @@ void comm_polling_process(void)
 				comm_UPSStatus_ANALYSE();
 			break;
 
-			case SPD_STATUS_ANALYSE:
-				comm_SPDStatus_analyse();
+			case SPD_TIMES_ANALYSE_1:
+				comm_SPDTimes_analyse(0);
 			break;
 			
-			case SPD_TIMES_ANALYSE:
-				comm_SPDTimes_analyse();
+			case SPD_TIMES_ANALYSE_2:
+				comm_SPDTimes_analyse(1);
 			break;
 
 			case WATER_IN_ANALYSE:
 				comm_water_in_analyse();
+			break;
+
+			case SMOKE_ANALYSE:
+				comm_smoke_analyse();
+			break;
+
+			case BREAKER_OPEN_CLOSE_ST_ANALYSE_1:
+				comm_BRK_status_analyse(0);
+			break;
+
+			case BREAKER_OPEN_CLOSE_ST_ANALYSE_2:
+				comm_BRK_status_analyse(1);
+			break;
+
+			case ARD_STS_ANALYSE_1:
+				comm_ARD_sts_analyse(0);
+			break;
+			case ARD_STS_ANALYSE_2:
+				comm_ARD_sts_analyse(1);
+			break;
+			case ARD_STS_ANALYSE_3:
+				comm_ARD_sts_analyse(2);
+			break;
+			case ARD_STS_ANALYSE_4:
+				comm_ARD_sts_analyse(3);
+			break;
+			case ARD_STS_ANALYSE_5:
+				comm_ARD_sts_analyse(4);
+			break;
+			case ARD_STS_ANALYSE_6:
+				comm_ARD_sts_analyse(5);
+			break;
+			case ARD_STS_ANALYSE_7:
+				comm_ARD_sts_analyse(6);
+			break;
+			case ARD_STS_ANALYSE_8:
+				comm_ARD_sts_analyse(7);
+			break;
+			case ARD_STS_ANALYSE_9:
+				comm_ARD_sts_analyse(8);
+			break;
+			case ARD_STS_ANALYSE_10:
+				comm_ARD_sts_analyse(9);
+			break;
+			case ARD_STS_ANALYSE_11:
+				comm_ARD_sts_analyse(10);
 			break;
 			
 			default:
@@ -1106,37 +1311,285 @@ void comm_polling_process(void)
 	{
 		/********************************发送参数设置帧处理*************************************/
 		/*空调参数设置为MODBUS通信*/
-		if(comm_flag & DEV_PARAM_SET_FLAG_1)			
+		if(control_flag & DEV_PARAM_SET_FLAG_1)			
 		{
-			comm_flag &= ~DEV_PARAM_SET_FLAG_1;
+			control_flag &= ~DEV_PARAM_SET_FLAG_1;
 			comm_DeviceParam_set_1();
-			WAIT_response_flag = WAIT_PARAM_SET_1; 
+			//WAIT_response_flag = WAIT_PARAM_SET_1; 
 		}
 
-		else if(comm_flag & DEV_PARAM_SET_FLAG_2)			
+		else if(control_flag & DEV_PARAM_SET_FLAG_2)			
 		{
-			comm_flag &= ~DEV_PARAM_SET_FLAG_2;
+			control_flag &= ~DEV_PARAM_SET_FLAG_2;
 			comm_DeviceParam_set_2();
-			WAIT_response_flag = WAIT_PARAM_SET_2; 
+			// 设置后回应数据先不管
+			//WAIT_response_flag = WAIT_PARAM_SET_2; 
 		}
 
-		else if(comm_flag & DOOR_OPEN_SET_FLAG)			
+	#if (LOCK_NUM >= 2)
+		else if(control_flag & DOOR2_OPEN_SET_FLAG)			
 		{
-			comm_flag &= ~DOOR_OPEN_SET_FLAG;
+			control_flag &= ~DOOR2_OPEN_SET_FLAG;
 			// 开锁
-			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_OPEN, 0x02, NULL);
-			WAIT_response_flag = WAIT_DOOR_OPEN; 
+			comm_ask_locker(LOCK_ADDR_2, LOCKER_UART, LOCK_OPEN, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
 		}
 
-		else if(comm_flag & DOOR_CLOSE_SET_FLAG)			
+		else if(control_flag & DOOR2_CLOSE_SET_FLAG)			
 		{
-			comm_flag &= ~DOOR_CLOSE_SET_FLAG;
+			control_flag &= ~DOOR2_CLOSE_SET_FLAG;
 			// 开锁
-			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_CLOSE, 0x02, NULL);
-			WAIT_response_flag = WAIT_DOOR_CLOSE; 
+			comm_ask_locker(LOCK_ADDR_2, LOCKER_UART, LOCK_CLOSE, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_CLOSE; 
+		}
+	#endif
+
+	#if (LOCK_NUM >= 3)
+		else if(control_flag & DOOR3_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~DOOR3_OPEN_SET_FLAG;
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_3, LOCKER_UART, LOCK_OPEN, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & DOOR3_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~DOOR3_CLOSE_SET_FLAG;
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_3, LOCKER_UART, LOCK_CLOSE, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_CLOSE; 
+		}
+	#endif
+
+		else if(control_flag & BRK1_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~BRK1_CLOSE_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_1_ADDRESS,BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK1_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~BRK1_OPEN_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_1_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_WITHOUT_LOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK1_OPEN_LOCK_SET_FLAG)			
+		{
+			control_flag &= ~BRK1_OPEN_LOCK_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_1_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_LOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK1_OPEN_UNLOCK_SET_FLAG)			
+		{
+			control_flag &= ~BRK1_OPEN_UNLOCK_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_1_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_UNLOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+	#if (BRK_NUM >= 2)
+		else if(control_flag & BRK2_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~BRK2_CLOSE_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_2_ADDRESS,BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK2_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~BRK2_OPEN_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_2_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_WITHOUT_LOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK2_OPEN_LOCK_SET_FLAG)			
+		{
+			control_flag &= ~BRK2_OPEN_LOCK_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_2_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_LOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & BRK2_OPEN_UNLOCK_SET_FLAG)			
+		{
+			control_flag &= ~BRK2_OPEN_UNLOCK_SET_FLAG;
+			// 开锁
+			control_set(BREAKER_STATION_2_ADDRESS, BRK_SINGLE_WRITE, BREAKER_UART, BRK_REMOTE_ADDR, BRK_OPEN_UNLOCK);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+	#endif
+
+		else if(control_flag & ARD1_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD1_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_1_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD1_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD1_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_1_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
 		}
 		
-		// RSU数据
+		else if(control_flag & ARD2_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD2_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_2_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD2_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD2_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_2_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD3_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD3_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_3_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD3_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD3_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_3_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD4_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD4_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_4_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD4_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD4_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_4_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD5_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD5_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_5_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD5_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD5_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_5_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD6_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD6_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_6_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD6_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD6_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_6_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD7_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD7_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_7_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD7_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD7_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_7_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD8_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD8_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_8_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD8_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD8_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_8_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD9_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD9_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_9_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD9_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD9_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_9_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD10_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD10_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_10_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD10_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD10_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_10_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & ARD11_CLOSE_SET_FLAG)			
+		{
+			control_flag &= ~ARD11_CLOSE_SET_FLAG;
+			// 合闸
+			control_set(ARD_STATION_11_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_CLOSE);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+		else if(control_flag & ARD11_OPEN_SET_FLAG)			
+		{
+			control_flag &= ~ARD11_OPEN_SET_FLAG;
+			// 分闸
+			control_set(ARD_STATION_11_ADDRESS, ARD_SINGLE_WRITE,ARD_UART, ARD_REMOTE_ADDR, ARD_OPEN);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+
+		/*开始轮询数据*/
+		/*RSU数据轮询*/
 		else if (comm_flag & REAL_DATA0_SEND_FLAG)
 		{
 			comm_flag &= ~REAL_DATA0_SEND_FLAG;
@@ -1241,18 +1694,32 @@ void comm_polling_process(void)
 			comm_ask_ups(UPS_STATION_ADDRESS, UPS_UART,UPS_CID2_STATUS, 0, NULL);
 			WAIT_response_flag = UPS_STATUS_ANALYSE;
 		}
+	// 任达的SPD只有次数
+	#if 0	
 		else if (comm_flag & SPD_STATUS_SEND_FLAG)
 		{
 			comm_flag &= ~SPD_STATUS_SEND_FLAG;
 			comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_STATUS_REG, SPD_STATUS_NUM, SPD_DIREAD_COMMAND);	/*读取SPD参数数据*/  
 			WAIT_response_flag = SPD_STATUS_ANALYSE;
 		}
+	#endif
 
-		else if (comm_flag & SPD_TIMES_SEND_FLAG)
+		else if (comm_flag & SPD_TIMES_SEND_FLAG_1)
 		{
-			comm_flag &= ~SPD_TIMES_SEND_FLAG;
-			comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
-			WAIT_response_flag = SPD_TIMES_ANALYSE;
+			comm_flag &= ~SPD_TIMES_SEND_FLAG_1;
+			/*雷击计数是MODBUS协议了*/
+			comm_ask(SPD_STATION_1_ADDRESS,SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, READREG_COMMAND);	/*读取温湿度数据*/  
+			//comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
+			WAIT_response_flag = SPD_TIMES_ANALYSE_1;
+		}
+
+		else if (comm_flag & SPD_TIMES_SEND_FLAG_2)
+		{
+			comm_flag &= ~SPD_TIMES_SEND_FLAG_2;
+			/*雷击计数是MODBUS协议了*/
+			comm_ask(SPD_STATION_2_ADDRESS,SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, READREG_COMMAND);	/*读取温湿度数据*/  
+			//comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
+			WAIT_response_flag = SPD_TIMES_ANALYSE_2;
 		}
 
 		else if (comm_flag & ENVI_TEMP_SEND_FLAG)
@@ -1286,8 +1753,96 @@ void comm_polling_process(void)
 		else if (comm_flag & WATER_IN_FLAG)
 		{
 			comm_flag &= ~WATER_IN_FLAG;
-			comm_ask(WATERIN_STATION_ADDRESS, WATER_UART,WATER_IN_REG, WATER_IN_NUM, READREG_COMMAND);	/*读取空调报警数据*/  
+			comm_ask(WATERIN_STATION_ADDRESS, WATER_UART,WATER_IN_REG, WATER_IN_NUM, READREG_COMMAND);	/*读取水浸数据*/  
 			WAIT_response_flag = WATER_IN_ANALYSE;
+		}
+
+		else if (comm_flag & SMOKE_FLAG)
+		{
+			comm_flag &= ~SMOKE_FLAG;
+			comm_ask(SMOKE_STATION_ADDRESS, SMOKE_UART,SMOKE_REG, SMOKE_EVENT_NUM, READREG_COMMAND);	/*读取烟感数据*/  
+			WAIT_response_flag = SMOKE_ANALYSE;
+		}
+
+		else if (comm_flag & BREAKER_OPEN_CLOSE_STATUS_1)
+		{
+			comm_flag &= ~BREAKER_OPEN_CLOSE_STATUS_1;
+			comm_ask(BREAKER_STATION_1_ADDRESS, BREAKER_UART,BREAKER_REG, BREAKER_STATUS_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = BREAKER_OPEN_CLOSE_ST_ANALYSE_1;
+		}
+
+		else if (comm_flag & BREAKER_OPEN_CLOSE_STATUS_2)
+		{
+			comm_flag &= ~BREAKER_OPEN_CLOSE_STATUS_2;
+			comm_ask(BREAKER_STATION_2_ADDRESS, BREAKER_UART,BREAKER_REG, BREAKER_STATUS_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = BREAKER_OPEN_CLOSE_ST_ANALYSE_2;
+		}
+
+		else if (comm_flag & ARD_STS_FLAG_1)
+		{
+			comm_flag &= ~ARD_STS_FLAG_1;
+			comm_ask(ARD_STATION_1_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_1;
+		}
+		else if (comm_flag & ARD_STS_FLAG_2)
+		{
+			comm_flag &= ~ARD_STS_FLAG_2;
+			comm_ask(ARD_STATION_2_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_2;
+		}
+		else if (comm_flag & ARD_STS_FLAG_3)
+		{
+			comm_flag &= ~ARD_STS_FLAG_3;
+			comm_ask(ARD_STATION_3_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_3;
+		}
+		else if (comm_flag & ARD_STS_FLAG_4)
+		{
+			comm_flag &= ~ARD_STS_FLAG_4;
+			comm_ask(ARD_STATION_4_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_4;
+		}
+		else if (comm_flag & ARD_STS_FLAG_5)
+		{
+			comm_flag &= ~ARD_STS_FLAG_5;
+			comm_ask(ARD_STATION_5_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_5;
+		}
+		else if (comm_flag & ARD_STS_FLAG_6)
+		{
+			comm_flag &= ~ARD_STS_FLAG_6;
+			comm_ask(ARD_STATION_6_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_6;
+		}
+		else if (comm_flag & ARD_STS_FLAG_7)
+		{
+			comm_flag &= ~ARD_STS_FLAG_7;
+			comm_ask(ARD_STATION_7_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_7;
+		}
+		else if (comm_flag & ARD_STS_FLAG_8)
+		{
+			comm_flag &= ~ARD_STS_FLAG_8;
+			comm_ask(ARD_STATION_8_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_8;
+		}
+		else if (comm_flag & ARD_STS_FLAG_9)
+		{
+			comm_flag &= ~ARD_STS_FLAG_9;
+			comm_ask(ARD_STATION_9_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_9;
+		}
+		else if (comm_flag & ARD_STS_FLAG_10)
+		{
+			comm_flag &= ~ARD_STS_FLAG_10;
+			comm_ask(ARD_STATION_10_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_10;
+		}
+		else if (comm_flag & ARD_STS_FLAG_11)
+		{
+			comm_flag &= ~ARD_STS_FLAG_11;
+			comm_ask(ARD_STATION_11_ADDRESS, ARD_UART,ARD_REG, ARD_REG_NUM, READREG_COMMAND);	/*读取断路器状态*/  
+			WAIT_response_flag = ARD_STS_ANALYSE_11;
 		}
 	}    
 	
@@ -1320,11 +1875,11 @@ void ModbusServer_init(void)
 	switch(WAIT_response_flag)
 	{
 		case WAIT_PARAM_SET_1:	/*装置参数设置回复超时处理*/
-			comm_flag |= DEV_PARAM_SET_FLAG_1;
+			control_flag |= DEV_PARAM_SET_FLAG_1;
 		break;
 
 		case WAIT_PARAM_SET_2:	/*装置参数设置回复超时处理*/
-			comm_flag |= DEV_PARAM_SET_FLAG_2;
+			control_flag |= DEV_PARAM_SET_FLAG_2;
 		break;
 		
 		default:
@@ -1499,16 +2054,73 @@ void start_comm(void)
 	// 查询SPD状态数据
 	else if (polling_counter ==17)
 	{
-		comm_flag |= SPD_STATUS_SEND_FLAG;
+		comm_flag |= SPD_TIMES_SEND_FLAG_1;;//comm_flag |= SPD_STATUS_SEND_FLAG;
 	}
 	// 查询SPD次数数据
 	else if (polling_counter ==18)
 	{
-		comm_flag |= SPD_TIMES_SEND_FLAG;
+		comm_flag |= SPD_TIMES_SEND_FLAG_2;
 	}
 	else if (polling_counter ==19)
 	{
 		comm_flag |= WATER_IN_FLAG;
+	}
+	else if (polling_counter ==20)
+	{
+		comm_flag |= SMOKE_FLAG;
+	}
+	else if (polling_counter ==21)
+	{
+		comm_flag |= BREAKER_OPEN_CLOSE_STATUS_1;
+	}
+	else if (polling_counter ==22)
+	{
+		comm_flag |= BREAKER_OPEN_CLOSE_STATUS_2;
+	}
+	
+	else if (polling_counter ==23)
+	{
+		comm_flag |= ARD_STS_FLAG_1;
+	}
+	else if (polling_counter ==24)
+	{
+		comm_flag |= ARD_STS_FLAG_2;
+	}
+	else if (polling_counter ==25)
+	{
+		comm_flag |= ARD_STS_FLAG_3;
+	}
+	else if (polling_counter ==26)
+	{
+		comm_flag |= ARD_STS_FLAG_4;
+	}
+	else if (polling_counter ==27)
+	{
+		comm_flag |= ARD_STS_FLAG_5;
+	}
+	else if (polling_counter ==28)
+	{
+		comm_flag |= ARD_STS_FLAG_6;
+	}
+	else if (polling_counter ==29)
+	{
+		comm_flag |= ARD_STS_FLAG_7;
+	}
+	else if (polling_counter ==30)
+	{
+		comm_flag |= ARD_STS_FLAG_8;
+	}
+	else if (polling_counter ==31)
+	{
+		comm_flag |= ARD_STS_FLAG_9;
+	}
+	else if (polling_counter ==32)
+	{
+		comm_flag |= ARD_STS_FLAG_10;
+	}
+	else if (polling_counter ==33)
+	{
+		comm_flag |= ARD_STS_FLAG_11;
 		polling_counter = 0;
 	}
 }

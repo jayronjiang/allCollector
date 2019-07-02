@@ -33,6 +33,8 @@ typedef unsigned int 	     	UINT32;
 typedef unsigned int 	     	INT32U;
 typedef signed int   	     		INT32;
 typedef signed int   	     		INT32S;
+typedef unsigned       __int64 	INT64U;
+typedef signed __int64     	INT64S;
 typedef unsigned       __int64 	UINT64;
 typedef signed __int64     	INT64;
 typedef unsigned char 		bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
@@ -71,7 +73,7 @@ typedef unsigned char 		bool;		// 定义bool类型，只使用TRUE和FALSE 2个值
 #define BIT31 0X80000000
 
 #define	BIT(i)	(1 << (i))
-#define   LBIT(i)	(1UL<<(i))	/*long型的移位操作*/
+#define   LBIT(i)	(1ULL<<(i))	/*32位平台long long型才是64位,long是32位*/
 
 
 #define TRUE	       		1
