@@ -246,22 +246,22 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		{
 			if (reg_value == REMOTE_OPEN)
 			{
-				control_flag |= DOOR2_OPEN_SET_FLAG;
+				control_flag |= LBIT(DOOR2_OPEN_SET_FLAG);
 			}
 			else if (reg_value == REMOTE_CLOSE)
 			{
-				control_flag |= DOOR2_CLOSE_SET_FLAG;
+				control_flag |= LBIT(DOOR2_CLOSE_SET_FLAG);
 			}
 		}
 		else if( nStartRegNo == DOOR_3_REMOTE_REG )
 		{
 			if (reg_value == REMOTE_OPEN)
 			{
-				control_flag |= DOOR3_OPEN_SET_FLAG;
+				control_flag |= LBIT(DOOR3_OPEN_SET_FLAG);
 			}
 			else if (reg_value == REMOTE_CLOSE)
 			{
-				control_flag |= DOOR3_CLOSE_SET_FLAG;
+				control_flag |= LBIT(DOOR3_CLOSE_SET_FLAG);
 			}
 		}
 		
@@ -272,19 +272,19 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 			switch(coil_action)
 			{
 				case REMOTE_CLOSE:		/*遥合执行*/
-					control_flag |= BRK1_CLOSE_SET_FLAG<<(4*coil_num);
+					control_flag |= LBIT(BRK1_CLOSE_SET_FLAG+(4*coil_num));
 					break;
 
 				case REMOTE_OPEN:		/*遥分执行*/	
-					control_flag |= BRK1_OPEN_SET_FLAG<<(4*coil_num);
+					control_flag |= LBIT(BRK1_OPEN_SET_FLAG+(4*coil_num));
 					break;
 
 				case REMOTE_OPEN_LOCK:		/*遥分执行锁死*/	
-					control_flag |= BRK1_OPEN_LOCK_SET_FLAG<<(4*coil_num);
+					control_flag |= LBIT(BRK1_OPEN_LOCK_SET_FLAG+(4*coil_num));
 					break;
 
 				case REMOTE_OPEN_UNLOCK:		/*遥分执行解锁*/	
-					control_flag |= BRK1_OPEN_UNLOCK_SET_FLAG<<(4*coil_num);
+					control_flag |= LBIT(BRK1_OPEN_UNLOCK_SET_FLAG+(4*coil_num));
 					break;
 
 				default:
@@ -299,11 +299,11 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 			switch(coil_action)
 			{
 				case REMOTE_CLOSE:		/*遥合执行*/
-					control_flag |= (INT64U)ARD1_CLOSE_SET_FLAG<<(2*coil_num);
+					control_flag |= LBIT(ARD1_CLOSE_SET_FLAG+(2*coil_num));
 					break;
 
 				case REMOTE_OPEN:		/*遥分执行*/	
-					control_flag |= (INT64U)ARD1_OPEN_SET_FLAG<<(2*coil_num);
+					control_flag |= LBIT(ARD1_OPEN_SET_FLAG+(2*coil_num));
 					break;
 
 				default:

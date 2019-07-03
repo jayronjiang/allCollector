@@ -352,7 +352,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
-				control_flag |= DEV_PARAM_SET_FLAG_1;
+				control_flag |= LBIT(DEV_PARAM_SET_FLAG_1);
 				return 0;
 			}
 		}
@@ -362,7 +362,7 @@ UINT8 CheckRegValue( const Map_Reg_Table *pReg,INT32 value,UINT16 index )
 			if(( value <=*( Reg_max+index )) && ( value>=*( Reg_min+index )))
 			{
 				system_flag |=DEV_MODIFIED;	/*一起改变*/
-				control_flag |= DEV_PARAM_SET_FLAG_2;
+				control_flag |= LBIT(DEV_PARAM_SET_FLAG_2);
 				return 0;
 			}
 		}

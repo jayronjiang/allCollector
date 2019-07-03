@@ -44,12 +44,12 @@
 **********************************************************************************/
 #define	WRITEREG_COMMAND				0x10
 #define	READREG_COMMAND				0x03
-#define	WRITEFILE_COMMAND			0x15
+#define	WRITEFILE_COMMAND				0x15
 #define 	READFILE_COMMAND				0x14
-#define	WRITESECRATEREG_COMMAND	0x47 
+#define	WRITESECRATEREG_COMMAND		0x47 
 #define	READSECRATEREG_COMMAND		0x46
 #define	WRITESINGLECOIL_COMMAND		0x05 
-#define 	REF_TYPE_CODE   	0x06
+#define 	REF_TYPE_CODE   					0x06
 
 
 #define	SPD_DIREAD_COMMAND			0x02		//防雷自己的读功能码为02
@@ -90,6 +90,80 @@
 /*********************************************************************************
 *                                      通信轮询参数标志 comm_flag
 **********************************************************************************/
+//485轮询类型枚举,可扩展
+typedef enum 
+{	
+	DEV_PARAM_SEND_FLAG_2 = 0,
+	DEV_PARAM_SEND_FLAG_1,
+
+	REAL_DATA0_SEND_FLAG,		/*实时数据查询,传感器2*/
+	REAL_DATA1_SEND_FLAG,
+	REAL_DATA2_SEND_FLAG,
+	REAL_DATA3_SEND_FLAG,
+
+	UPS_PARAM_SEND_FLAG,		// 6	/*USP的总体参数*/
+	UPS_IN_SEND_FLAG,			/*USP的输入侧参数*/
+	UPS_OUT_SEND_FLAG,
+	UPS_BAT_SEND_FLAG,
+	UPS_STATUS_SEND_FLAG,
+	UPS_ALARM_SEND_FLAG,		// 11 /*USP的报警信息参数*/
+
+	SPD_TIMES_SEND_FLAG_1,		// 12
+	SPD_TIMES_SEND_FLAG_2,
+
+	ENVI_TEMP_SEND_FLAG,		// 14
+	ENVI_AIRCOND_ONOFF_FLAG,
+	ENVI_AIRCOND_TEMP_FLAG,
+	ENVI_AIRCOND_ALARM_FLAG,
+
+	WATER_IN_FLAG,			// 18,水浸
+	SMOKE_FLAG,			// 烟雾
+
+#if (BRK_NUM >= 1)
+	BREAKER_OPEN_CLOSE_STATUS_1,  // 20断路器1合分闸状态
+#endif
+#if (BRK_NUM >= 2)
+	BREAKER_OPEN_CLOSE_STATUS_2,
+#endif
+
+#if (ARD_NUM >= 1)
+	ARD_STS_FLAG_1,		// 22 自动重合闸1
+#endif
+#if (ARD_NUM >= 2)
+	ARD_STS_FLAG_2,
+#endif
+#if (ARD_NUM >= 3)
+	ARD_STS_FLAG_3,
+#endif
+#if (ARD_NUM >= 4)
+	ARD_STS_FLAG_4,
+#endif
+#if (ARD_NUM >= 5)
+	ARD_STS_FLAG_5,
+#endif
+#if (ARD_NUM >= 6)
+	ARD_STS_FLAG_6,
+#endif
+#if (ARD_NUM >= 7)
+	ARD_STS_FLAG_7,
+#endif
+#if (ARD_NUM >= 8)
+	ARD_STS_FLAG_8,
+#endif
+#if (ARD_NUM >= 9)
+	ARD_STS_FLAG_9,
+#endif
+#if (ARD_NUM >= 10)
+	ARD_STS_FLAG_10,
+#endif
+#if (ARD_NUM >= 11)
+	ARD_STS_FLAG_11,	// 32
+#endif
+	
+	POLLING_NUM		// 33
+}POLLING_LIST;
+
+#if 0
 #define REAL_DATA0_SEND_FLAG    	BIT0		/*实时数据查询,传感器0*/
 #define REAL_DATA1_SEND_FLAG    	BIT1		/*实时数据查询,传感器1*/
 #define REAL_DATA2_SEND_FLAG    	BIT2		/*实时数据查询,传感器2*/
@@ -134,11 +208,84 @@
 #define ARD_STS_FLAG_9          					LBIT(34)	 	// 自动重合闸9
 #define ARD_STS_FLAG_10          					LBIT(35)	 	// 自动重合闸10
 #define ARD_STS_FLAG_11          					LBIT(36)	 	// 自动重合闸11
-
+#endif
 
 /*********************************************************************************
 *                                      通信设置参数标志control_flag
 **********************************************************************************/
+//485参数写类型枚举,可扩展
+typedef enum 
+{	
+	DEV_PARAM_SET_FLAG_1 = 0,	// 参数设置	--空调开关机
+	DEV_PARAM_SET_FLAG_2,		// 参数设置	--空调温度设置
+
+	DOOR2_OPEN_SET_FLAG,		// 2 ,电子锁开renda-生久
+	DOOR2_CLOSE_SET_FLAG,		// 电子锁关
+
+	DOOR3_OPEN_SET_FLAG,		// 4,电子锁开renda-生久
+	DOOR3_CLOSE_SET_FLAG,		// 电子锁关
+
+#if (BRK_NUM >= 1)
+	BRK1_CLOSE_SET_FLAG,		// 6,断路器1关
+	BRK1_OPEN_SET_FLAG,		// 断路器1开不锁死
+	BRK1_OPEN_LOCK_SET_FLAG,	// 断路器1开锁死
+	BRK1_OPEN_UNLOCK_SET_FLAG,	// 断路器1开解锁
+#endif
+#if (BRK_NUM >= 2)
+	BRK2_CLOSE_SET_FLAG,			// 10, 断路器2关
+	BRK2_OPEN_SET_FLAG,			// 11断路器2开不锁死
+	BRK2_OPEN_LOCK_SET_FLAG,		// 12断路器2开锁死
+	BRK2_OPEN_UNLOCK_SET_FLAG,	// 13断路器2开解锁
+#endif
+
+#if (ARD_NUM >= 1)
+	ARD1_CLOSE_SET_FLAG,			// 14,自动重合闸1关
+	ARD1_OPEN_SET_FLAG,			// 15自动重合闸1开
+#endif
+#if (ARD_NUM >= 2)
+	ARD2_CLOSE_SET_FLAG,			// 自动重合闸2关
+	ARD2_OPEN_SET_FLAG,			// 自动重合闸2开
+#endif
+#if (ARD_NUM >= 3)
+	ARD3_CLOSE_SET_FLAG,			// 自动重合闸3关
+	ARD3_OPEN_SET_FLAG,			// 自动重合闸3开
+#endif
+#if (ARD_NUM >= 4)
+	ARD4_CLOSE_SET_FLAG,			// 20自动重合闸4关
+	ARD4_OPEN_SET_FLAG,			// 21自动重合闸4开
+#endif
+#if (ARD_NUM >= 5)
+	ARD5_CLOSE_SET_FLAG,			// 22自动重合闸5关
+	ARD5_OPEN_SET_FLAG,			// 23自动重合闸5开
+#endif
+#if (ARD_NUM >= 6)
+	ARD6_CLOSE_SET_FLAG,			// 24自动重合闸6关
+	ARD6_OPEN_SET_FLAG,			// 25自动重合闸6开
+#endif
+#if (ARD_NUM >= 7)
+	ARD7_CLOSE_SET_FLAG,			// 26自动重合闸7关
+	ARD7_OPEN_SET_FLAG,			// 27自动重合闸7开
+#endif
+#if (ARD_NUM >= 8)
+	ARD8_CLOSE_SET_FLAG,			// 自动重合闸8关
+	ARD8_OPEN_SET_FLAG,			// 自动重合闸8开
+#endif
+#if (ARD_NUM >= 9)
+	ARD9_CLOSE_SET_FLAG,			// 自动重合闸9关
+	ARD9_OPEN_SET_FLAG,			// 自动重合闸9开
+#endif
+#if (ARD_NUM >= 10)
+	ARD10_CLOSE_SET_FLAG,			// 32自动重合闸10关
+	ARD10_OPEN_SET_FLAG,			// 33自动重合闸10开
+#endif
+#if (ARD_NUM >= 11)
+	ARD11_CLOSE_SET_FLAG,			// 34自动重合闸11关
+	ARD11_OPEN_SET_FLAG,			// 35自动重合闸11开
+#endif	
+	CONTROL_NUM		// 36
+}CONTROL_LIST;
+
+#if 0
 #define DEV_PARAM_SET_FLAG_1          	BIT0	 	// 参数设置	--空调开关机
 #define DEV_PARAM_SET_FLAG_2       	BIT1	 	// 参数设置	--空调温度设置
 
@@ -191,6 +338,7 @@
 
 #define ARD11_CLOSE_SET_FLAG          	LBIT(34)	 	// 自动重合闸11关
 #define ARD11_OPEN_SET_FLAG          	LBIT(35)	 	// 自动重合闸11开
+#endif
 
 /*********************************************************************************
 *                                     读取相关参数起始地址
