@@ -562,7 +562,7 @@ void comm_water_in_analyse(void)
 	}
 }
 
-
+#ifdef RENDA
 /*****************************************************************************
  * 函数名:	comm_config_analyse 
  * 描述: 		读取温湿度
@@ -593,7 +593,6 @@ void comm_smoke_analyse(void)
 		}
 	}
 }
-
 
 /******************************************************************************
  * 函数名:	comm_SPDData_analyse 
@@ -626,7 +625,6 @@ void comm_BRK_status_analyse(INT8U BRK_seq)
 }
 
 
-
 /******************************************************************************
  * 函数名:	comm_SPDData_analyse 
  * 描述: 		防雷的数据状态解析
@@ -654,6 +652,7 @@ void comm_ARD_sts_analyse(INT8U ARD_seq)
 		char_to_int(g_PDUData.PDUBuffPtr + FRAME_HEAD_NUM + i*2, (pointer+i));
 	}
 }
+#endif
 
 
 /******************************************************************************
@@ -1245,10 +1244,12 @@ void comm_polling_process(void)
 			case WATER_IN_ANALYSE:
 				comm_water_in_analyse();
 			break;
-
+			
+		#ifdef RENDA
 			case SMOKE_ANALYSE:
 				comm_smoke_analyse();
 			break;
+		#endif
 			
 		#if (BRK_NUM >= 1)
 			case BREAKER_OPEN_CLOSE_ST_ANALYSE_1:
@@ -1356,6 +1357,24 @@ void comm_polling_process(void)
 			// 设置后回应数据先不管
 			//WAIT_response_flag = WAIT_PARAM_SET_2; 
 		}
+
+	#if (LOCK_NUM >= 1)
+		else if(control_flag & LBIT(DOOR1_OPEN_SET_FLAG))			
+		{
+			control_flag &= ~(LBIT(DOOR1_OPEN_SET_FLAG));
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_OPEN, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_OPEN; 
+		}
+
+		else if(control_flag & LBIT(DOOR1_CLOSE_SET_FLAG))			
+		{
+			control_flag &= ~(LBIT(DOOR1_CLOSE_SET_FLAG));
+			// 开锁
+			comm_ask_locker(LOCK_ADDR_1, LOCKER_UART, LOCK_CLOSE, 0x02, NULL);
+			//WAIT_response_flag = WAIT_DOOR_CLOSE; 
+		}
+	#endif
 
 	#if (LOCK_NUM >= 2)
 		else if(control_flag & LBIT(DOOR2_OPEN_SET_FLAG))			
@@ -1493,6 +1512,7 @@ void comm_polling_process(void)
 		}
 	#endif
 
+	#if (ARD_NUM > 0)
 		else if(control_flag)
 		{
 			for (i = ARD1_CLOSE_SET_FLAG; i < (ARD1_CLOSE_SET_FLAG+2*ARD_NUM); i++)
@@ -1525,6 +1545,7 @@ void comm_polling_process(void)
 				}
 			}
 		}
+	#endif
 	
 	#if 0
 		else if(control_flag & ARD1_CLOSE_SET_FLAG)			
@@ -1795,6 +1816,7 @@ void comm_polling_process(void)
 			WAIT_response_flag = UPS_STATUS_ANALYSE;
 		}
 
+	#if (SPD_NUM >= 1)
 		else if (comm_flag & LBIT(SPD_TIMES_SEND_FLAG_1))
 		{
 			comm_flag &= ~(LBIT(SPD_TIMES_SEND_FLAG_1));
@@ -1803,7 +1825,8 @@ void comm_polling_process(void)
 			//comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
 			WAIT_response_flag = SPD_TIMES_ANALYSE_1;
 		}
-
+	#endif
+	#if (SPD_NUM >= 2)
 		else if (comm_flag & LBIT(SPD_TIMES_SEND_FLAG_2))
 		{
 			comm_flag &= ~(LBIT(SPD_TIMES_SEND_FLAG_2));
@@ -1812,6 +1835,7 @@ void comm_polling_process(void)
 			//comm_ask_spd(SPD_STATION_ADDRESS, SPD_UART,SPD_TIMES_REG, SPD_TIMES_NUM, SPD_TIMESREAD_COMMAND);		/*读取SPD参数数据*/  
 			WAIT_response_flag = SPD_TIMES_ANALYSE_2;
 		}
+	#endif
 
 		else if (comm_flag & LBIT(ENVI_TEMP_SEND_FLAG))
 		{
@@ -1848,12 +1872,14 @@ void comm_polling_process(void)
 			WAIT_response_flag = WATER_IN_ANALYSE;
 		}
 
+	#ifdef RENDA
 		else if (comm_flag & LBIT(SMOKE_FLAG))
 		{
 			comm_flag &= ~(LBIT(SMOKE_FLAG));
 			comm_ask(SMOKE_STATION_ADDRESS, SMOKE_UART,SMOKE_REG, SMOKE_EVENT_NUM, READREG_COMMAND);	/*读取烟感数据*/  
 			WAIT_response_flag = SMOKE_ANALYSE;
 		}
+	#endif
 		
 	#if (BRK_NUM >= 1)
 		else if (comm_flag & LBIT(BREAKER_OPEN_CLOSE_STATUS_1))

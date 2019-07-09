@@ -242,6 +242,20 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 		{
 			System_Reset = 1;
 		}
+	#if (LOCK_NUM >= 1)
+		else if( nStartRegNo == DOOR_1_REMOTE_REG )
+		{
+			if (reg_value == REMOTE_OPEN)
+			{
+				control_flag |= LBIT(DOOR1_OPEN_SET_FLAG);
+			}
+			else if (reg_value == REMOTE_CLOSE)
+			{
+				control_flag |= LBIT(DOOR1_CLOSE_SET_FLAG);
+			}
+		}
+	#endif
+	#if (LOCK_NUM >= 2)
 		else if( nStartRegNo == DOOR_2_REMOTE_REG )
 		{
 			if (reg_value == REMOTE_OPEN)
@@ -253,6 +267,8 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 				control_flag |= LBIT(DOOR2_CLOSE_SET_FLAG);
 			}
 		}
+	#endif
+	#if (LOCK_NUM >= 3)
 		else if( nStartRegNo == DOOR_3_REMOTE_REG )
 		{
 			if (reg_value == REMOTE_OPEN)
@@ -264,7 +280,9 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 				control_flag |= LBIT(DOOR3_CLOSE_SET_FLAG);
 			}
 		}
-		
+	#endif
+
+	#if (BRK_NUM > 0)
 		else if ((nStartRegNo >= BRK1_REMOTE_REG )&&(nStartRegNo < (BRK1_REMOTE_REG +BRK_NUM) ))
 		{
 			coil_num = (nStartRegNo - BRK1_REMOTE_REG);		/*第几个DO*/
@@ -291,7 +309,9 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 					break;
 			}
 		}
+	#endif
 
+	#if (ARD_NUM > 0)
 		else if ((nStartRegNo >= ARD1_REMOTE_REG )&&(nStartRegNo < (ARD1_REMOTE_REG +ARD_NUM) ))
 		{
 			coil_num = (nStartRegNo - ARD1_REMOTE_REG);		/*第几个DO*/
@@ -310,6 +330,7 @@ UINT8 Write_SingleCoil(UINT16  nStartRegNo, const UINT8  *pdatabuf, UINT8  *perr
 					break;
 			}
 		}
+	#endif
 		else
 		{
 			*perr = REGADDR_ERR;

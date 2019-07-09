@@ -19,11 +19,6 @@
 #define RSU_NUM			6	// RSU天线数目
 #define DOOR_TIME_OUT	3600	// 1hour
 
-
-#define BRK_NUM			2	//断路器数目
-#define ARD_NUM			11	//重合闸
-#define SPD_NUM			2	//防雷器个数
-
 /*******************************************************************************************/
 typedef struct phase_struct
 {

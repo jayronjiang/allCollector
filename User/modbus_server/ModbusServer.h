@@ -52,18 +52,20 @@
 #define 	REF_TYPE_CODE   					0x06
 
 
-#define	SPD_DIREAD_COMMAND			0x02		//防雷自己的读功能码为02
-#define	SPD_TIMESREAD_COMMAND		0x03		//防雷自己的雷击读功能码为03
+#ifdef RENDA
+#define   LOCK_NUM			3			// 3把锁
 
+#define BRK_NUM				2			//断路器数目
+#define ARD_NUM				11			//重合闸
+#define SPD_NUM				2			//防雷器个数
 
-//#define 	RSU_STATION_ADDRESS  	01		/*默认RSU从站地址,未使用*/
 #define 	SMOKE_STATION_ADDRESS  		50		/*烟感地址*/
 #define 	WATERIN_STATION_ADDRESS  		51		/*默认水浸地址*/
 #define 	TEMP_STATION_ADDRESS  			52		/*默认温湿度从站从站地址*/
 #define 	AIR_STATION_ADDRESS  			60		/*默认空调从站从站地址*/
 
-#define 	SPD_STATION_1_ADDRESS	35
-#define 	SPD_STATION_2_ADDRESS	36
+#define 	SPD_STATION_1_ADDRESS			35
+#define 	SPD_STATION_2_ADDRESS			36
 
 #define 	BREAKER_STATION_1_ADDRESS  	1	/*断路器1地址*/
 #define 	BREAKER_STATION_2_ADDRESS  	2	/*断路器2地址*/
@@ -78,11 +80,129 @@
 #define 	ARD_STATION_8_ADDRESS  	10	/*自动重合闸8地址*/
 #define 	ARD_STATION_9_ADDRESS  	11	/*自动重合闸9地址*/
 // 重合闸10空出
-
 #define 	ARD_STATION_10_ADDRESS  	13	/*自动重合闸11地址*/
 #define 	ARD_STATION_11_ADDRESS  	14	/*自动重合闸12地址*/
 
 #define 	UPS_STATION_ADDRESS  	01		/*默认UPS从站地址*/
+
+/*********************************************************************************
+*                                    断路器协议宏定义
+**********************************************************************************/
+#define BRK_REMOTE_ADDR 		0x6802		// 远程分合闸地址
+#define BRK_SINGLE_WRITE 		0x06			// 单个寄存器写命令
+
+#define BRK_OPEN_LOCK				0x03
+#define BRK_OPEN_WITHOUT_LOCK		0x13
+#define BRK_OPEN_UNLOCK				0x23		// 分闸解锁
+#define BRK_CLOSE					0x33
+
+#define BREAKER_REG             					0x5000	// 断路器状态renda
+/*********************************************************************************
+*                                   自动重合闸协议宏定义
+**********************************************************************************/
+#define ARD_REMOTE_ADDR 	0x11			// 远程分合闸地址
+#define ARD_SINGLE_WRITE 	0x06			// 单个寄存器写命令
+
+#define ARD_OPEN				0x01
+#define ARD_CLOSE			0x02
+
+#define ARD_REG             						0x10		// 重合闸状态renda
+/*********************************************************************************
+*                                   SPD协议宏定义
+**********************************************************************************/
+#define SPD_TIMES_REG   	2001				// 雷击计数
+
+/*********************************************************************************
+*                                  空调协议宏定义
+**********************************************************************************/
+#define AIR_ONOFF_REG             		0x0801	// 空调开关机
+#define AIR_TEMP_REG             		0x0700	// 空调高温低温点
+
+#define ENVI_AIRCOND_ONOFF_REG             		0x0100	// 空调状态
+#define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
+#define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
+
+/*********************************************************************************
+*                                 温湿度/水浸/烟雾协议宏定义
+**********************************************************************************/
+#define ENVI_TEMP_REG             					0x00		// 温湿度
+#define WATER_IN_REG             					0x0010	// 水浸renda
+#define SMOKE_REG             						0x0		// 烟感renda
+
+
+/*********************************************************************************
+*                                     读取相关参数长度
+**********************************************************************************/	
+#define REAL_DATA_NUM			24  		/*固定为24个字节*/
+#define SPD_TIMES_NUM 			1		// 读1个,分别为当前雷击次数
+#define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
+#define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
+
+#define ENVI_TEMP_NUM 			2
+#define ENVI_AIRCOND_ONOFF_NUM 			5	//任达只有5个
+#define ENVI_AIRCOND_TEMP_NUM 			7	// 增加了电压电流
+#define ENVI_AIRCOND_ALARM_NUM 			17	// 一共17个报警量
+
+#define WATER_IN_NUM 			1
+#define SMOKE_EVENT_NUM 			1
+
+/*断路器和重合闸*/
+#define BREAKER_STATUS_NUM 		1
+#define ARD_REG_NUM             		0x01		// 重合闸renda
+
+#else	// 利通自己的柜子
+
+#define LOCK_NUM			1	// 1把生久锁
+
+#define BRK_NUM			0	//断路器数目
+#define ARD_NUM			0	//重合闸
+#define SPD_NUM			1	//防雷器个数
+
+#define 	WATERIN_STATION_ADDRESS  		0x04		/*默认水浸地址*/
+#define 	TEMP_STATION_ADDRESS  			0x03		/*默认温湿度从站从站地址*/
+#define 	AIR_STATION_ADDRESS  			0x02		/*默认空调从站从站地址*/
+
+#define 	SPD_STATION_1_ADDRESS			0x05
+#define 	UPS_STATION_ADDRESS  			0x01		/*默认UPS从站地址*/
+
+
+#define	SPD_DIREAD_COMMAND			0x02		//防雷自己的读功能码为02
+#define	SPD_TIMESREAD_COMMAND		0x03		//防雷自己的雷击读功能码为03
+
+/*********************************************************************************
+*                                   外设自己的协议地址定义
+**********************************************************************************/
+#define RSU_REG        		0x40				// 从第一路电压开始读
+//#define UPS_REG   			0x01
+#define SPD_STATUS_REG   	0x00				// 防雷的输入状态从地址0开始
+#define SPD_TIMES_REG   	0x0E				// 04码从0E开始读
+#define AIR_ONOFF_REG             		0x0801	// 空调开关机
+#define AIR_TEMP_REG             		0x0700	// 空调高温低温点
+
+#define ENVI_AIRCOND_ONOFF_REG             		0x0100	// 空调状态
+#define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
+#define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
+
+#define ENVI_TEMP_REG             					0x00		// 温湿度
+#define WATER_IN_REG             					0x0010	// 水浸renda
+
+/*********************************************************************************
+*                                     读取相关参数长度
+**********************************************************************************/
+#define REAL_DATA_NUM			24  	/*固定为24个字节*/
+#define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
+#define SPD_TIMES_NUM 			3		// 读3个,分别为当前雷击次数,总雷击次数,最高清零的雷击次数
+
+#define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
+#define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
+
+#define ENVI_AIRCOND_ONOFF_NUM 			6	//扩展到6个
+#define ENVI_AIRCOND_TEMP_NUM 			7	// 增加了电压电流
+#define ENVI_AIRCOND_ALARM_NUM 			17	// 一共17个报警量
+
+#define ENVI_TEMP_NUM 			2
+#define WATER_IN_NUM 			1
+#endif
 
 
 #define Wait_max_time  		200 		/* 发送后等待接收帧的最长时间为200ms */
@@ -108,8 +228,12 @@ typedef enum
 	UPS_STATUS_SEND_FLAG,
 	UPS_ALARM_SEND_FLAG,		// 11 /*USP的报警信息参数*/
 
+#if (SPD_NUM >= 1)
 	SPD_TIMES_SEND_FLAG_1,		// 12
+#endif
+#if (SPD_NUM >= 2)
 	SPD_TIMES_SEND_FLAG_2,
+#endif
 
 	ENVI_TEMP_SEND_FLAG,		// 14
 	ENVI_AIRCOND_ONOFF_FLAG,
@@ -117,7 +241,9 @@ typedef enum
 	ENVI_AIRCOND_ALARM_FLAG,
 
 	WATER_IN_FLAG,			// 18,水浸
+#ifdef RENDA
 	SMOKE_FLAG,			// 烟雾
+#endif
 
 #if (BRK_NUM >= 1)
 	BREAKER_OPEN_CLOSE_STATUS_1,  // 20断路器1合分闸状态
@@ -219,11 +345,18 @@ typedef enum
 	DEV_PARAM_SET_FLAG_1 = 0,	// 参数设置	--空调开关机
 	DEV_PARAM_SET_FLAG_2,		// 参数设置	--空调温度设置
 
+#if (LOCK_NUM >= 1)
+	DOOR1_OPEN_SET_FLAG,		// 1 ,电子锁开renda-生久
+	DOOR1_CLOSE_SET_FLAG,		// 电子锁关
+#endif
+#if (LOCK_NUM >= 2)
 	DOOR2_OPEN_SET_FLAG,		// 2 ,电子锁开renda-生久
 	DOOR2_CLOSE_SET_FLAG,		// 电子锁关
-
+#endif
+#if (LOCK_NUM >= 3)
 	DOOR3_OPEN_SET_FLAG,		// 4,电子锁开renda-生久
 	DOOR3_CLOSE_SET_FLAG,		// 电子锁关
+#endif
 
 #if (BRK_NUM >= 1)
 	BRK1_CLOSE_SET_FLAG,		// 6,断路器1关
@@ -340,26 +473,6 @@ typedef enum
 #define ARD11_OPEN_SET_FLAG          	LBIT(35)	 	// 自动重合闸11开
 #endif
 
-/*********************************************************************************
-*                                     读取相关参数起始地址
-**********************************************************************************/
-#define RSU_REG        		0x40				// 从第一路电压开始读
-#define UPS_REG   			0x01
-//#define SPD_STATUS_REG   	0x00				// 防雷的输入状态从地址0开始
-#define SPD_TIMES_REG   	2001				// 雷击计数
-#define AIR_ONOFF_REG             		0x0801	// 空调开关机
-#define AIR_TEMP_REG             		0x0700	// 空调高温低温点
-
-#define ENVI_TEMP_REG             					0x00		// 温湿度
-#define ENVI_AIRCOND_ONOFF_REG             		0x0100	// 空调状态
-#define ENVI_AIRCOND_TEMP_REG             			0x0501	// 空调温度
-#define ENVI_AIRCOND_ALARM_REG             		0x0600	// 空调温度
-
-#define WATER_IN_REG             					0x0010	// 水浸renda
-#define SMOKE_REG             						0x0		// 烟感renda
-#define BREAKER_REG             					0x5000	// 断路器renda
-#define ARD_REG             						0x10		// 重合闸状态renda
-
 
 /*********************************************************************************
 *                                         等待帧回复状态
@@ -413,26 +526,6 @@ typedef enum
 #define ARD_STS_ANALYSE_9	38
 #define ARD_STS_ANALYSE_10	39
 #define ARD_STS_ANALYSE_11	40
-/*********************************************************************************
-*                                     读取相关参数长度
-**********************************************************************************/	
-#define REAL_DATA_NUM		24  	/*固定为24个字节*/
-//#define REAL_TIME_SOE_NUM			37  		/*读取SOE、统计信息等数据长度*/
-//#define UPS_DATA_NUM 			4
-//#define SPD_STATUS_NUM 			0x11		// 测试软件读取了17个长度，其实是17位,共3个字节
-#define SPD_TIMES_NUM 			1		// 读1个,分别为当前雷击次数
-#define AIR_ONOFF_SET_NUM 		1 		// 空调遥控,只有1个地址
-#define AIR_TEMP_SET_NUM 		4 		// 空调遥控,只有4个地址
-
-#define ENVI_TEMP_NUM 			2
-#define ENVI_AIRCOND_ONOFF_NUM 			5	//任达只有5个
-#define ENVI_AIRCOND_TEMP_NUM 			7	// 增加了电压电流
-#define ENVI_AIRCOND_ALARM_NUM 			17	// 一共17个报警量
-
-#define WATER_IN_NUM 			1
-#define SMOKE_EVENT_NUM 			1
-#define BREAKER_STATUS_NUM 		1
-#define ARD_REG_NUM             		0x01		// 重合闸renda
 
 
 #define FRAME_HEAD_NUM 			3		/*读数据时返回帧有效数据前数据个数*/
@@ -442,7 +535,6 @@ typedef enum
 /*********************************************************************************
 *                                    生久锁 协议宏定义
 **********************************************************************************/
-#define   LOCK_NUM		3	// 3把锁
 
 #define   LOCK_ADDR_1		0x01
 #define   LOCK_SOI		0x7E
@@ -474,27 +566,6 @@ typedef enum
 #if (LOCK_NUM >= 3)
 #define   LOCK_ADDR_3		0x03
 #endif
-
-/*********************************************************************************
-*                                    断路器协议宏定义
-**********************************************************************************/
-#define BRK_REMOTE_ADDR 	0x6802		// 远程分合闸地址
-#define BRK_SINGLE_WRITE 	0x06			// 单个寄存器写命令
-
-#define BRK_OPEN_LOCK				0x03
-#define BRK_OPEN_WITHOUT_LOCK		0x13
-#define BRK_OPEN_UNLOCK				0x23		// 分闸解锁
-#define BRK_CLOSE					0x33
-
-
-/*********************************************************************************
-*                                   自动重合闸协议宏定义
-**********************************************************************************/
-#define ARD_REMOTE_ADDR 	0x11			// 远程分合闸地址
-#define ARD_SINGLE_WRITE 	0x06			// 单个寄存器写命令
-
-#define ARD_OPEN				0x01
-#define ARD_CLOSE			0x02
 
 /*******************************/
 /*链路层加应用层数据*/

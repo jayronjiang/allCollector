@@ -5,6 +5,8 @@
 /*是否使能语音播报*/
 //#define SPEAKER_ENABLE
 
+//#define RENDA			// 任达机柜选型
+
 /*头文件包含列表*/
 #include "stm32f10x.h"
 #include "stdio.h"
@@ -26,6 +28,7 @@
 #include "bsp_usart2.h"
 #include "bsp_usart4.h"
 #include "bsp_usart5.h"
+#include "ModbusServer.h"
 #include "params.h"
 #include "message_handle.h"
 #include "stm32f10x_spi.h"
@@ -38,7 +41,6 @@
 #include "di.h"
 #include "do.h"
 #include "Ydn23.h"
-#include "ModbusServer.h"
 #include "debug.h"
 
 #endif /* __INCLUDE_H */

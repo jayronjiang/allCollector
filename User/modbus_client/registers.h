@@ -50,6 +50,7 @@
 
 /*遥控寄存器*/
 #define DO_START_ADDR					1500
+#define DOOR_1_REMOTE_REG				1529
 #define DO_REG_MAX						56
 #define REMOTE_RESET_REG					1530		/*遥控复位*/
 #define DOOR_2_REMOTE_REG				1531		/*电子门锁2*/
