@@ -121,10 +121,6 @@ void LED_Set(uint16_t LED_No, FunctionalState iState)
 	     	LED2(iState);
 	      	break;
 
-	//case (LED_3): 
-	//     	LED3(iState);
-	//      	break;
-
 	default: 
 		break;
 	}

@@ -64,7 +64,7 @@ void USART5_Config(uint32_t baudrate)
 	/* 使能串口2空闲中断 */
 	USART_ITConfig(USARTn, USART_IT_IDLE, ENABLE);
 	
-	USART_Cmd(USARTn, DISABLE);
+	USART_Cmd(USARTn, ENABLE);
 	
 	NVIC_USART5_Configuration();
 	
@@ -170,10 +170,9 @@ void UART5_IRQHandler(void)
 	
 	if(USART_GetITStatus(USARTn, USART_IT_RXNE) != RESET)
 	{	
-		//LED_Set(LED_COM, ON); 	// 开始通信指示
+		LED_Set(LED_COM, ON); 	// 开始通信指示
 		ch = USART_ReceiveData(USARTn);
 
-		#if 0
 		UARTBuf[UART_COM].RxBuf[UARTBuf[UART_COM].RxLen] = ch ;
 		if(UARTBuf[UART_COM].RxLen < UART_RXBUF_SIZE)
 		{
@@ -181,27 +180,17 @@ void UART5_IRQHandler(void)
 			/*需要根据波特率添加延时，判断串口通信一帧数据是否结束*/
 			//UART0Buf.Timer = 50;		// 如果50ms还没有数据,本次数据帧结束
 		}
-		#endif
-		ReceOneChar(ch);
+		//ReceOneChar(ch);
 	} 
 	else if (USART_GetITStatus(USARTn, USART_IT_IDLE) != RESET)	// 直接使用空闲帧中断
 	{
+		UARTBuf[UART_COM].RecFlag = TRUE;
 		/* 需要读这2个寄存器清除中断标志*/
 		/*USART_GetITStatus 函数已经读了SR寄存器*/
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USARTn);
-		//LED_Set(LED_COM, OFF); 	// 通信完毕
-
-		if (g_PDUData.PDULength == REAL_DATA_NUM)
-		{
-			UARTBuf[UART_COM].RecFlag = TRUE;
-			data_received_handle(UART5_COM);
-		}
-		else
-		{
-			g_PDUData.PDULength = 0;	// 准备再次接收
-		}
+		LED_Set(LED_COM, OFF); 	// 通信完毕
 	}
 }
 #endif

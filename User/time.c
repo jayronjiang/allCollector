@@ -20,6 +20,7 @@ uint8_t  reset_flag=0;	/*报警的复归标志,暂时未用*/
 volatile uint32_t system_time_ms = 0;
 volatile uint32_t system_time_s = 0;
 
+uint16_t detect_time_counter = AUTO_DETCET_TIME;	//系统参数检查间隔时间
 /******************************************************************************
  * 函数名:	Delay_Ms 
  * 描述:  	不带定时器的阻塞型ms延时,这种定时依赖于编译条件
@@ -401,7 +402,6 @@ void TIM4_IRQHandler (void)
 void TIM2_IRQHandler (void)
 {   
 	static uint16_t t_100ms = 0;
-	static uint16_t t_cnt = 0;
 	static uint16_t t_1s = 0;
 	
 
@@ -428,13 +428,6 @@ void TIM2_IRQHandler (void)
 		system_time_s++;
 	}
 
-	// 5s时间到，参数轮询,调试的时候先1s
-	if( ++t_cnt>= ONE_SECOND)
-	{
-		t_cnt = 0;
-		start_comm();
-	}
-
 
 	/* 系统检测状态和控制位是否一致,每3s检测一次*/
 	if(detect_time_counter > 0)
@@ -448,4 +441,56 @@ void TIM2_IRQHandler (void)
 	}
 } 
 
+
+/***********************************************************************************
+ * 函数名:	RCC_Clock_Set 
+ * 描述: 
+ *           	-配置外设的时钟
+ *		
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:20181109
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ *
+ *
+ ***********************************************************************************/
+void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState)
+{
+	assert_param(IS_GPIO_ALL_PERIPH(GPIOx));
+	
+	if (GPIOx == GPIOA)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, iState); 
+	}
+	else if (GPIOx == GPIOB)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, iState); 
+	}
+	else if (GPIOx == GPIOC)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, iState); 
+	}
+	else if (GPIOx == GPIOD)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, iState); 
+	}
+	else if (GPIOx == GPIOE)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOE, iState); 
+	}
+	else if (GPIOx == GPIOF)
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOF, iState); 
+	}
+	else
+	{
+		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG, iState); 
+	}
+}
 

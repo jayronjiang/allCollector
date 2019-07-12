@@ -568,11 +568,6 @@
               <FilePath>..\..\User\stm32f10x_it.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\Key\bsp_key.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\LED\bsp_led.c</FilePath>
@@ -663,24 +658,9 @@
               <FilePath>..\..\User\params\params.c</FilePath>
             </File>
             <File>
-              <FileName>di.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\dido\di.c</FilePath>
-            </File>
-            <File>
               <FileName>do.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\dido\do.c</FilePath>
-            </File>
-            <File>
-              <FileName>ModbusServer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\modbus_server\ModbusServer.c</FilePath>
-            </File>
-            <File>
-              <FileName>Ydn23.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\modbus_server\Ydn23.c</FilePath>
             </File>
           </Files>
         </Group>

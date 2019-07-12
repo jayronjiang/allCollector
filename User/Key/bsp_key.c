@@ -104,58 +104,6 @@ void ReadKey(void)
 	}
 }
 
-/***********************************************************************************
- * 函数名:	RCC_Clock_Set 
- * 描述: 
- *           	-配置外设的时钟
- *		
- * 输入参数: 
- * 输出参数: 
- * 返回值: 
- * 
- * 作者:Jerry
- * 创建日期:20181109
- * 
- *------------------------
- * 修改人:
- * 修改日期:
- *
- *
- ***********************************************************************************/
-void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState)
-{
-	assert_param(IS_GPIO_ALL_PERIPH(GPIOx));
-	
-	if (GPIOx == GPIOA)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA, iState); 
-	}
-	else if (GPIOx == GPIOB)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOB, iState); 
-	}
-	else if (GPIOx == GPIOC)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, iState); 
-	}
-	else if (GPIOx == GPIOD)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, iState); 
-	}
-	else if (GPIOx == GPIOE)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOE, iState); 
-	}
-	else if (GPIOx == GPIOF)
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOF, iState); 
-	}
-	else
-	{
-		RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG, iState); 
-	}
-}
-
 
 #if 0
 /******************************************************************************

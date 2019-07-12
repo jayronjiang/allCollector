@@ -18,7 +18,7 @@
 #define LED1_TOGGLE 		digitalToggle(LED1_GRP, LED1_POUT)
 #define LED2_TOGGLE 		digitalToggle(LED2_GRP, LED2_POUT)
 
-
+/*灯的定义:低电平输出有效,反逻辑*/
 #define ON   DISABLE
 #define OFF  ENABLE
 

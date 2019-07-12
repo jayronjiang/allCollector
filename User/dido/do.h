@@ -4,30 +4,47 @@
 
 /*Low level, e.g. if want to up the BAR, set: BAR_UP = 0 */
 #define DO1_OUT_GRP			GPIOA
-#define DO1_POUT				GPIO_Pin_0
+#define DO1_POUT				GPIO_Pin_0	// 输出1
 
 #define DO2_OUT_GRP			GPIOA
 #define DO2_POUT				GPIO_Pin_1 
 
 #define DO3_OUT_GRP			GPIOA   		
-#define DO3_POUT				GPIO_Pin_6  	// 备用1
+#define DO3_POUT				GPIO_Pin_6  	// 输出3
 
 #define DO4_OUT_GRP			GPIOA		
-#define DO4_POUT				GPIO_Pin_7	// 备用2
+#define DO4_POUT				GPIO_Pin_7
 
-/*O5-O6 UART5的Tx选择*/
-#define DO6_OUT_GRP		GPIOB
-#define DO6_POUT			GPIO_Pin_1	// 声音报警器
+#define DO5_OUT_GRP			GPIOB
+#define DO5_POUT				GPIO_Pin_0	// 输出5
 
-#define DO5_OUT_GRP		GPIOB
-#define DO5_POUT			GPIO_Pin_0	// 光报警器
+#define DO6_OUT_GRP			GPIOB
+#define DO6_POUT				GPIO_Pin_1
 
+#define DO7_OUT_GRP			GPIOC
+#define DO7_POUT				GPIO_Pin_8	// 输出7
 
-#define DO7_OUT_GRP		GPIOC
-#define DO7_POUT			GPIO_Pin_8
-/*O8引脚不变*/
-#define DO8_OUT_GRP		GPIOC
-#define DO8_POUT			GPIO_Pin_9	// 车道通信灯
+#define DO8_OUT_GRP			GPIOC
+#define DO8_POUT				GPIO_Pin_9
+
+#define DO9_OUT_GRP			GPIOC
+#define DO9_POUT				GPIO_Pin_0
+
+#define DO10_OUT_GRP		GPIOC
+#define DO10_POUT			GPIO_Pin_1
+
+#define DO11_OUT_GRP		GPIOC
+#define DO11_POUT			GPIO_Pin_2
+
+#define DO12_OUT_GRP		GPIOC
+#define DO12_POUT			GPIO_Pin_3
+
+/*485输出配置*/
+#define RS485_1_OUT_GRP			GPIOB
+#define RS485_1_POUT				GPIO_Pin_7	// 485控制1
+
+#define RS485_2_OUT_GRP			GPIOB
+#define RS485_2_POUT				GPIO_Pin_6	// 485控制2
 
 #define CHANNEL_0		0
 #define CHANNEL_1		1
@@ -74,6 +91,14 @@ typedef enum
 	DO_7,		// bit6
 	DO_8,		// bit7
 
+	DO_9,		// bit8
+	DO_10,		// bit9
+	DO_11,		// bit10
+	DO_12,		// bit11
+
+	RS485_CTRL_1,
+	RS485_CTRL_2,
+
 	DO_NUM
 }DEVICE_CTRL_LIST;
 
@@ -105,8 +130,7 @@ void DO_Queue_Init(void);
 void DI_Queue_Init(void);
 void DeviceX_Activate(DEVICE_CTRL_LIST dev);
 void DeviceX_Deactivate(DEVICE_CTRL_LIST dev);
-void rs485FuncSelect(bool value);
-void realDataChannelSelect(UINT8 seq);
+void rs485FuncSelect(DEVICE_CTRL_LIST seq,bool value);
 
 #endif
 

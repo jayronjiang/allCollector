@@ -190,7 +190,7 @@ void USART3_IRQHandler(void)
 		ch = USART_ReceiveData(USARTn);
 		//LED_Set(LED_COM, OFF); 	// Õ®–≈ÕÍ±œ
 
-		data_received_handle(UART3_COM);
+		//data_received_handle(UART3_COM);
 	}
 }
 #endif

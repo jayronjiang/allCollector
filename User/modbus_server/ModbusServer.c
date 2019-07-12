@@ -130,7 +130,7 @@ void data_send_directly(USART_LIST destUtNo)
 	else if (destUtNo == UART4_COM)
 	{
 		PUSART = UART4;
-		rs485FuncSelect(SEND_S);		//485开始发送
+		rs485FuncSelect(RS485_CTRL_1,SEL_S);		//485开始发送
 		Delay_Ms(1);	// 等待1ms
 	}
 #endif
@@ -138,6 +138,8 @@ void data_send_directly(USART_LIST destUtNo)
 	else if (destUtNo == UART5_COM)
 	{
 		PUSART = UART5;
+		rs485FuncSelect(RS485_CTRL_2,SEL_S);		//485开始发送
+		Delay_Ms(1);	// 等待1ms
 	}
 #endif
 	else
@@ -163,10 +165,15 @@ void data_send_directly(USART_LIST destUtNo)
 	g_TxDataCtr  = 0;
 
 	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
-	if (destUtNo == UART4_COM)
+	if ((destUtNo == UART4_COM) )
 	{
-		Delay_Ms(1);	// 等待2ms等最后一个数据发送完毕,否则rs485FuncSelect(RECEIVE_S);会让数据出错
-		rs485FuncSelect(RECEIVE_S);		//485默认为
+		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节否则rs485FuncSelect(RECEIVE_S);会让数据出错
+		rs485FuncSelect(RS485_CTRL_1,SEL_R);	//发送完后要转为接收
+	}
+	else if (destUtNo == UART5_COM)
+	{
+		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节
+		rs485FuncSelect(RS485_CTRL_2,SEL_R);	//发送完后要转为接收
 	}
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
 	g_PDUData.PDULength = 0;	// 准备接收
@@ -896,9 +903,13 @@ void comm_wait(USART_LIST destUtNo, UINT16 seq)
 	StartCounterT100;					/*开始等待计数*/
 	//g_SENData.SENDLength = 0;
 	g_CommRxFlag = TRUE;            	/* 设置为接受状态*/
-	if (destUtNo == UART4_COM)
+	if ((destUtNo == UART4_COM) )
 	{
-		rs485FuncSelect(RECEIVE_S);		//485默认为
+		rs485FuncSelect(RS485_CTRL_1,SEL_R);	//发送完后要转为接收
+	}
+	else if (destUtNo == UART5_COM)
+	{
+		rs485FuncSelect(RS485_CTRL_2,SEL_R);	//发送完后要转为接收
 	}
 	g_PDUData.PDUBuffPtr = UARTBuf[destUtNo].RxBuf;
 	g_PDUData.PDULength = 0;			// 准备接收

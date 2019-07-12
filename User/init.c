@@ -57,6 +57,7 @@ void IWDG_Feed(void)
  	IWDG_ReloadCounter();//reload										   
 }
 
+#if 0
 /******************************************************************************
  * 函数名:	Key_First_Read 
  * 描述: 初始化时候第一次读键值.
@@ -82,6 +83,7 @@ static void Key_First_Read(void)
 	/*第一次也必须读取变位,读到正确的键值*/
 	//system_flag &= ~KEY_CHANGED;	// 第一次读取不变位
 }
+#endif
 
 /******************************************************************************
  * 函数名:	Param_Init 
@@ -100,9 +102,9 @@ static void Key_First_Read(void)
  ******************************************************************************/
 void DIDO_Init(void)
 {
-	DI_Init();
+	//DI_Init();
 	DO_Init();
-	Key_First_Read();
+	//Key_First_Read();
 }
 
 
@@ -121,7 +123,7 @@ void DIDO_Init(void)
  * 修改人:
  * 修改日期:
  ******************************************************************************/
-volatile uint32_t itest = 0;  // 测试时钟是否准确
+//volatile uint32_t itest = 0;  // 测试时钟是否准确
 void Init_System(void)
 {	
 	INT_DISABLE();		// 屏蔽所有中断
@@ -144,26 +146,24 @@ void Init_System(void)
 	Init_Params();		//上电读取参数并自检
 	//IIC_Init();
 /*工作时要设置成9600*/
-	Comm1_Init(Baud[DevParams.BaudRate_1]);	// USART1 配置模式为 115200 8-N-1，中断接收
+	Comm1_Init(Baud[DevParams.BaudRate_1]);	// USART1 配置模式为 9600 8-N-1，中断接收
 #if (BD_USART_NUM >= 2)
-	Comm2_Init(Baud[DevParams.BaudRate_2]);	// USART2 配置模式为 115200 8-N-1，中断接收
+	Comm2_Init(Baud[DevParams.BaudRate_2]);	// USART2 配置模式为 9600 8-N-1，中断接收
 #endif
 #if (BD_USART_NUM >= 3)
 	/*固定为RS485*/
-	Comm4_Init(Baud[DevParams.BaudRate_3]);	// USART2 配置模式为 115200 8-N-1，中断接收
+	Comm4_Init(Baud[DevParams.BaudRate_3]);	// USART2 配置模式为 9600 8-N-1，中断接收
 #endif
 #if (BD_USART_NUM >= 4)
-	Comm5_Init(Baud[DevParams.BaudRate_4]);	// USART2 配置模式为 115200 8-N-1，中断接收
+	/*固定为RS485*/
+	Comm5_Init(Baud[DevParams.BaudRate_4]);	// USART2 配置模式为 9600 8-N-1，中断接收
 #endif
 
-	ModbusServer_init();
+	//ModbusServer_init();
 	/*上电闪烁3次,每次60ms*/
 	LED_Flashing(LED_RUN, 60, 3);
 
 	IWDG_Init(IWDG_Prescaler_64,625);    //预分频值为64，重装载值为625, 看门狗为1s.
-	
-	/*老化测试子程序,系统将在这里进入老化,不执行后面的*/
-	//TestForLC301();		// 暂时不使用
 
 	INT_ENABLE();
 	Timer_Start();

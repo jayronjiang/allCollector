@@ -14,9 +14,11 @@
 /*任务系统标志字,使用其中的位来进行处理各种事件.*/
 uint16_t system_flag = 0;
 
+#if 0
 const uint8_t TEXT_Buffer[]={"WarShipSTM32 SPI TEST\n"};
 const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
 #define SIZE (sizeof(TEXT_Buffer))
+#endif
 
 /******************************************************************************
  * 函数名:	Task_Schedule 
@@ -35,6 +37,7 @@ const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
  ******************************************************************************/
 static void Task_Schedule(void)
 {
+	#if 0
 	static uint32_t front_door_timeout_t=0;
 	static uint32_t back_door_timeout_t=0;
 	static uint8_t front_flag = FALSE;
@@ -99,8 +102,7 @@ static void Task_Schedule(void)
 			ENVIParms.door_overtime = FALSE;
 		}
 	}
-
-
+#endif
 	/* 设备每隔3s自动检测下状态*/
 	if (system_flag&SYS_ERR_CHK)				//设备错误状态自动检测部分	
 	{
@@ -149,7 +151,7 @@ int main(void)
 		/*主函数初始化,定时中断喂狗,能同时防止主函数和中断程序跑飞*/
 		wdt_counter = 0;
 		comm_rec_proc();			// CLIENT
-		comm_polling_process();	//SERVER
+		//comm_polling_process();	//SERVER
 		Task_Schedule();			// 系统任务列表
 	}
 }

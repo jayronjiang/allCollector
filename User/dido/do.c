@@ -37,7 +37,7 @@ void DEVICE_GPIO_OUT_Config(DEVICE_CTRL_LIST dev)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(device_ctrl_queue[dev].gpio_grp, &GPIO_InitStructure);  //初始化端口
-	DeviceX_Deactivate(dev);	 // 初始化为无效
+	DeviceX_Activate(dev);	 // 初始化为无效
 }
 
 
@@ -214,7 +214,8 @@ UINT8 Relay_Act(UINT8 num)
 	}
 
 	DO_Status |= BIT(num);
-	DeviceX_Activate((DEVICE_CTRL_LIST)num);
+	// 低电平动作
+	DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
 	return 1;
 }
 
@@ -249,7 +250,7 @@ UINT8 Relay_Return(UINT8 num)
 		return 0;
 	}
 	DO_Status &= ~ BIT(num);
-	DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
+	DeviceX_Activate((DEVICE_CTRL_LIST)num);
 
 	return 1;
 }
@@ -462,7 +463,6 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_pin = DO4_POUT;
 			break;
 
-		/*测量电路的RX选择*/
 		case DO_5:
 			device_ctrl_queue[dev_type].gpio_grp = DO5_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO5_POUT;
@@ -472,16 +472,47 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_grp = DO6_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO6_POUT;
 			break;
-		/*485的RX_TX选择,高电平为TX，低电平为RX*/
+
 		case DO_7:
 			device_ctrl_queue[dev_type].gpio_grp = DO7_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO7_POUT;
 			break;
 
-		/*未使用*/
 		case DO_8:
 			device_ctrl_queue[dev_type].gpio_grp = DO8_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO8_POUT;
+			break;
+
+		/*DO9~DO12占用原来DI1~DI4*/
+		case DO_9:
+			device_ctrl_queue[dev_type].gpio_grp = DO9_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = DO9_POUT;
+			break;
+
+		case DO_10:
+			device_ctrl_queue[dev_type].gpio_grp = DO10_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = DO10_POUT;
+			break;
+
+		case DO_11:
+			device_ctrl_queue[dev_type].gpio_grp = DO11_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = DO11_POUT;
+			break;
+
+		case DO_12:
+			device_ctrl_queue[dev_type].gpio_grp = DO12_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = DO12_POUT;
+			break;
+
+		/*这2路DO控制RS485的方向*/
+		case RS485_CTRL_1:
+			device_ctrl_queue[dev_type].gpio_grp = RS485_1_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = RS485_1_POUT;
+			break;
+
+		case RS485_CTRL_2:
+			device_ctrl_queue[dev_type].gpio_grp = RS485_2_OUT_GRP;
+			device_ctrl_queue[dev_type].gpio_pin = RS485_2_POUT;
 			break;
 
 		default:
@@ -492,40 +523,15 @@ void DO_Queue_Init(void)
 }
 
 
-void rs485FuncSelect(bool value)
+/*485发送/接收功能选择: 低电平接收,高电平发送*/
+void rs485FuncSelect(DEVICE_CTRL_LIST seq,bool value)
 {
-	if (value == RECEIVE_S)
+	if (value == SEL_S)
 	{
-		DeviceX_Deactivate(DO_7);
+		DeviceX_Activate(seq);	// 注意ACtive是高电平
 	}
 	else
 	{
-		DeviceX_Activate(DO_7);	// 注意ACtive是高电平
+		DeviceX_Deactivate(seq);
 	}
 }
-
-
-void realDataChannelSelect(UINT8 seq)
-{
-	if (seq == CHANNEL_0)
-	{
-		DeviceX_Deactivate(DO_5);
-		DeviceX_Deactivate(DO_6);
-	}
-	else if (seq == CHANNEL_1)
-	{
-		DeviceX_Activate(DO_5);
-		DeviceX_Deactivate(DO_6);
-	}
-	else if (seq == CHANNEL_2)
-	{
-		DeviceX_Deactivate(DO_5);
-		DeviceX_Activate(DO_6);
-	}
-	else
-	{
-		DeviceX_Activate(DO_5);
-		DeviceX_Activate(DO_6);
-	}
-}
-

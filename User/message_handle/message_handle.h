@@ -26,8 +26,8 @@
 #define BREAKER_UART		UART4_COM	// 断路器
 #define ARD_UART			UART4_COM	// 自动重合闸
 
-#define RECEIVE_S		0
-#define SEND_S		1
+#define SEL_R		0		// 接收
+#define SEL_S		1		// 发送
 
 
 // 信息打包类型

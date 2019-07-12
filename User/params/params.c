@@ -5,6 +5,8 @@ DEVICE_PARAMS DevParams;
 /*装置相关信息*/
 DeviceInfoParams  DevicComInfor;
 
+
+#if 0
 RSU_PARAMS RSUParams;
 
 UPS_PARAMS UPSParams;
@@ -16,6 +18,7 @@ ARD_PARAMS ARDParams[ARD_NUM];
 BREAKER_PARAMS BRKParams[BRK_NUM];
 
 ENVI_PARAMS ENVIParms = {267, 582, };
+#endif
 			
 /*默认装置参数*/
 const DEVICE_PARAMS Init_DevParams=
@@ -24,17 +27,11 @@ const DEVICE_PARAMS Init_DevParams=
 					( DEVICE_PARAM_COUNTER -4 )>>1,	/*结构体有效长度UINT16*/
 
 					1,
-					BAUD_115200,
 					BAUD_9600,
 					BAUD_9600,
-					BAUD_4800,
-					0,
-					0,
-					0,
-					30,
-					10,
-					15,
-					10
+					BAUD_9600,
+					BAUD_9600,
+					0
                                  };
 
 void read_fm_memory(UINT16 addr,UINT8 *dest_ptr, UINT16 length)
@@ -176,7 +173,6 @@ void Init_Params(void)
 
 	// 装置信息初始化
 	ComDeviceInfoInit();
-	RSUKsInit();
 }   
 
 /***********************************************************************************
@@ -222,19 +218,6 @@ void ComDeviceInfoInit(void)
 	DevicComInfor.softDate = (UINT32)VERSION_DATE-(UINT32)DevicComInfor.softYear*10000 
                                   - (UINT16)DevicComInfor.softMonth*100;
 	DevicComInfor.protocolVersion = PROTOCAL_REVISION;
-}
-
-
-/*K系数初始化*/
-void RSUKsInit(void)
-{
-	UINT8   i=0;
-
-	for(i = 0; i < RSU_NUM; i++)
-	{
-		RSUParams.phase[i].k_v = 202;	// 系数默认为202，扩大100倍，从而电压也扩大100倍
-		RSUParams.phase[i].k_a = 64;	// 系数默认为100，扩大100倍，从而电压也扩大100倍
-	}
 }
 
 

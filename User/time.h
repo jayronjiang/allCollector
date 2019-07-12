@@ -59,6 +59,7 @@ void Time_Configuration(void);
 //uint64_t readnowtime(void);
 void DelayAndFeedDog(uint32_t myMs);
 uint32_t time_interval(uint32_t time0);
+void RCC_Clock_Set(GPIO_TypeDef* GPIOx, FunctionalState iState);
 
 #endif /* __TMIE_H */
 

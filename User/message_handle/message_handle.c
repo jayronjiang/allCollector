@@ -92,7 +92,7 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART4_COM].pRxBuf = UARTBuf[UART4_COM].RxBuf;
 	ProtocolBuf[UART4_COM].RxLen = 0;
 	ProtocolBuf[UART4_COM].TxLen = 0;
-	rs485FuncSelect(RECEIVE_S);
+	rs485FuncSelect(RS485_CTRL_1,SEL_R);
 }
 #endif
 
@@ -121,6 +121,7 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART5_COM].pRxBuf = UARTBuf[UART5_COM].RxBuf;
 	ProtocolBuf[UART5_COM].RxLen = 0;
 	ProtocolBuf[UART5_COM].TxLen = 0;
+	rs485FuncSelect(RS485_CTRL_2,SEL_R);
 }
 #endif
 
@@ -214,13 +215,14 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	else if (destUtNo == UART4_COM)
 	{
 		PUSART = UART4;
-		rs485FuncSelect(SEND_S);		//485开始发送
+		rs485FuncSelect(RS485_CTRL_1,SEL_S);		//485开始发送
 	}
 #endif
 #if (BD_USART_NUM >= 4)
 	else if (destUtNo == UART5_COM)
 	{
 		PUSART = UART5;
+		rs485FuncSelect(RS485_CTRL_2,SEL_S);		//485开始发送
 	}
 #endif
 	else
@@ -248,9 +250,15 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	
 	pDestbuf->TxLen = 0;
 	LED_Set(LED_COM, OFF); 	// 通信完毕
-	if (destUtNo == UART4_COM)
+	if ((destUtNo == UART4_COM) )
 	{
-		rs485FuncSelect(RECEIVE_S);		//485默认为
+		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节
+		rs485FuncSelect(RS485_CTRL_1,SEL_R);	//发送完后要转为接收
+	}
+	else if (destUtNo == UART5_COM)
+	{
+		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节
+		rs485FuncSelect(RS485_CTRL_2,SEL_R);	//发送完后要转为接收
 	}
 }
 
@@ -320,47 +328,29 @@ void comm_rec_proc(void)
 {
 	USART_LIST i = BD1_UART;
 
-	if (UARTBuf[PC_UART].RecFlag)		                      //client的RS485口有数据
+	/*4个口任何一个口有数据,都执行MODBUS协议*/
+	for ( i = UART1_COM; i < UART_NUM; i++)
 	{
-		UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
-		ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
-		ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
-		ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
-		ProtocolBuf[i].TxLen = 0;
-
-		modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
-
-		UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
-		if(UARTBuf[i].TxLen >0)
+		if (UARTBuf[i].RecFlag)		                      //client的RS485口有数据
 		{
-			message_send_printf(i, i, FALSE, NOT_USED_MSG);
-			UARTBuf[i].TxLen = 0;
-		}
-		Delay_clk(50);
-		UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
-	}
-	params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
+			UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+			ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+			ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+			ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+			ProtocolBuf[i].TxLen = 0;
 
-	#if 0
-			err = message_process(i);		//通信协议处理
-			if (err == TRANS_REQ)							// 需要透传的
-			{
-				message_send_printf(TRANS_UART, i, TRUE, TRANS_MSG);
-			}
+			modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
 
-			UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  //置换回来，处理物理层数据
+			UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
 			if(UARTBuf[i].TxLen >0)
 			{
-				/*回复B/C信息给上位机*/
-				message_send_printf(i, i,FALSE, 0xFF);
+				message_send_printf(i, i, FALSE, NOT_USED_MSG);
+				UARTBuf[i].TxLen = 0;
 			}
-			Delay_Ms(5);				// 稍微有点延时,可以不要
-
-			/*放在括号内,只有收到新的信息才操作*/
-			if (err == ERR_OK)
-			{
-				params_modify_deal();		//后续的数据改变处理
-			}
-	#endif
+			Delay_clk(50);
+			UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+		}
+		params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
+	}
 }
 /*********************************************END OF FILE**********************/

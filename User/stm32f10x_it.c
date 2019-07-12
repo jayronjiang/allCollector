@@ -150,11 +150,11 @@ void SysTick_Handler(void)
 	if( ++scan_counter >= 25 )	/*近似25ms扫描按键*/
 	{
 		scan_counter=0;
-		ReadKey();
+		//ReadKey();
 	}
 
 	// MODBUS通信帧计时
-	CommTimer();/*通信帧的结束判断函数*/
+	//CommTimer();/*通信帧的结束判断函数*/
 }
 
 
