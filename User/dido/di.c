@@ -3,6 +3,7 @@
 
 DEVICE_STATUS device_status_queue[DI_NUM]; //设备状态配置组
 DEVICE_STATUS_BITS di_status;	// 外部状态字,检测外部设备的状态
+uint16_t  input[DI_NUM] = {0,};
 
 /***********************************************************************************
  * 函数名:	DEVICE_GPIO_IN_Config 
@@ -52,7 +53,6 @@ void DI_Init(void)
 {
 	/*I/O口初始化*/
 	DI_Queue_Init();
-	//Key_First_Read(); 
 }
 
 /***********************************************************************************
@@ -100,6 +100,26 @@ void DI_Queue_Init(void)
 		case DI_4:
 			device_status_queue[dev_type].gpio_grp = DI4_GRP;
 			device_status_queue[dev_type].gpio_pin = DI4_PIN;
+			break;
+
+		case DI_5:
+			device_status_queue[dev_type].gpio_grp = DI5_GRP;
+			device_status_queue[dev_type].gpio_pin = DI5_PIN;
+			break;
+
+		case DI_6:
+			device_status_queue[dev_type].gpio_grp = DI6_GRP;
+			device_status_queue[dev_type].gpio_pin = DI6_PIN;
+			break;
+
+		case DI_7:
+			device_status_queue[dev_type].gpio_grp = DI7_GRP;
+			device_status_queue[dev_type].gpio_pin = DI7_PIN;
+			break;
+
+		case DI_8:
+			device_status_queue[dev_type].gpio_grp = DI8_GRP;
+			device_status_queue[dev_type].gpio_pin = DI8_PIN;
 			break;
 
 		default:

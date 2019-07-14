@@ -103,6 +103,19 @@ static void Task_Schedule(void)
 		}
 	}
 #endif
+
+#ifdef HAS_8I8O
+	uint8_t  i = 0;
+	/* 检测开关量,(门磁,烟雾,漏水)*/
+	if (system_flag&KEY_CHANGED)
+	{
+		system_flag &= ~KEY_CHANGED;
+		for (i = 0; i < DI_NUM; i++)
+		{
+			input[i] = ((di_status.status_word&BIT(i)) ? 1:0);
+		}
+	}
+#endif
 	/* 设备每隔3s自动检测下状态*/
 	if (system_flag&SYS_ERR_CHK)				//设备错误状态自动检测部分	
 	{

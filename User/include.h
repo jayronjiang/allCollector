@@ -2,10 +2,9 @@
 #define	__INCLUDE_H
 
 /*Function defines*/
-/*是否使能语音播报*/
-//#define SPEAKER_ENABLE
-
-//#define RENDA			// 任达机柜选型
+/*If the board is 8 INPUT &8OUTPUT, enable this*/
+/*Or if the board is 12OUTPUT, disable this*/
+//#define HAS_8I8O
 
 /*头文件包含列表*/
 #include "stm32f10x.h"

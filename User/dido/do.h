@@ -27,6 +27,7 @@
 #define DO8_OUT_GRP			GPIOC
 #define DO8_POUT				GPIO_Pin_9
 
+#ifndef HAS_8I8O
 #define DO9_OUT_GRP			GPIOC
 #define DO9_POUT				GPIO_Pin_0
 
@@ -38,6 +39,7 @@
 
 #define DO12_OUT_GRP		GPIOC
 #define DO12_POUT			GPIO_Pin_3
+#endif
 
 /*485 ‰≥ˆ≈‰÷√*/
 #define RS485_1_OUT_GRP			GPIOB
@@ -91,10 +93,12 @@ typedef enum
 	DO_7,		// bit6
 	DO_8,		// bit7
 
+#ifndef HAS_8I8O
 	DO_9,		// bit8
 	DO_10,		// bit9
 	DO_11,		// bit10
 	DO_12,		// bit11
+#endif
 
 	RS485_CTRL_1,
 	RS485_CTRL_2,

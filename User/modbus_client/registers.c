@@ -29,6 +29,19 @@ static UINT16 RegValue16 = 0;
 /*寄存器索引表*/
 const static Map_Reg_Table Reg_Table[] = 
 {
+	#ifdef HAS_8I8O
+	{ENVI_START_ADDR+0, (UINT16*)&RegValue16, READONLY, 1},
+	{ENVI_START_ADDR+1, (UINT16*)&RegValue16, READONLY, 1},
+	{ENVI_START_ADDR+2, (UINT16*)&input[0], READONLY, 1},
+	{ENVI_START_ADDR+3, (UINT16*)&input[1], READONLY, 1},
+	{ENVI_START_ADDR+4, (UINT16*)&input[2], READONLY, 1},
+	{ENVI_START_ADDR+5, (UINT16*)&input[3], READONLY, 1},
+	{ENVI_START_ADDR+6, (UINT16*)&input[4], READONLY, 1},
+	{ENVI_START_ADDR+7, (UINT16*)&input[5], READONLY, 1},
+	{ENVI_START_ADDR+8, (UINT16*)&input[6], READONLY, 1},
+	{ENVI_START_ADDR+9, (UINT16*)&input[7], READONLY, 1},
+	#endif
+
 	/*装置信息寄存器*/
 	{DEVICEINFO_START_ADDR+0, (UINT16*)&DevicComInfor.deviceType[0], READONLY, 1},
 	{DEVICEINFO_START_ADDR+1, (UINT16*)&DevicComInfor.deviceType[1], READONLY, 1},
@@ -63,7 +76,10 @@ const static Map_Reg_Table Reg_Table[] =
 	{PARAMS_START_ADDR+4, (UINT16*)&DevParams.BaudRate_4, WRITEREAD, 1}
 };
 
-const INT32 Reg_max[] = {	
+const INT32 Reg_max[] = {
+						#ifdef HAS_8I8O
+							0,0,0,0,0,0,0,0,0,0,
+						#endif
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
 
@@ -71,7 +87,10 @@ const INT32 Reg_max[] = {
 							240,5,5,5,5
 						};
 
-const INT32 Reg_min[] = {	
+const INT32 Reg_min[] = {
+						#ifdef HAS_8I8O
+							0,0,0,0,0,0,0,0,0,0,
+						#endif
 							/*装置信息寄存器*/
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
 

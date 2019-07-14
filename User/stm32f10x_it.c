@@ -146,12 +146,14 @@ void SysTick_Handler(void)
 	}
 	
 	//UARTProcessTickEvents();	/*UART通信帧间隔判断*/
-	
+
+	#ifdef HAS_8I8O
 	if( ++scan_counter >= 25 )	/*近似25ms扫描按键*/
 	{
 		scan_counter=0;
-		//ReadKey();
+		ReadKey();
 	}
+	#endif
 
 	// MODBUS通信帧计时
 	//CommTimer();/*通信帧的结束判断函数*/

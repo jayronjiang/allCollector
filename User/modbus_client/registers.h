@@ -56,12 +56,12 @@
 #define DOOR_2_REMOTE_REG				1531		/*电子门锁2*/
 #define DOOR_3_REMOTE_REG				1532		/*电子门锁3*/
 
-#define BRK1_REMOTE_REG					1533		/*断路器1遥控*/
-#define BRK2_REMOTE_REG					1534		/*断路器1遥控*/
-#define ARD1_REMOTE_REG					1536		/*自动重合闸1遥控*/
 
-#define ACTRUL_DO_NUM					12		/*实际支持的DO数量*/
-
+#ifdef HAS_8I8O
+#define ACTRUL_DO_NUM					8		/*实际支持的DO数量*/
+#else
+#define ACTRUL_DO_NUM					12
+#endif
 
 /*寄存器对象定义*/
 typedef struct __Register__

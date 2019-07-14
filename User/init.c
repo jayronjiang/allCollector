@@ -57,7 +57,7 @@ void IWDG_Feed(void)
  	IWDG_ReloadCounter();//reload										   
 }
 
-#if 0
+#ifdef HAS_8I8O
 /******************************************************************************
  * 函数名:	Key_First_Read 
  * 描述: 初始化时候第一次读键值.
@@ -102,9 +102,11 @@ static void Key_First_Read(void)
  ******************************************************************************/
 void DIDO_Init(void)
 {
-	//DI_Init();
 	DO_Init();
-	//Key_First_Read();
+#ifdef HAS_8I8O
+	DI_Init();
+	Key_First_Read();
+#endif
 }
 
 

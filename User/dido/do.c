@@ -483,6 +483,7 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_pin = DO8_POUT;
 			break;
 
+	#ifndef HAS_8I8O
 		/*DO9~DO12占用原来DI1~DI4*/
 		case DO_9:
 			device_ctrl_queue[dev_type].gpio_grp = DO9_OUT_GRP;
@@ -503,6 +504,7 @@ void DO_Queue_Init(void)
 			device_ctrl_queue[dev_type].gpio_grp = DO12_OUT_GRP;
 			device_ctrl_queue[dev_type].gpio_pin = DO12_POUT;
 			break;
+	#endif
 
 		/*这2路DO控制RS485的方向*/
 		case RS485_CTRL_1:
