@@ -4,7 +4,7 @@
 /*Function defines*/
 /*If the board is 8 INPUT &8OUTPUT, enable this*/
 /*Or if the board is 12OUTPUT, disable this*/
-//#define HAS_8I8O
+#define HAS_8I8O
 
 /*头文件包含列表*/
 #include "stm32f10x.h"

@@ -31,7 +31,8 @@ const DEVICE_PARAMS Init_DevParams=
 					BAUD_9600,
 					BAUD_9600,
 					BAUD_9600,
-					0
+					0,			// DO Ô¤ÖÃ
+					0			// DO_STATUS
                                  };
 
 void read_fm_memory(UINT16 addr,UINT8 *dest_ptr, UINT16 length)

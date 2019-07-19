@@ -61,9 +61,8 @@ void DO_Init(void)
 	UINT8 i;
 	/*I/O口初始化*/
 	DO_Queue_Init();
-	
-	DO_Status = 0;
-	for( i=0; i< DO_NUM;i++ )
+	Do_Status_Update();
+	for( i=0; i< ACTRUL_DO_NUM;i++ )
 	{ 
 		RelayStatus[i].ActFlag = 0;
 		RelayStatus[i].ActPresetCounter = 0L;
@@ -71,6 +70,7 @@ void DO_Init(void)
 		RelayStatus[i].ReturnPresetCounter = 0L;
 		RelayStatus[i].ReturnPresetFlag = FALSE;
 		RelayStatus[i].PulseCounter = 0;
+		Get_Do_Status_And_Output(i);
 	}
 }
 
@@ -184,6 +184,40 @@ void DOProcessTickEvents(void)
 	}
 }
 
+
+/******************************************************************************
+ * 函数名:	Do_Status_Save 
+ * 描述: 
+ *            -对DO状态参数进行保存
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 作者:Jerry
+ * 修改日期:2013-02-20,移植至2612D
+ ******************************************************************************/
+void Do_Status_Save(void)
+{
+	DevParams.Do_status = DO_Status;
+	system_flag |=DEV_MODIFIED;	/*参数被改变,铁电要保存*/	
+}
+
+
+/******************************************************************************
+ * 函数名:	Do_Status_Update 
+ * 描述: 
+ *            -对DO状态参数进行读取更新
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 作者:Jerry
+ * 修改日期:2013-02-20,移植至2612D
+ ******************************************************************************/
+void Do_Status_Update(void)
+{
+	DO_Status = DevParams.Do_status;
+}
+
+
 /******************************************************************************
  * 函数名:	Relay_Act 
  * 描述: 
@@ -192,12 +226,42 @@ void DOProcessTickEvents(void)
  * 输出参数: 无
  * 返回值: 1:继电器操作成功0:无效操作
  * 
- * 作者:汪治国 
- * 创建日期:2008.9.18
+ * 作者:Jerry
+ * 创建日期:2019.7.18
  * 
- *------------------------
- * 修改人:Jerry
- * 修改日期:2013-02-20,移植至2612D
+ ******************************************************************************/
+UINT8 Get_Do_Status_And_Output(UINT8 num)
+{
+	if(num < DO_NUM)
+	{
+		if(DO_Status & BIT(num))		/*处于闭合状态时动作无效*/
+		{
+			DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
+		}
+		else
+		{
+			DeviceX_Activate((DEVICE_CTRL_LIST)num);
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	return 1;
+}
+
+
+/******************************************************************************
+ * 函数名:	Relay_Act 
+ * 描述: 
+ *            -继电器动作
+ * 输入参数: 继电器对应的DO序号0~1
+ * 输出参数: 无
+ * 返回值: 1:继电器操作成功0:无效操作
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.7.18
+ * 
  ******************************************************************************/
 UINT8 Relay_Act(UINT8 num)
 {
@@ -216,9 +280,9 @@ UINT8 Relay_Act(UINT8 num)
 	DO_Status |= BIT(num);
 	// 低电平动作
 	DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
+	Do_Status_Save();
 	return 1;
 }
-
 
 
 /******************************************************************************
@@ -229,8 +293,8 @@ UINT8 Relay_Act(UINT8 num)
  * 输出参数: 无
  * 返回值: 1:继电器操作成功0:无效操作
  * 
- * 作者:汪治国 
- * 创建日期:2008.9.18
+ * 作者:Jerry
+ * 创建日期:2019.7.18
  * 
  *------------------------
  * 修改人:
@@ -251,6 +315,7 @@ UINT8 Relay_Return(UINT8 num)
 	}
 	DO_Status &= ~ BIT(num);
 	DeviceX_Activate((DEVICE_CTRL_LIST)num);
+	Do_Status_Save();
 
 	return 1;
 }
@@ -264,7 +329,7 @@ UINT8 Relay_Return(UINT8 num)
  * 输出参数: 
  * 返回值: 
  * 
- * 作者:汪治国 
+ * 作者:Jerry
  * 创建日期:2010.1.13
  * 
  *------------------------
@@ -299,7 +364,7 @@ UINT8 Relay_Act_Preset(UINT8 num)
  * 输出参数: 
  * 返回值: 
  * 
- * 作者:汪治国 
+ * 作者:Jerry
  * 创建日期:2010.1.13
  * 
  *------------------------
@@ -335,12 +400,9 @@ UINT8 Relay_Return_Preset(UINT8 num)
  * 输出参数: 
  * 返回值: 0代表操作无效  1代表操作正常
  * 
- * 作者:汪治国 
+ * 作者:Jerry
  * 创建日期:2009.2.2
  * 
- *------------------------
- * 修改人:Jerry
- * 修改日期:2013.2.20移植到2612D
  ******************************************************************************/
 UINT8 RelayOperate(UINT8 num, UINT8 mode)
 {

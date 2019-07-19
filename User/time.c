@@ -426,6 +426,7 @@ void TIM2_IRQHandler (void)
 		t_1s = 0;
 		// 系统时间,1s单位
 		system_time_s++;
+		system_flag |= PARAM_UPDATE;
 	}
 
 

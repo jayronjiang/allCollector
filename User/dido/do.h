@@ -135,6 +135,9 @@ void DI_Queue_Init(void);
 void DeviceX_Activate(DEVICE_CTRL_LIST dev);
 void DeviceX_Deactivate(DEVICE_CTRL_LIST dev);
 void rs485FuncSelect(DEVICE_CTRL_LIST seq,bool value);
+void Do_Status_Save(void);
+void Do_Status_Update(void);
+UINT8 Get_Do_Status_And_Output(UINT8 num);
 
 #endif
 

@@ -37,73 +37,6 @@ const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
  ******************************************************************************/
 static void Task_Schedule(void)
 {
-	#if 0
-	static uint32_t front_door_timeout_t=0;
-	static uint32_t back_door_timeout_t=0;
-	static uint8_t front_flag = FALSE;
-	static uint8_t back_flag = FALSE;
-	/* 记住上次栏杆状态检测的错误状态,以便返回的时候上报*/
-	//static bool TTL_ALG_Wrong = FALSE;
-	//USART_LIST i = PC_UART;
-
-	//uint8_t datatemp[64];
-	
-	/* 检测开关量,(门磁,烟雾,漏水)*/
-	if (system_flag&KEY_CHANGED)
-	{
-		system_flag &= ~KEY_CHANGED;
-		 // di是低电平有效,flag是高电平有效
-		 // 2个门磁开关，任何一个打开就认为柜门被打开
-		ENVIParms.front_door_flag = di_status.status_bits.di_1;
-		ENVIParms.back_door_flag = di_status.status_bits.di_2;
-		ENVIParms.smoke_event_flag = !di_status.status_bits.di_3;	 // 烟雾传感器状态
-	}
-
-	/* di低电平有效,但是标志位为高电平逻辑*/
-	if (ENVIParms.front_door_flag == 1)
-	{
-		// 超过1个小时,超时,测试的时候为10s
-		if(time_interval(front_door_timeout_t) >= DOOR_TIME_OUT)		//超时计数器开始
-		{
-			front_door_timeout_t = system_time_s;
-			ENVIParms.door_overtime = TRUE;		// 任何一个门打开超时就算超时
-			front_flag = TRUE;
-		}
-	}
-	else
-	{
-		//ENVIParms.door_overtime = FALSE;
-		front_flag = FALSE;
-		front_door_timeout_t = system_time_s;
-		if( !back_flag )		// 只有都不超时才不算超时
-		{
-			ENVIParms.door_overtime = FALSE;
-		}
-	}
-
-	/* di低电平有效,但是标志位为高电平逻辑*/
-	if (ENVIParms.back_door_flag == 1)
-	{
-		// 超过1个小时,超时,测试的时候为10s
-		if(time_interval(back_door_timeout_t) >= DOOR_TIME_OUT)		//超时计数器开始
-		{
-			back_door_timeout_t = system_time_s;
-			ENVIParms.door_overtime = TRUE;
-			back_flag = TRUE;
-		}
-	}
-	else
-	{
-		//ENVIParms.door_overtime = FALSE;
-		back_flag = FALSE;
-		back_door_timeout_t = system_time_s;
-		if( !front_flag )
-		{
-			ENVIParms.door_overtime = FALSE;
-		}
-	}
-#endif
-
 #ifdef HAS_8I8O
 	uint8_t  i = 0;
 	/* 检测开关量,(门磁,烟雾,漏水)*/
@@ -116,11 +49,15 @@ static void Task_Schedule(void)
 		}
 	}
 #endif
-	/* 设备每隔3s自动检测下状态*/
-	if (system_flag&SYS_ERR_CHK)				//设备错误状态自动检测部分	
+	/* 设备每隔1s自动检测下参数是否更新*/
+	if (system_flag&PARAM_UPDATE)
 	{
-		system_flag &= ~SYS_ERR_CHK;
-		//这里要加参数保存的任务
+		system_flag &= ~PARAM_UPDATE;
+		if (system_flag&DEV_MODIFIED)
+		{
+			system_flag &= ~DEV_MODIFIED;
+			Write_DevParams();
+		}
 	}
 
 #if 0

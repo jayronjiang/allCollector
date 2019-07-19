@@ -102,11 +102,11 @@ static void Key_First_Read(void)
  ******************************************************************************/
 void DIDO_Init(void)
 {
-	DO_Init();
 #ifdef HAS_8I8O
 	DI_Init();
 	Key_First_Read();
 #endif
+	DO_Init();
 }
 
 
@@ -140,13 +140,12 @@ void Init_System(void)
 	/* 也就是硬件初始化完毕后定时器开始运行*/
 	SysTick_Init();	// 本程序不带操作系统,只是一个普通的ms定时器
 
-	/*对外部设备进行初始化*/
-	DIDO_Init();			// 要放在串口初始化的前面,否则会被非法引用卡死
-
 	W25QXX_Init();		//W25QXX初始化
 	/*放在串口初始化前面,因为串口也有参数*/
 	Init_Params();		//上电读取参数并自检
 	//IIC_Init();
+	/*对外部设备进行初始化*/
+	DIDO_Init();			// 要放在串口初始化的前面,否则会被非法引用卡死
 /*工作时要设置成9600*/
 	Comm1_Init(Baud[DevParams.BaudRate_1]);	// USART1 配置模式为 9600 8-N-1，中断接收
 #if (BD_USART_NUM >= 2)

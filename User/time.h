@@ -3,7 +3,7 @@
 
 #define KEY_CHANGED   		BIT0		/* 外部设备检测出现变化,需要向上位机汇报*/
 #define SYS_ERR_CHK			BIT1		/*3s进行一次系统检测*/
-#define CAR_WATCHING		BIT2		/*后线圈开始监视*/
+#define PARAM_UPDATE		BIT2		/*1s进行一次参数更新检查*/
 #define SYSTEM_200MS          	BIT3		/*暂时未使用*/
 #define COMM1_MODIFIED		BIT4
 #define COMM2_MODIFIED		BIT5

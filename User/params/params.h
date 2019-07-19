@@ -13,13 +13,13 @@
 #define VERSION_DATE		 190710 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
-#define SYSTEM_SYNC		12341230		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341234		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
-#define FM_FIRST_WORD    	0X04		/*首次上电标志的地址*/
+#define FM_FIRST_WORD    	0X04		/*首次上电标志的地址+4*/
 #define FM_DEVICE                	0X10
-#define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+410,留576*/
+#define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+16*/
 
 /*******************************************************************************************/
 
@@ -34,7 +34,8 @@ typedef struct device_params_struct	/*共16个字节*/
 	UINT16 BaudRate_3;	// 串口3波特率
 	UINT16 BaudRate_4;	// 串口4波特率
 
-	UINT16 Pre_Remote;		/*遥控预置，0：退出，1：投入*/
+	UINT16 Pre_Remote;	//遥控预置，0：退出，1：投入
+	UINT16 Do_status;		// DO的状态也要进行保存，上电后要记住上次状态
 }DEVICE_PARAMS;
 
 typedef  struct  _DeviceInfo_Struct      /*用于整块写命令时边界判断，例如防止32BIT数只写了16BIT*/
