@@ -2,8 +2,13 @@
 #define _PARAMS_H
 
 /********************铁电地址划分,共8K的铁电*********************************/
-
+#ifdef HAS_8I8O
+#define DEVICE_TYPE 		"LTKJ_I8O8"			/*装置设备类型的定义*/
+#define DEV_ADDR			61
+#else
 #define DEVICE_TYPE 		"LTKJ_I0O12"			/*装置设备类型的定义*/
+#define DEV_ADDR			71
+#endif
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
 #define VERSION_DATE		 190710 			/*版本日期*/
 #define PROTOCAL_REVISION 10

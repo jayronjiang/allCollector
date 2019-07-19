@@ -26,7 +26,7 @@ const DEVICE_PARAMS Init_DevParams=
                                     	0,				/*各字节累加和*/
 					( DEVICE_PARAM_COUNTER -4 )>>1,	/*结构体有效长度UINT16*/
 
-					1,
+					DEV_ADDR,
 					BAUD_9600,
 					BAUD_9600,
 					BAUD_9600,

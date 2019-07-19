@@ -260,6 +260,14 @@ UINT8 Read_Register(UINT16 nStartRegNo, UINT16 nRegNum, UINT8 *pdatabuf, UINT8 *
 	{
 		;
 	}
+	#ifdef HAS_8I8O
+	/*¶Á×°ÖÃ²ÎÊý¼Ä´æÆ÷*/
+	else if((nStartRegNo >= ENVI_START_ADDR) && (nEndRegNo < (ENVI_START_ADDR + ENVI_REG_MAX )))
+	{
+		;
+	}
+	#endif
+
 	
 	/*¶Á×°ÖÃÐÅÏ¢¼Ä´æÆ÷*/
 	else if((nStartRegNo >= DEVICEINFO_START_ADDR) && (nEndRegNo < (DEVICEINFO_START_ADDR + DEVICEINFO_REG_MAX)))
