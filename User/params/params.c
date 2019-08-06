@@ -32,7 +32,11 @@ const DEVICE_PARAMS Init_DevParams=
 					BAUD_9600,
 					BAUD_9600,
 					0,			// DO 预置
-					0			// DO_STATUS
+					#ifdef HAS_8I8O
+					0xFF			// DO_STATUS, 8路,初始状态是闭合
+					#else
+					0xFFF
+					#endif
                                  };
 
 void read_fm_memory(UINT16 addr,UINT8 *dest_ptr, UINT16 length)

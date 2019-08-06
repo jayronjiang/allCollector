@@ -37,7 +37,7 @@ void DEVICE_GPIO_OUT_Config(DEVICE_CTRL_LIST dev)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(device_ctrl_queue[dev].gpio_grp, &GPIO_InitStructure);  //初始化端口
-	DeviceX_Activate(dev);	 // 初始化为无效
+	DeviceX_Deactivate(dev);	 // 初始化为闭合,因为闭合才是常态
 }
 
 
