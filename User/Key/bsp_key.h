@@ -4,6 +4,14 @@
 #define KEY_ON		0
 #define KEY_OFF		1
 
+/*DIP switch 功能,设置设备的地址*/
+#define NUMBER_OF_DIPKEYS	2
+
+#define DIP1_GRP				GPIOA		// DIP1-PA4
+#define DIP1_PIN				GPIO_Pin_4
+
+#define DIP2_GRP				GPIOA		// DIP2-PA5
+#define DIP2_PIN				GPIO_Pin_5
 
 /*----------------------------------------------------------------------------*
  *  需要注意的是代码里面的逻辑判断已经是低有效
@@ -26,5 +34,6 @@
 void EXTI_PE4_Config(void);
 uint16_t GPIO_ReadInputAll(uint8_t polar);
 void ReadKey(void);
+void Dev_Address_Init(void);
 
 #endif /* __BSP_KEY_H */

@@ -10,6 +10,126 @@
   */
 #include "include.h"
 
+
+/*定义DIP switch的接口pin*/
+static const DEVICE_STATUS dip_switches[NUMBER_OF_DIPKEYS] = {\
+    	{DIP2_GRP,DIP2_PIN},		// 先读高位
+	{DIP1_GRP,DIP1_PIN}
+};
+
+/***********************************************************************************
+ * 函数名:	DEVICE_GPIO_IN_Config 
+ * 描述: 
+ *           	-配置指定输入外设.
+ *		
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:20181109
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ *
+ *
+ ***********************************************************************************/
+void GPIO_In_Init(DEVICE_STATUS key)	
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	  /*开启输入按键端口（PX）的时钟*/
+	RCC_Clock_Set(key.gpio_grp, ENABLE);
+ 	GPIO_InitStructure.GPIO_Pin = key.gpio_pin;; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  // 上拉输入
+	GPIO_Init(key.gpio_grp, &GPIO_InitStructure);
+}
+
+/******************************************************************************
+ * 函数名:	Dip_Switch_Init 
+ * 描述: 
+ *            -DIP switch 的初始化
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.08.20
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+void Dip_Switch_Init(void)
+{
+	uint16_t i = 0;
+
+	for( i=0; i<NUMBER_OF_DIPKEYS; i++)
+	{
+		GPIO_In_Init(dip_switches[i]);
+	}
+}
+
+/******************************************************************************
+ * 函数名:	user_settings_key_get 
+ * 描述: 
+ *            -得到dip_switch的值, 默认上拉的, 当拨到ON则为低电平0
+ *            -也就是OFF: 1,  ON: 0
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 0: OFF,OFF,  1:OFF,ON,  2:ON,OFF, 3:ON,ON
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.08.20
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+uint16_t user_settings_key_get(void)
+{
+	uint16_t pin_level =0;
+	uint16_t tmp =0;
+	uint16_t index;
+
+	for (index = 0; index < NUMBER_OF_DIPKEYS; index++)
+	{
+		pin_level <<= 1;	// 左移1位组成00,01,10,11
+		Delay_Ms(1);
+	        tmp= GPIO_ReadInputDataBit(dip_switches[index].gpio_grp,dip_switches[index].gpio_pin);
+	        pin_level |= (tmp  ? 0u : 1u);	// 低电平则为ON
+	}
+
+	return pin_level;
+}
+
+
+/******************************************************************************
+ * 函数名:	Address_Get_From_Key 
+ * 描述: 
+ *            -DIP switch 的初始化
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.08.20
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+void Dev_Address_Init(void)
+{
+	uint16_t dip_value = 0;
+	Dip_Switch_Init();
+	Delay_Ms(5);			// 等待一段时间稳定
+	dip_value = user_settings_key_get();
+	DevParams.Address = DEV_ADDR+dip_value;
+	system_flag|=DEV_MODIFIED; 	//是否有必要保存地址参数?
+}
+
 /******************************************************************************
  * 函数名:	GPIO_ReadInputAll 
  * 描述:  	 一次把所有的键值读出来

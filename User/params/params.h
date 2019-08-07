@@ -10,7 +10,7 @@
 #define DEV_ADDR			71
 #endif
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190728 			/*版本日期*/
+#define VERSION_DATE		 190806 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
 #define SYSTEM_SYNC		12341236		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/

@@ -146,6 +146,7 @@ void Init_System(void)
 	//IIC_Init();
 	/*对外部设备进行初始化*/
 	DIDO_Init();			// 要放在串口初始化的前面,否则会被非法引用卡死
+	Dev_Address_Init();
 /*工作时要设置成9600*/
 	Comm1_Init(Baud[DevParams.BaudRate_1]);	// USART1 配置模式为 9600 8-N-1，中断接收
 #if (BD_USART_NUM >= 2)
