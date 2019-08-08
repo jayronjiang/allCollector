@@ -69,11 +69,12 @@ const static Map_Reg_Table Reg_Table[] =
 	
 	
 	/*装置参数寄存器*/
-	{PARAMS_START_ADDR+0, (UINT16*)&DevParams.Address, WRITEREAD, 1},
+	{PARAMS_START_ADDR+0, (UINT16*)&DevParams.Address, READONLY, 1},
 	{PARAMS_START_ADDR+1, (UINT16*)&DevParams.BaudRate_1, WRITEREAD, 1},
 	{PARAMS_START_ADDR+2, (UINT16*)&DevParams.BaudRate_2, WRITEREAD, 1},
 	{PARAMS_START_ADDR+3, (UINT16*)&DevParams.BaudRate_3, WRITEREAD, 1},
-	{PARAMS_START_ADDR+4, (UINT16*)&DevParams.BaudRate_4, WRITEREAD, 1}
+	{PARAMS_START_ADDR+4, (UINT16*)&DevParams.BaudRate_4, WRITEREAD, 1},
+	{PARAMS_START_ADDR+5, (UINT16*)&SystemStatus, READONLY, 1}
 };
 
 const INT32 Reg_max[] = {
@@ -84,7 +85,7 @@ const INT32 Reg_max[] = {
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
 
 							/*装置参数寄存器*/
-							240,5,5,5,5
+							240,5,5,5,5,1
 						};
 
 const INT32 Reg_min[] = {
@@ -95,7 +96,7 @@ const INT32 Reg_min[] = {
 							0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,
 
 							/*装置参数寄存器*/
-							1,0,0,0,0
+							1,0,0,0,0,0
 						};
 
 

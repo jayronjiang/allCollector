@@ -57,6 +57,24 @@ static void Task_Schedule(void)
 		{
 			system_flag &= ~DEV_MODIFIED;
 			Write_DevParams();
+			system_flag |= PARAM_CHECK;	// 写入参数后要自检一次flash
+		}
+	}
+
+	/*每20s检查是否有写flash, 如果有则进行一次检查*/
+	if (system_flag&SYS_ERR_CHK)
+	{
+		system_flag &= ~ SYS_ERR_CHK;
+		if (system_flag&PARAM_CHECK)
+		{
+			system_flag &= ~PARAM_CHECK;
+			Self_Check();
+		}
+		// 每20s闪烁一次comm灯,表示flash异常
+		if (SystemStatus)
+		{
+			/*注意延时不要太长，会导致看门狗溢出*/
+			LED_Flashing(LED_COM, 100, 2);
 		}
 	}
 

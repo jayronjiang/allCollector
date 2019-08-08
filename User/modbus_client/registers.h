@@ -46,7 +46,7 @@
 
 /*装置参数寄存器*/
 #define PARAMS_START_ADDR		1200		/*设备参数寄存器开始地址*/
-#define PARAMS_REG_MAX			5			/*本版本所支持的最大寄存器数1204*/ 
+#define PARAMS_REG_MAX			6			/*本版本所支持的最大寄存器数1204*/ 
 
 /*遥控寄存器*/
 #define DO_START_ADDR					1500

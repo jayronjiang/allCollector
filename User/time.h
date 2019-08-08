@@ -10,7 +10,8 @@
 #define COMM3_MODIFIED		BIT6
 #define COMM4_MODIFIED		BIT7
 #define DEV_MODIFIED			BIT8
-#define PARAM_ERR			BIT9
+//#define PARAM_ERR			BIT9
+#define PARAM_CHECK			BIT10
 
 extern uint16_t system_flag;
 extern volatile uint32_t system_time_ms;
@@ -23,7 +24,7 @@ extern uint8_t  reset_flag;
 #define SECOND_10 			(500)
 
 
-#define AUTO_DETCET_TIME	(3  *ONE_SECOND)
+#define AUTO_DETCET_TIME		(20  *ONE_SECOND)
 #define ALARM_TIME			(10  *ONE_SECOND)
 
 /*下面的延时只适用72M系统时钟*/

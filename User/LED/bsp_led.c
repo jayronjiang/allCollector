@@ -76,15 +76,19 @@ void LED_Flashing(uint16_t LED_No,uint16_t mtime, uint16_t flashtime)
 		{
 		case (LED_1): 
 	     		LED1(ON);
+			wdt_counter = 0;
 			Delay_Ms(mtime);
 			LED1(OFF);
+			wdt_counter = 0;
 			Delay_Ms(mtime);
 	      		break;
 
 		case (LED_2): 
 	     		LED2(ON);
+			wdt_counter = 0;	// 延时之前喂狗1次,防止flashtime多次会溢出
 			Delay_Ms(mtime);
 			LED2(OFF);
+			wdt_counter = 0;
 			Delay_Ms(mtime);
 	      		break;
 

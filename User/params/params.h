@@ -10,7 +10,7 @@
 #define DEV_ADDR			71
 #endif
 #define SOFTWARE_VERSION 10000			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190806 			/*版本日期*/
+#define VERSION_DATE		 190808 			/*版本日期*/
 #define PROTOCAL_REVISION 10
 
 #define SYSTEM_SYNC		12341236		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
@@ -20,6 +20,8 @@
 #define FM_FIRST_WORD    	0X04		/*首次上电标志的地址+4*/
 #define FM_DEVICE                	0X10
 #define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+16*/
+
+#define DEVICE_PARAM_ERROR 	BIT0
 
 /*******************************************************************************************/
 
@@ -52,10 +54,12 @@ extern DEVICE_PARAMS DevParams;
 
 extern DeviceInfoParams  DevicComInfor;
 extern const DEVICE_PARAMS Init_DevParams;
+extern UINT16 SystemStatus;
 
 void Write_DevParams(void);
 void Init_Params(void);
 void ComDeviceInfoInit(void);
+void Self_Check(void);
 
 #endif
 

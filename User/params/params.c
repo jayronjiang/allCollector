@@ -4,7 +4,7 @@
 DEVICE_PARAMS DevParams;
 /*装置相关信息*/
 DeviceInfoParams  DevicComInfor;
-
+UINT16 SystemStatus = 0;	// 0:良好，1: 有故障
 
 #if 0
 RSU_PARAMS RSUParams;
@@ -173,7 +173,7 @@ void Init_Params(void)
 	if(err_sign)
 	{
 		//参数错误
-		system_flag |= PARAM_ERR;
+		SystemStatus = 1;
 	}
 
 	// 装置信息初始化
@@ -223,6 +223,38 @@ void ComDeviceInfoInit(void)
 	DevicComInfor.softDate = (UINT32)VERSION_DATE-(UINT32)DevicComInfor.softYear*10000 
                                   - (UINT16)DevicComInfor.softMonth*100;
 	DevicComInfor.protocolVersion = PROTOCAL_REVISION;
+}
+
+
+/******************************************************************************
+ * 函数名:	Self_Check 
+ * 描述: 
+ *            -系统自检
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.08.08
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+void Self_Check(void)
+{
+	DEVICE_PARAMS DevParamRead;
+
+	memset(&DevParamRead, 0, DEVICE_PARAM_COUNTER);	// 初始化为0
+	read_fm_memory(FM_DEVICE, (UINT8*)&DevParamRead, DEVICE_PARAM_COUNTER);
+	if (memcpy(&DevParams,&DevParamRead,DEVICE_PARAM_COUNTER))
+	{
+		SystemStatus = 0;
+	}
+	else
+	{
+		SystemStatus = 1;
+	}
 }
 
 
