@@ -274,33 +274,33 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
  * 创建日期:20190613
  * 
  ******************************************************************************/
-void params_modify_deal(void)
+void params_modify_deal(USART_LIST uart_no)
 {
-	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM1_MODIFIED) )	/*修改了通信参数*/
+	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM1_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm1_Init(Baud[DevParams.BaudRate_1]);
 		system_flag&=~COMM1_MODIFIED;
 	}
 	
-	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM2_MODIFIED) )	/*修改了通信参数*/
+	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM2_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm2_Init(Baud[DevParams.BaudRate_2]);
 		system_flag&=~COMM2_MODIFIED;
 	}
 
-	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM3_MODIFIED) )	/*修改了通信参数*/
+	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM3_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm4_Init(Baud[DevParams.BaudRate_3]);
 		system_flag&=~COMM3_MODIFIED;
 	}
 
-	if((UARTBuf[PC_UART].TxLen == 0)&& (system_flag&COMM4_MODIFIED) )	/*修改了通信参数*/
+	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM4_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm5_Init(Baud[DevParams.BaudRate_4]);
 		system_flag&=~COMM4_MODIFIED;
 	}
 	
-	if( System_Reset &&(UARTBuf[PC_UART].TxLen == 0))/*装置复位放在最后,等待所有操作完成后进行重启*/
+	if( System_Reset &&(UARTBuf[uart_no].TxLen == 0))/*装置复位放在最后,等待所有操作完成后进行重启*/
 	{
 		System_Reset = 0;
 		INT_DISABLE();		// 防止复位命令被打断
@@ -327,6 +327,7 @@ void params_modify_deal(void)
 void comm_rec_proc(void)
 {
 	USART_LIST i = BD1_UART;
+	USART_LIST validUt = UART1_COM;
 
 	/*4个口任何一个口有数据,都执行MODBUS协议*/
 	for ( i = UART1_COM; i < UART_NUM; i++)
@@ -349,8 +350,9 @@ void comm_rec_proc(void)
 			}
 			Delay_clk(50);
 			UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+			validUt = i;
 		}
-		params_modify_deal();	//后续的数据改变处理,注意它的调用在大循环里面
+		params_modify_deal(validUt);	//后续的数据改变处理,注意它的调用在大循环里面
 	}
 }
 /*********************************************END OF FILE**********************/
