@@ -420,6 +420,9 @@ void TIM2_IRQHandler (void)
 	    	}
 	}
 
+	/* 软件计时器更新*/
+	swt_20_ms_update();
+
 	// 5s时间到，参数轮询
 	if( ++t_1s>= ONE_SECOND)
 	{

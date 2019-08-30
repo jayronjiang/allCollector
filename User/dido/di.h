@@ -72,7 +72,7 @@ extern uint16_t  input[DI_NUM];	// DI的整形值,用在MODBUS中
 
 void DI_Init(void);
 void DEVICE_GPIO_IN_Config(DEVICE_STATUS_LIST dev);
-void DO_Queue_Init(void);
+void DI_Queue_Init(void);
 #endif
 
 

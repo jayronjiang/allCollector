@@ -37,7 +37,41 @@ void DEVICE_GPIO_OUT_Config(DEVICE_CTRL_LIST dev)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(device_ctrl_queue[dev].gpio_grp, &GPIO_InitStructure);  //初始化端口
-	DeviceX_Deactivate(dev);	 // 初始化为闭合,因为闭合才是常态
+}
+
+/******************************************************************************
+ * 函数名:	DO_All_Output 
+ * 描述: 
+ *            -DO所有通道同时输出1个状态
+ * 输入参数: 无
+ * 输出参数: 无
+ * 返回值: 无
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.08.20
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+void DO_All_Output(UINT8 direction)
+{
+	UINT8 i;
+
+	if (direction == DIR_CLOSE)
+	{
+		for( i=0; i< ACTRUL_DO_NUM;i++ )
+		{
+			Relay_Act(i);
+		}
+	}
+	else
+	{
+		for( i=0; i< ACTRUL_DO_NUM;i++ )
+		{
+			Relay_Return(i);
+		}
+	}
 }
 
 
@@ -60,7 +94,8 @@ void DO_Init(void)
 {
 	UINT8 i;
 	/*I/O口初始化*/
-	DO_Queue_Init();
+	DO_Queue_Init(DIR_CLOSE);
+	DO_Queue_Init(DIR_OPEN);
 	Do_Status_Update();
 	for( i=0; i< ACTRUL_DO_NUM;i++ )
 	{ 
@@ -70,7 +105,6 @@ void DO_Init(void)
 		RelayStatus[i].ReturnPresetCounter = 0L;
 		RelayStatus[i].ReturnPresetFlag = FALSE;
 		RelayStatus[i].PulseCounter = 0;
-		Get_Do_Status_And_Output(i);
 	}
 }
 
@@ -92,10 +126,18 @@ void DO_Init(void)
  *
  *
  ***********************************************************************************/
-void DeviceX_Activate(DEVICE_CTRL_LIST dev)
+void DeviceX_Activate(DEVICE_CTRL_LIST dev, UINT8 direction)
 {
 	assert_param(dev<DO_NUM);
-	GPIO_SetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
+	// 测试发现负脉冲是打开,正脉冲是闭合
+	if (direction == DIR_OPEN)
+	{
+		GPIO_SetBits(device_ctrl_queue[dev].gpio_n_grp, device_ctrl_queue[dev].gpio_n_pin);
+	}
+	else
+	{
+		GPIO_SetBits(device_ctrl_queue[dev].gpio_p_grp, device_ctrl_queue[dev].gpio_p_pin);
+	}
 }
 
 /***********************************************************************************
@@ -116,10 +158,18 @@ void DeviceX_Activate(DEVICE_CTRL_LIST dev)
  *
  *
  ***********************************************************************************/
-void DeviceX_Deactivate(DEVICE_CTRL_LIST dev)
+void DeviceX_Deactivate(DEVICE_CTRL_LIST dev,UINT8 direction)
 {
 	assert_param(dev<DO_NUM);
-	GPIO_ResetBits(device_ctrl_queue[dev].gpio_grp, device_ctrl_queue[dev].gpio_pin);
+	// 测试发现负脉冲是打开,正脉冲是闭合
+	if (direction == DIR_OPEN)
+	{
+		GPIO_ResetBits(device_ctrl_queue[dev].gpio_n_grp, device_ctrl_queue[dev].gpio_n_pin);
+	}
+	else
+	{
+		GPIO_ResetBits(device_ctrl_queue[dev].gpio_p_grp, device_ctrl_queue[dev].gpio_p_pin);
+	}
 }
 
 
@@ -230,24 +280,23 @@ void Do_Status_Update(void)
  * 创建日期:2019.7.18
  * 
  ******************************************************************************/
-UINT8 Get_Do_Status_And_Output(UINT8 num)
+void  Get_Do_Status_And_Output(void)
 {
-	if(num < DO_NUM)
+	UINT8 num;
+
+	for( num=0; num< ACTRUL_DO_NUM; num++ )
 	{
 		if(DO_Status & BIT(num))		/*处于闭合状态时动作无效*/
 		{
-			DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
+			DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_CLOSE);
+			swt_20_ms_set(DIR_CLOSE,num,PULSE_LEN);
 		}
 		else
 		{
-			DeviceX_Activate((DEVICE_CTRL_LIST)num);
+			DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_OPEN);
+			swt_20_ms_set(DIR_OPEN,num,PULSE_LEN);
 		}
 	}
-	else
-	{
-		return 0;
-	}
-	return 1;
 }
 
 
@@ -278,8 +327,8 @@ UINT8 Relay_Act(UINT8 num)
 	}
 
 	DO_Status |= BIT(num);
-	// 低电平动作
-	DeviceX_Deactivate((DEVICE_CTRL_LIST)num);
+	DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_CLOSE);
+	swt_20_ms_set(DIR_CLOSE,num,PULSE_LEN);
 	Do_Status_Save();
 	return 1;
 }
@@ -314,7 +363,8 @@ UINT8 Relay_Return(UINT8 num)
 		return 0;
 	}
 	DO_Status &= ~ BIT(num);
-	DeviceX_Activate((DEVICE_CTRL_LIST)num);
+	DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_OPEN);
+	swt_20_ms_set(DIR_OPEN,num,PULSE_LEN);
 	Do_Status_Save();
 
 	return 1;
@@ -497,96 +547,165 @@ UINT8 RelayOperate(UINT8 num, UINT8 mode)
  *
  *
  ***********************************************************************************/
-void DO_Queue_Init(void)
+void DO_Queue_Init(UINT8 direction)
 {
 	DEVICE_CTRL_LIST dev_type = DO_1;
 
-	for( dev_type=DO_1; dev_type<DO_NUM; dev_type++)
+	if (direction == DIR_CLOSE)
 	{
-		switch(dev_type)
+		for( dev_type=DO_1; dev_type<DO_NUM; dev_type++)
 		{
-		case DO_1:
-			device_ctrl_queue[dev_type].gpio_grp = DO1_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO1_POUT;
-			break;
+			switch(dev_type)
+			{
+			case DO_1:
+				device_ctrl_queue[dev_type].gpio_grp = DO1_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO1_NEG_POUT;
+				break;
 
-		case DO_2:
-			device_ctrl_queue[dev_type].gpio_grp = DO2_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO2_POUT;
-			break;
+			case DO_2:
+				device_ctrl_queue[dev_type].gpio_grp = DO2_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO2_NEG_POUT;
+				break;
 
-		case DO_3:
-			device_ctrl_queue[dev_type].gpio_grp = DO3_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO3_POUT;
-			break;
+			case DO_3:
+				device_ctrl_queue[dev_type].gpio_grp = DO3_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO3_NEG_POUT;
+				break;
 
-		case DO_4:
-			device_ctrl_queue[dev_type].gpio_grp = DO4_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO4_POUT;
-			break;
+			case DO_4:
+				device_ctrl_queue[dev_type].gpio_grp = DO4_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO4_NEG_POUT;
+				break;
 
-		case DO_5:
-			device_ctrl_queue[dev_type].gpio_grp = DO5_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO5_POUT;
-			break;
+			case DO_5:
+				device_ctrl_queue[dev_type].gpio_grp = DO5_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO5_NEG_POUT;
+				break;
 
-		case DO_6:
-			device_ctrl_queue[dev_type].gpio_grp = DO6_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO6_POUT;
-			break;
+			case DO_6:
+				device_ctrl_queue[dev_type].gpio_grp = DO6_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO6_NEG_POUT;
+				break;
 
-		case DO_7:
-			device_ctrl_queue[dev_type].gpio_grp = DO7_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO7_POUT;
-			break;
+			case DO_7:
+				device_ctrl_queue[dev_type].gpio_grp = DO7_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO7_NEG_POUT;
+				break;
 
-		case DO_8:
-			device_ctrl_queue[dev_type].gpio_grp = DO8_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO8_POUT;
-			break;
+			case DO_8:
+				device_ctrl_queue[dev_type].gpio_grp = DO8_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO8_NEG_POUT;
+				break;
 
-	#ifndef HAS_8I8O
-		/*DO9~DO12占用原来DI1~DI4*/
-		case DO_9:
-			device_ctrl_queue[dev_type].gpio_grp = DO9_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO9_POUT;
-			break;
+		#ifndef HAS_8I8O
+			/*DO9~DO12占用原来DI1~DI4*/
+			case DO_9:
+				device_ctrl_queue[dev_type].gpio_grp = DO9_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO9_NEG_POUT;
+				break;
 
-		case DO_10:
-			device_ctrl_queue[dev_type].gpio_grp = DO10_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO10_POUT;
-			break;
+			case DO_10:
+				device_ctrl_queue[dev_type].gpio_grp = DO10_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO10_NEG_POUT;
+				break;
 
-		case DO_11:
-			device_ctrl_queue[dev_type].gpio_grp = DO11_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO11_POUT;
-			break;
+			case DO_11:
+				device_ctrl_queue[dev_type].gpio_grp = DO11_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO11_NEG_POUT;
+				break;
 
-		case DO_12:
-			device_ctrl_queue[dev_type].gpio_grp = DO12_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = DO12_POUT;
-			break;
-	#endif
-
-		/*这2路DO控制RS485的方向*/
-		case RS485_CTRL_1:
-			device_ctrl_queue[dev_type].gpio_grp = RS485_1_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = RS485_1_POUT;
-			break;
-
-		case RS485_CTRL_2:
-			device_ctrl_queue[dev_type].gpio_grp = RS485_2_OUT_GRP;
-			device_ctrl_queue[dev_type].gpio_pin = RS485_2_POUT;
-			break;
-
-		default:
-			break;
+			case DO_12:
+				device_ctrl_queue[dev_type].gpio_grp = DO12_OUT_NEG_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO12_NEG_POUT;
+				break;
+		#endif
+			default:
+				break;
+			}
+			device_ctrl_queue[dev_type].gpio_n_grp = device_ctrl_queue[dev_type].gpio_grp;
+			device_ctrl_queue[dev_type].gpio_n_pin = device_ctrl_queue[dev_type].gpio_pin;
+			DEVICE_GPIO_OUT_Config(dev_type);
 		}
-		DEVICE_GPIO_OUT_Config(dev_type);
+	}
+	else 
+	{
+		for( dev_type=DO_1; dev_type<DO_NUM; dev_type++)
+		{
+			switch(dev_type)
+			{
+			case DO_1:
+				device_ctrl_queue[dev_type].gpio_grp = DO1_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO1_POS_POUT;
+				break;
+
+			case DO_2:
+				device_ctrl_queue[dev_type].gpio_grp = DO2_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO2_POS_POUT;
+				break;
+
+			case DO_3:
+				device_ctrl_queue[dev_type].gpio_grp = DO3_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO3_POS_POUT;
+				break;
+
+			case DO_4:
+				device_ctrl_queue[dev_type].gpio_grp = DO4_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO4_POS_POUT;
+				break;
+
+			case DO_5:
+				device_ctrl_queue[dev_type].gpio_grp = DO5_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO5_POS_POUT;
+				break;
+
+			case DO_6:
+				device_ctrl_queue[dev_type].gpio_grp = DO6_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO6_POS_POUT;
+				break;
+
+			case DO_7:
+				device_ctrl_queue[dev_type].gpio_grp = DO7_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO7_POS_POUT;
+				break;
+
+			case DO_8:
+				device_ctrl_queue[dev_type].gpio_grp = DO8_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO8_POS_POUT;
+				break;
+
+		#ifndef HAS_8I8O
+			/*DO9~DO12占用原来DI1~DI4*/
+			case DO_9:
+				device_ctrl_queue[dev_type].gpio_grp = DO9_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO9_POS_POUT;
+				break;
+
+			case DO_10:
+				device_ctrl_queue[dev_type].gpio_grp = DO10_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO10_POS_POUT;
+				break;
+
+			case DO_11:
+				device_ctrl_queue[dev_type].gpio_grp = DO11_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO11_POS_POUT;
+				break;
+
+			case DO_12:
+				device_ctrl_queue[dev_type].gpio_grp = DO12_OUT_POS_GRP;
+				device_ctrl_queue[dev_type].gpio_pin = DO12_POS_POUT;
+				break;
+		#endif
+			default:
+				break;
+			}
+			device_ctrl_queue[dev_type].gpio_p_grp = device_ctrl_queue[dev_type].gpio_grp;
+			device_ctrl_queue[dev_type].gpio_p_pin = device_ctrl_queue[dev_type].gpio_pin;
+			DEVICE_GPIO_OUT_Config(dev_type);
+		}
 	}
 }
 
-
+#if 0
 /*485发送/接收功能选择: 低电平接收,高电平发送*/
 void rs485FuncSelect(DEVICE_CTRL_LIST seq,bool value)
 {
@@ -599,3 +718,5 @@ void rs485FuncSelect(DEVICE_CTRL_LIST seq,bool value)
 		DeviceX_Deactivate(seq);
 	}
 }
+#endif
+

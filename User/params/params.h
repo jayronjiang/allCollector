@@ -9,11 +9,11 @@
 #define DEVICE_TYPE 		"LTKJ_I0O12"			/*装置设备类型的定义*/
 #define DEV_ADDR			71
 #endif
-#define SOFTWARE_VERSION 10001			/*装置的软件版本1.00.00*/
-#define VERSION_DATE		 190809 			/*版本日期*/
-#define PROTOCAL_REVISION 10
+#define SOFTWARE_VERSION 	10001			/*装置的软件版本1.00.01*/
+#define VERSION_DATE		 	190830 			/*版本日期*/
+#define PROTOCAL_REVISION 	10
 
-#define SYSTEM_SYNC		12341236		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341239		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
@@ -57,7 +57,7 @@ extern const DEVICE_PARAMS Init_DevParams;
 extern UINT16 SystemStatus;
 
 void Write_DevParams(void);
-void Init_Params(void);
+bool  Init_Params(void);
 void ComDeviceInfoInit(void);
 void Self_Check(void);
 

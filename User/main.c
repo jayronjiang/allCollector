@@ -21,6 +21,39 @@ const uint32_t FLASH_SIZE=32*1024*1024;		//FLASH 大小为2M字节
 #endif
 
 /******************************************************************************
+ * 函数名:	DO_Pulse_End_Task 
+ * 描述: 处理DO的脉宽长度,控制磁保持继电器
+ *		脉宽推荐为100ms
+ *
+ * 输入参数: 
+ * 输出参数: 
+ * 返回值: 
+ * 
+ * 作者:Jerry
+ * 创建日期:2018.11.21
+ * 
+ *------------------------
+ * 修改人:
+ * 修改日期:
+ ******************************************************************************/
+ static void DO_Pulse_End_Task(void)
+{
+	uint8_t  t_dir = 0, t_id = 0;
+
+	for (t_dir = 0; t_dir < DIRECTION_NUM; t_dir++)
+	{
+		for (t_id = 0; t_id < MAX_NUMBER_OF_SW_TIMERS; t_id++) 
+		{
+			/*100ms脉冲时间到, 定时器清0*/
+			if (swt_20_ms_check_and_clear(t_dir,t_id))
+			{
+				swt_20_ms_release(t_dir,t_id);
+				DeviceX_Deactivate((DEVICE_CTRL_LIST)t_id, t_dir);
+			}
+		}
+	}
+}
+/******************************************************************************
  * 函数名:	Task_Schedule 
  * 描述: 任务处理主函数, 处理各种事件和任务
  *
@@ -77,6 +110,8 @@ static void Task_Schedule(void)
 			LED_Flashing(LED_COM, 100, 2);
 		}
 	}
+
+	DO_Pulse_End_Task();
 
 #if 0
 		/* 测试SPI, LG对应KEY1, ALARM 对应KEY0*/

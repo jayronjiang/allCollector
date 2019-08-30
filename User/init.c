@@ -141,9 +141,9 @@ void Init_System(void)
 	SysTick_Init();	// 本程序不带操作系统,只是一个普通的ms定时器
 
 	W25QXX_Init();		//W25QXX初始化
+	//IIC_Init();
 	/*放在串口初始化前面,因为串口也有参数*/
 	Init_Params();		//上电读取参数并自检
-	//IIC_Init();
 	/*对外部设备进行初始化*/
 	DIDO_Init();			// 要放在串口初始化的前面,否则会被非法引用卡死
 	Dev_Address_Init();
@@ -170,4 +170,6 @@ void Init_System(void)
 	INT_ENABLE();
 	Timer_Start();
 	SysTick_start();
+
+	Get_Do_Status_And_Output();
 }

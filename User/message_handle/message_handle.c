@@ -92,7 +92,7 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART4_COM].pRxBuf = UARTBuf[UART4_COM].RxBuf;
 	ProtocolBuf[UART4_COM].RxLen = 0;
 	ProtocolBuf[UART4_COM].TxLen = 0;
-	rs485FuncSelect(RS485_CTRL_1,SEL_R);
+	//rs485FuncSelect(RS485_CTRL_1,SEL_R);
 }
 #endif
 
@@ -121,7 +121,7 @@ void Comm1_Init(uint32_t baudrate)
 	ProtocolBuf[UART5_COM].pRxBuf = UARTBuf[UART5_COM].RxBuf;
 	ProtocolBuf[UART5_COM].RxLen = 0;
 	ProtocolBuf[UART5_COM].TxLen = 0;
-	rs485FuncSelect(RS485_CTRL_2,SEL_R);
+	//rs485FuncSelect(RS485_CTRL_2,SEL_R);
 }
 #endif
 
@@ -215,14 +215,14 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	else if (destUtNo == UART4_COM)
 	{
 		PUSART = UART4;
-		rs485FuncSelect(RS485_CTRL_1,SEL_S);		//485开始发送
+		//rs485FuncSelect(RS485_CTRL_1,SEL_S);		//485开始发送
 	}
 #endif
 #if (BD_USART_NUM >= 4)
 	else if (destUtNo == UART5_COM)
 	{
 		PUSART = UART5;
-		rs485FuncSelect(RS485_CTRL_2,SEL_S);		//485开始发送
+		//rs485FuncSelect(RS485_CTRL_2,SEL_S);		//485开始发送
 	}
 #endif
 	else
@@ -250,16 +250,18 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	
 	pDestbuf->TxLen = 0;
 	LED_Set(LED_COM, OFF); 	// 通信完毕
+	#if 0
 	if ((destUtNo == UART4_COM) )
 	{
 		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节
-		rs485FuncSelect(RS485_CTRL_1,SEL_R);	//发送完后要转为接收
+		//rs485FuncSelect(RS485_CTRL_1,SEL_R);	//发送完后要转为接收
 	}
 	else if (destUtNo == UART5_COM)
 	{
 		Delay_Ms(1);	// 9600波特率1ms 即等待1个字节
-		rs485FuncSelect(RS485_CTRL_2,SEL_R);	//发送完后要转为接收
+		//rs485FuncSelect(RS485_CTRL_2,SEL_R);	//发送完后要转为接收
 	}
+	#endif
 }
 
 /******************************************************************************
@@ -276,29 +278,37 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
  ******************************************************************************/
 void params_modify_deal(USART_LIST uart_no)
 {
+#if (BD_USART_NUM >= 1)
 	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM1_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm1_Init(Baud[DevParams.BaudRate_1]);
 		system_flag&=~COMM1_MODIFIED;
 	}
-	
+#endif
+
+#if (BD_USART_NUM >= 2)
 	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM2_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm2_Init(Baud[DevParams.BaudRate_2]);
 		system_flag&=~COMM2_MODIFIED;
 	}
-
+#endif
+	
+#if (BD_USART_NUM >= 3)
 	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM3_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm4_Init(Baud[DevParams.BaudRate_3]);
 		system_flag&=~COMM3_MODIFIED;
 	}
+#endif
 
+#if (BD_USART_NUM >= 4)
 	if((UARTBuf[uart_no].TxLen == 0)&& (system_flag&COMM4_MODIFIED) )	/*修改了通信参数*/
 	{
 		Comm5_Init(Baud[DevParams.BaudRate_4]);
 		system_flag&=~COMM4_MODIFIED;
 	}
+#endif
 	
 	if( System_Reset &&(UARTBuf[uart_no].TxLen == 0))/*装置复位放在最后,等待所有操作完成后进行重启*/
 	{

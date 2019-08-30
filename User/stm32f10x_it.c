@@ -136,7 +136,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-	static uint16_t scan_counter=0;
+	//static uint16_t scan_counter=0;
 
 	system_time_ms++;
 
