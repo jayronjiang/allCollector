@@ -168,7 +168,7 @@ void USART1_IRQHandler(void)
 	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{	
-		LED_Set(LED_COM, ON); 	// 只有UART1收到数据才闪灯
+		//LED_Set(LED_COM, ON); 	// 只有UART1收到数据才闪灯
 		ch = USART_ReceiveData(USART1);
 
 		UARTBuf[UART1_COM].RxBuf[UARTBuf[UART1_COM].RxLen] = ch ;
@@ -187,7 +187,7 @@ void USART1_IRQHandler(void)
 		//ch = USART2->SR;
 		/*读DR寄存器清除标志*/
 		ch = USART_ReceiveData(USART1);
-		LED_Set(LED_COM, OFF); 	// 通信完毕
+		//LED_Set(LED_COM, OFF); 	// 通信完毕
 	}
 }
 /*********************************************END OF FILE**********************/

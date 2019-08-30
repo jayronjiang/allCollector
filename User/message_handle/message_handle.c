@@ -13,6 +13,7 @@
 
 /*定义通信缓冲区*/
 PROTOCOL_BUF ProtocolBuf[UART_NUM];
+volatile uint16_t testVar = 0x01;
 
 /******************************************************************************
  * 函数名:	Comm1_Init 
@@ -157,6 +158,16 @@ void message_pack(USART_LIST destUtNo, uint8_t msg_type,PROTOCOL_BUF *buf)
 			pbuf[len] = buf->pRxBuf[len];
 			len++;
 		}
+		break;
+
+	/*专门用来测试*/
+	case TEST_MSG:
+		pbuf[len++] = 0x02;
+		pbuf[len++] = 0x03;		// 车型pbuf[1] 
+		pbuf[len++] = 0x05;		// 车重pbuf[2] 
+		
+		pbuf[len++] = 0x64;
+		pbuf[len++] = ++testVar;
 		break;
 		
 	case NOT_USED_MSG:
@@ -344,22 +355,51 @@ void comm_rec_proc(void)
 	{
 		if (UARTBuf[i].RecFlag)		                      //client的RS485口有数据
 		{
-			UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
-			ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
-			ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
-			ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
-			ProtocolBuf[i].TxLen = 0;
-
-			modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
-
-			UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
-			if(UARTBuf[i].TxLen >0)
+			if (test485Flag &&(i==testRxUt))
 			{
-				message_send_printf(i, i, FALSE, NOT_USED_MSG);
-				UARTBuf[i].TxLen = 0;
+				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				ProtocolBuf[i].TxLen = 0;
+				// 如果接收和发送相等,485测试完毕
+				if (!memcmp(ProtocolBuf[testRxUt].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
+				{
+					test485Flag = FALSE;
+				}
 			}
-			Delay_clk(50);
-			UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+			else if (test232Flag &&(i==UART1_COM))
+			{
+				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				ProtocolBuf[i].TxLen = 0;
+				// 如果接收和发送相等,232测试完毕
+				if (!memcmp(ProtocolBuf[i].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
+				{
+					test232Flag = FALSE;
+				}
+			}
+			else
+			{
+				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
+				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
+				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
+				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				ProtocolBuf[i].TxLen = 0;
+
+				modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
+
+				UARTBuf[i].TxLen = ProtocolBuf[i].TxLen;  /*置换回来，处理物理层数据*/
+				if(UARTBuf[i].TxLen >0)
+				{
+					message_send_printf(i, i, FALSE, NOT_USED_MSG);
+					UARTBuf[i].TxLen = 0;
+				}
+				Delay_clk(50);
+				UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
+			}
 			validUt = i;
 		}
 		params_modify_deal(validUt);	//后续的数据改变处理,注意它的调用在大循环里面

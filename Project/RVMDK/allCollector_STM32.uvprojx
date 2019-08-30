@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\..\Output\</OutputDirectory>
-          <OutputName>PowerIO_V1.00.01</OutputName>
+          <OutputName>PowerTest_V1.00.01</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_CL, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\message_handle;..\..\User\debug;..\..\User\sys;..\..\User\spi;..\..\User\iic;..\..\User\modbus_client;..\..\User\params;..\..\User\dido;..\..\User\modbus_server;..\..\User\sw_timer</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS;..\..\User;..\..\Libraries\FWlib\inc;..\..\User\Key;..\..\User\LED;..\..\User\motor;..\..\User\SysTick;..\..\User\usart;..\..\User\message_handle;..\..\User\debug;..\..\User\sys;..\..\User\spi;..\..\User\iic;..\..\User\modbus_client;..\..\User\params;..\..\User\dido;..\..\User\modbus_server;..\..\User\sw_timer;..\..\User\test</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -676,6 +676,11 @@
               <FileName>sw_timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\sw_timer\sw_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_mode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_mode.c</FilePath>
             </File>
           </Files>
         </Group>

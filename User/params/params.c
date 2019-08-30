@@ -139,7 +139,7 @@ UINT8  Read_Fm_Param(UINT16 *device_p,const UINT16  *device_init_p, UINT16 devic
  * 修改人:Jerry
  * 修改日期:2013-02-01
  ******************************************************************************/
-bool Init_Params(void)
+void Init_Params(void)
 {
 	UINT16 err_sign = 0;
 	UINT32 sync_sign = 0;

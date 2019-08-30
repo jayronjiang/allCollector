@@ -10,8 +10,11 @@
 #define COMM3_MODIFIED		BIT6
 #define COMM4_MODIFIED		BIT7
 #define DEV_MODIFIED			BIT8
-//#define PARAM_ERR			BIT9
+#define PARAM_ERR			BIT9
 #define PARAM_CHECK			BIT10
+#define TEST_SEQ				BIT11
+#define TEST_LED				BIT12
+#define TEST_DISPLAY			BIT13
 
 extern uint16_t system_flag;
 extern volatile uint32_t system_time_ms;
@@ -20,8 +23,11 @@ extern uint8_t  reset_flag;
 /* 用在20ms中断中,因此1s就是50个计数周期*/
 #define MS_200 				(10)		// 100ms就是5个周期
 #define ONE_SECOND 			(50)
+#define SECOND_3 				(150)
 #define SECOND_5 				(250)
 #define SECOND_10 			(500)
+#define SECOND_20 			(1000)
+#define MS_500 				(25)
 
 
 #define AUTO_DETCET_TIME		(20  *ONE_SECOND)

@@ -112,6 +112,17 @@ static void Task_Schedule(void)
 	}
 
 	DO_Pulse_End_Task();
+	if  (finish_flag == (BIT(TEST_NUMBER_OF_TESTS)-1))
+	{
+		static bool entry = FALSE;
+		if(entry == FALSE)
+		{
+			entry = TRUE;
+			//延时700ms让灭灯能看出来
+			Delay_Xms(700);
+		}
+		test_indication();
+	}
 
 #if 0
 		/* 测试SPI, LG对应KEY1, ALARM 对应KEY0*/
@@ -156,6 +167,7 @@ int main(void)
 		comm_rec_proc();			// CLIENT
 		//comm_polling_process();	//SERVER
 		Task_Schedule();			// 系统任务列表
+		test_mode_update();		// 测试状态机
 	}
 }
 /*********************************************END OF FILE**********************/

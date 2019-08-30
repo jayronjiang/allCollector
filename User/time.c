@@ -403,6 +403,8 @@ void TIM2_IRQHandler (void)
 {   
 	static uint16_t t_100ms = 0;
 	static uint16_t t_1s = 0;
+	static uint16_t t_500ms = 0;
+	static uint16_t t_3s = 0;
 	
 
 	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
@@ -423,13 +425,26 @@ void TIM2_IRQHandler (void)
 	/* 软件计时器更新*/
 	swt_20_ms_update();
 
-	// 5s时间到，参数轮询
+	// 1s时间到，参数轮询
 	if( ++t_1s>= ONE_SECOND)
 	{
 		t_1s = 0;
 		// 系统时间,1s单位
 		system_time_s++;
 		system_flag |= PARAM_UPDATE;
+	}
+
+	// 3s时间到，参数轮询
+	if( ++t_3s>= SECOND_3)
+	{
+		t_3s = 0;
+		system_flag |= TEST_DISPLAY;
+	}
+
+	if( ++t_500ms>= MS_500)
+	{
+		t_500ms = 0;
+		system_flag |= TEST_LED;
 	}
 
 

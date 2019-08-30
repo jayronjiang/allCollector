@@ -32,7 +32,7 @@
 
 // 信息打包类型
 #define NOT_USED_MSG		0xFF		// 未使用
-#define RES_MSG				0x01		// 回复帧
+#define TEST_MSG				0x01		// 回复帧
 #define ERR_RES_MSG			0x02		// 回复帧
 #define TRANS_MSG			0x0A		// 透传命令
 
@@ -45,6 +45,8 @@ typedef  struct
 }PROTOCOL_BUF;
 
 extern PROTOCOL_BUF	ProtocolBuf[UART_NUM];
+extern bool test485Flag;
+extern bool test232Flag;
 
 void Comm1_Init(uint32_t baudrate);
 #if (BD_USART_NUM >= 2)

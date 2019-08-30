@@ -42,6 +42,7 @@
 #include "Ydn23.h"
 #include "debug.h"
 #include "sw_timer.h"
+#include "test_mode.h"
 
 #endif /* __INCLUDE_H */
 

@@ -3,23 +3,25 @@
 
 /********************铁电地址划分,共8K的铁电*********************************/
 #ifdef HAS_8I8O
-#define DEVICE_TYPE 		"LTKJ_I8O8"			/*装置设备类型的定义*/
+#define DEVICE_TYPE 		"POWERTEST"			/*装置设备类型的定义*/
 #define DEV_ADDR			61
 #else
-#define DEVICE_TYPE 		"LTKJ_I0O12"			/*装置设备类型的定义*/
+#define DEVICE_TYPE 		"POWERTEST"			/*装置设备类型的定义*/
 #define DEV_ADDR			71
 #endif
 #define SOFTWARE_VERSION 	10001			/*装置的软件版本1.00.01*/
-#define VERSION_DATE		 	190830 			/*版本日期*/
+#define VERSION_DATE		 	190831 			/*版本日期*/
 #define PROTOCAL_REVISION 	10
 
-#define SYSTEM_SYNC		12341239		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
+#define SYSTEM_SYNC		12341237		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
 
 #define DEVICE_PARAM_COUNTER 		sizeof(struct device_params_struct)	/*410个字节*/
 
 #define FM_FIRST_WORD    	0X04		/*首次上电标志的地址+4*/
 #define FM_DEVICE                	0X10
 #define FM_DEVICE_END     	(FM_DEVICE+DEVICE_PARAM_COUNTER) 	/*+16*/
+
+#define FM_TEST_WORD    	0X100		/*测试地址*/
 
 #define DEVICE_PARAM_ERROR 	BIT0
 
@@ -57,7 +59,7 @@ extern const DEVICE_PARAMS Init_DevParams;
 extern UINT16 SystemStatus;
 
 void Write_DevParams(void);
-bool  Init_Params(void);
+void  Init_Params(void);
 void ComDeviceInfoInit(void);
 void Self_Check(void);
 
