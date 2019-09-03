@@ -141,6 +141,7 @@ void Init_System(void)
 	SysTick_Init();	// 本程序不带操作系统,只是一个普通的ms定时器
 
 	W25QXX_Init();		//W25QXX初始化
+	Delay_Ms(10);
 	//IIC_Init();
 	/*放在串口初始化前面,因为串口也有参数*/
 	Init_Params();		//上电读取参数并自检
