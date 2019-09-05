@@ -10,7 +10,7 @@
 #define DEV_ADDR			71
 #endif
 #define SOFTWARE_VERSION 	10001			/*装置的软件版本1.00.01*/
-#define VERSION_DATE		 	190831 			/*版本日期*/
+#define VERSION_DATE		 	190904 			/*版本日期*/
 #define PROTOCAL_REVISION 	10
 
 #define SYSTEM_SYNC		12341237		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/
@@ -59,7 +59,7 @@ extern const DEVICE_PARAMS Init_DevParams;
 extern UINT16 SystemStatus;
 
 void Write_DevParams(void);
-void  Init_Params(void);
+bool  Init_Params(void);
 void ComDeviceInfoInit(void);
 void Self_Check(void);
 

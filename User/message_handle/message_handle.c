@@ -214,7 +214,7 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	if (destUtNo == UART1_COM)
 	{
 		PUSART = USART1;
-		LED_Set(LED_COM, ON);
+		//LED_Set(LED_COM, ON);
 	}
 #if (BD_USART_NUM >= 2)
 	else if (destUtNo == UART2_COM)
@@ -260,7 +260,7 @@ void message_send_printf(USART_LIST destUtNo,USART_LIST scUtNo,bool pack_en, uin
 	}
 	
 	pDestbuf->TxLen = 0;
-	LED_Set(LED_COM, OFF); 	// 通信完毕
+	//LED_Set(LED_COM, OFF); 	// 通信完毕
 	#if 0
 	if ((destUtNo == UART4_COM) )
 	{
@@ -361,6 +361,7 @@ void comm_rec_proc(void)
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
 				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
 				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				UARTBuf[i].RxLen = 0;
 				ProtocolBuf[i].TxLen = 0;
 				// 如果接收和发送相等,485测试完毕
 				if (!memcmp(ProtocolBuf[testRxUt].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
@@ -368,12 +369,13 @@ void comm_rec_proc(void)
 					test485Flag = FALSE;
 				}
 			}
-			else if (test232Flag &&(i==UART1_COM))
+			else if (test232Flag &&((i==UART1_COM)||(i==UART2_COM)))
 			{
 				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
 				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
 				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				UARTBuf[i].RxLen = 0;
 				ProtocolBuf[i].TxLen = 0;
 				// 如果接收和发送相等,232测试完毕
 				if (!memcmp(ProtocolBuf[i].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
@@ -387,6 +389,7 @@ void comm_rec_proc(void)
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
 				ProtocolBuf[i].pRxBuf = UARTBuf[i].RxBuf;
 				ProtocolBuf[i].RxLen = UARTBuf[i].RxLen;
+				UARTBuf[i].RxLen = 0;
 				ProtocolBuf[i].TxLen = 0;
 
 				modbus_rtu_process(&ProtocolBuf[i], DevParams.Address);	/*MODBUS通信协议处理*/
@@ -398,7 +401,6 @@ void comm_rec_proc(void)
 					UARTBuf[i].TxLen = 0;
 				}
 				Delay_clk(50);
-				UARTBuf[i].RxLen = 0;	        /*接收数据已处理，清除相关标志*/
 			}
 			validUt = i;
 		}
