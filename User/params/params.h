@@ -9,8 +9,8 @@
 #define DEVICE_TYPE 		"POWERTEST"			/*装置设备类型的定义*/
 #define DEV_ADDR			71
 #endif
-#define SOFTWARE_VERSION 	10001			/*装置的软件版本1.00.01*/
-#define VERSION_DATE		 	190904 			/*版本日期*/
+#define SOFTWARE_VERSION 	10002			/*装置的软件版本1.00.02*/
+#define VERSION_DATE		 	190910 			/*版本日期*/
 #define PROTOCAL_REVISION 	10
 
 #define SYSTEM_SYNC		12341237		/*同步标志,只有CPU平台变化才进行修改，否则不要改变*/

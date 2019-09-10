@@ -198,11 +198,13 @@ bool test_mode_update(void)
 static bool test_entry(void)
 {
 	bool exit = FALSE;
+	static bool mode = FALSE;
 	UINT8 uErr = 0;			/*错误码*/
 	static UINT16 regStartAddr = 1500;
 	static UINT8 databuf[2] = {0xff,0x01};
 	static uint16_t count = 0;
 	static uint8_t entry = FALSE;
+	static uint16_t sub_count = 0;
 
 	if (dip_setting == DIP_ENTER)
 	{
@@ -219,16 +221,39 @@ static bool test_entry(void)
 		if (system_flag & TEST_LED)
 		{
 			system_flag &= ~TEST_LED;
-			count++;
-			Write_SingleCoil(regStartAddr, databuf, &uErr);
-			regStartAddr++;
-			if (regStartAddr >= 1500+ACTRUL_DO_NUM)
+			if (!mode)
 			{
-				regStartAddr = 1500;
-				databuf[1]++;
-				if (databuf[1] >=2)
+				count++;
+				Write_SingleCoil(regStartAddr, databuf, &uErr);
+				regStartAddr++;
+				if (regStartAddr >= 1500+ACTRUL_DO_NUM)
 				{
-					databuf[1] = 0;
+					regStartAddr = 1500;
+					databuf[1]++;
+					if (databuf[1] >=2)
+					{
+						databuf[1] = 0;
+					}
+				}
+			}
+			else
+			{
+				sub_count++;
+				// 完成后10s一次测试循环高低温拷机
+				if (sub_count >= 20)
+				{
+					sub_count = 0;
+					Write_SingleCoil(regStartAddr, databuf, &uErr);
+					regStartAddr++;
+					if (regStartAddr >= 1500+ACTRUL_DO_NUM)
+					{
+						regStartAddr = 1500;
+						databuf[1]++;
+						if (databuf[1] >=2)
+						{
+							databuf[1] = 0;
+						}
+					}
 				}
 			}
 		}
@@ -240,6 +265,10 @@ static bool test_entry(void)
 			{
 				LED_Set(LED_COM, ON);
 			}
+		}
+		if (count > 96)
+		{
+			mode = TRUE;
 		}
 	} 
 	else if (dip_setting != last_dip_setting) 
@@ -263,6 +292,8 @@ static bool test_entry(void)
 		}
 		*/
 		entry = FALSE;
+		mode =FALSE;
+		count = 0;
 	}
 
 	return exit;
