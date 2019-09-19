@@ -112,15 +112,8 @@ static void Task_Schedule(void)
 	}
 
 	DO_Pulse_End_Task();
-	if  (finish_flag == (BIT(TEST_NUMBER_OF_TESTS)-1))
+	if ((finish_flag == (BIT(TEST_NUMBER_OF_TESTS)-1))&&(test_mode_is_entry()))
 	{
-		static bool entry = FALSE;
-		if(entry == FALSE)
-		{
-			entry = TRUE;
-			//延时700ms让灭灯能看出来
-			Delay_Xms(700);
-		}
 		test_indication();
 	}
 

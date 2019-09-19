@@ -45,8 +45,6 @@ typedef  struct
 }PROTOCOL_BUF;
 
 extern PROTOCOL_BUF	ProtocolBuf[UART_NUM];
-extern bool test485Flag;
-extern bool test232Flag;
 
 void Comm1_Init(uint32_t baudrate);
 #if (BD_USART_NUM >= 2)

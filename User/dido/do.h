@@ -171,6 +171,7 @@ void DeviceX_Deactivate(DEVICE_CTRL_LIST dev,UINT8 direction);
 void Do_Status_Save(void);
 void Do_Status_Update(void);
 void Get_Do_Status_And_Output(void);
+void  Do_Output_Start_End(UINT8 start_num, UINT8 end_num, UINT8 out_st);
 void DO_All_Output(UINT8 direction);
 
 #endif

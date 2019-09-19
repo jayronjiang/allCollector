@@ -301,6 +301,45 @@ void  Get_Do_Status_And_Output(void)
 
 
 /******************************************************************************
+ * 函数名:	Do_Output_Start_End 
+ * 描述: 
+ *            -继电器动作
+ * 输入参数: 继电器对应的DO序号0~1
+ * 输出参数: 无
+ * 返回值: 1:继电器操作成功0:无效操作
+ * 
+ * 作者:Jerry
+ * 创建日期:2019.7.18
+ * 
+ ******************************************************************************/
+void  Do_Output_Start_End(UINT8 start_num, UINT8 end_num, UINT8 out_st)
+{
+	UINT8 num;
+
+	assert_param(start_num<DO_NUM);
+	assert_param(end_num<DO_NUM);
+	
+	for( num=start_num; num< end_num; num++ )
+	{
+		if (out_st == DIR_CLOSE)
+		{
+			DO_Status |= BIT(num);
+			DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_CLOSE);
+			// 脉冲2s钟
+			swt_20_ms_set(DIR_CLOSE,num,20*PULSE_LEN);
+		}
+		else
+		{
+			DO_Status &= ~(BIT(num));
+			DeviceX_Activate((DEVICE_CTRL_LIST)num, DIR_OPEN);
+			swt_20_ms_set(DIR_OPEN,num,20*PULSE_LEN);
+		}
+	}
+}
+
+
+
+/******************************************************************************
  * 函数名:	Relay_Act 
  * 描述: 
  *            -继电器动作

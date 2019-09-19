@@ -355,7 +355,7 @@ void comm_rec_proc(void)
 	{
 		if (UARTBuf[i].RecFlag)		                      //client的RS485口有数据
 		{
-			if (test485Flag &&(i==testRxUt))
+			if (test485Flag &&(i==testRxUt[0]))
 			{
 				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
@@ -364,12 +364,12 @@ void comm_rec_proc(void)
 				UARTBuf[i].RxLen = 0;
 				ProtocolBuf[i].TxLen = 0;
 				// 如果接收和发送相等,485测试完毕
-				if (!memcmp(ProtocolBuf[testRxUt].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
+				if (!memcmp(ProtocolBuf[testRxUt[0]].pRxBuf, ProtocolBuf[testTxUt[0]].pTxBuf,ProtocolBuf[i].RxLen))
 				{
 					test485Flag = FALSE;
 				}
 			}
-			else if (test232Flag &&((i==UART1_COM)||(i==UART2_COM)))
+			else if ((test232Flag[0] &&(i==UART1_COM)) ||(test232Flag[1] &&(i==UART2_COM)))
 			{
 				UARTBuf[i].RecFlag = 0;		//接收数据已处理，清除相关标志
 				ProtocolBuf[i].pTxBuf = UARTBuf[i].TxBuf;         //地址置换
@@ -378,9 +378,16 @@ void comm_rec_proc(void)
 				UARTBuf[i].RxLen = 0;
 				ProtocolBuf[i].TxLen = 0;
 				// 如果接收和发送相等,232测试完毕
-				if (!memcmp(ProtocolBuf[i].pRxBuf, ProtocolBuf[testTxUt].pTxBuf,ProtocolBuf[i].RxLen))
+				if (!memcmp(ProtocolBuf[i].pRxBuf, ProtocolBuf[i].pTxBuf,ProtocolBuf[i].RxLen))
 				{
-					test232Flag = FALSE;
+					if (i==UART1_COM)
+					{
+						test232Flag[0] = FALSE;
+					}
+					else
+					{
+						test232Flag[1] = FALSE;
+					}
 				}
 			}
 			else
